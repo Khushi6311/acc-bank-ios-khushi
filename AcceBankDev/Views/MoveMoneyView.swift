@@ -126,7 +126,7 @@ struct MoveMoneyView: View {
                 
                 ScrollView {
                     VStack(alignment: .leading, spacing: 15) {
-                        InteracOptionRow(icon: "arrow.left.arrow.right", title: "Between Your Accounts")
+                        InteracOptionRow(icon: "arrow.left.arrow.right", title: "Transfer money")
                         InteracOptionRow(icon: "building.columns.fill", title: "To Another Bank")
                         //InteracOptionRow(icon: "clock.fill", title: "Scheduled Transfers")
                         InteracOptionRow(icon: "building.columns.fill", title: "Manage Contacts")
@@ -223,7 +223,7 @@ struct MoveMoneyView: View {
                 if title == "Send money" {
                     isShowingSendMoney = true
                 }
-                else if title == "Request money" {
+                else if title == "Transfer money" {
                     isShowingTransferMoney = true
                 }
                 else if title == "Manage Contacts" {

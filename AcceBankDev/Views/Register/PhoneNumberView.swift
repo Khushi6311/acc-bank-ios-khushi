@@ -170,23 +170,54 @@ struct PhoneNumberView: View {
     }
 
     // Format phone number while typing
+//    private func formatPhoneNumber(_ number: String, countryCode: String) -> String {
+//        let digits = number.filter { "0123456789".contains($0) } // Remove non-numeric characters
+//
+//        if countryCode == "+1" { // Canada Formatting
+//            if digits.count > 10 {
+//                return String(digits.prefix(10))
+//            } else if digits.count >= 6 {
+//                return "(\(digits.prefix(3))) \(digits.dropFirst(3).prefix(3))-\(digits.dropFirst(6))"
+//            } else if digits.count >= 3 {
+//                return "(\(digits.prefix(3))) \(digits.dropFirst(3))"
+//            } else {
+//                return digits
+//            }
+//        } else { // India Formatting
+//            return digits.prefix(10).description // Only 10 digits for India
+//        }
+//    }
+    //24 march
     private func formatPhoneNumber(_ number: String, countryCode: String) -> String {
-        let digits = number.filter { "0123456789".contains($0) } // Remove non-numeric characters
+        let digits = number.filter { "0123456789".contains($0) }
 
-        if countryCode == "+1" { // Canada Formatting
-            if digits.count > 10 {
-                return String(digits.prefix(10))
-            } else if digits.count >= 6 {
-                return "(\(digits.prefix(3))) \(digits.dropFirst(3).prefix(3))-\(digits.dropFirst(6))"
-            } else if digits.count >= 3 {
-                return "(\(digits.prefix(3))) \(digits.dropFirst(3))"
-            } else {
+        if countryCode == "+1" {
+            // Canadian format: (XXX) XXX-XXXX
+            if digits.count == 0 {
+                return ""
+            } else if digits.count <= 3 {
                 return digits
+            } else if digits.count <= 6 {
+                return "(\(digits.prefix(3))) \(digits.dropFirst(3))"
+            } else if digits.count <= 10 {
+                return "(\(digits.prefix(3))) \(digits.dropFirst(3).prefix(3))-\(digits.dropFirst(6))"
+            } else {
+                return "(\(digits.prefix(3))) \(digits.dropFirst(3).prefix(3))-\(digits.dropFirst(6).prefix(4))"
             }
-        } else { // India Formatting
-            return digits.prefix(10).description // Only 10 digits for India
+        } else if countryCode == "+91" {
+            // Indian format: XXXXX YYYYY
+            let trimmed = String(digits.prefix(10))
+            if trimmed.count <= 5 {
+                return trimmed
+            } else {
+                return "\(trimmed.prefix(5)) \(trimmed.dropFirst(5))"
+            }
+        } else {
+            return digits
         }
     }
+
+
 }
 #Preview {
     PhoneNumberView(username: "TestUser")

@@ -32,7 +32,8 @@ struct AddContactFormView: View {
     @State private var mobilePhoneError = false
     @State private var securityAnswerError = false
     @State private var reEnterSecurityAnswerError = false
-    
+    @State private var previousMobilePhone = ""
+
     // Country Code Options
     let countryCodes = [
         "+1",  // Canada
@@ -125,9 +126,30 @@ struct AddContactFormView: View {
 //                                .onChange(of: mobilePhone) { newValue in
 //                                    mobilePhone = formatPhoneNumber(newValue)
 //                                }
-                            .onChange(of: mobilePhone) {
-                                mobilePhone = formatPhoneNumber(mobilePhone)
-                            }
+//                            .onChange(of: mobilePhone) {
+//                                mobilePhone = formatPhoneNumber(mobilePhone)
+//                            }
+                        //24 march
+                            .onChange(of: mobilePhone) { newValue in
+                                    let digits = newValue.filter { $0.isNumber }
+
+                                    // Check if user is deleting
+                                    if newValue.count < previousMobilePhone.count {
+                                        previousMobilePhone = newValue
+                                        return
+                                    }
+
+                                    // Apply formatting
+                                    if selectedCountry.contains("+1") {
+                                        let formatted = formatAsCanadianNumber(digits)
+                                        mobilePhone = formatted
+                                        previousMobilePhone = formatted
+                                    } else {
+                                        let formatted = formatAsIndianNumber(digits)
+                                        mobilePhone = formatted
+                                        previousMobilePhone = formatted
+                                    }
+                                }
 
                     }
                     
@@ -244,23 +266,45 @@ struct AddContactFormView: View {
         }
     }
     
+//    func formatAsCanadianNumber(_ digits: String) -> String {
+//        let maxLength = 10
+//        let trimmed = String(digits.prefix(maxLength))
+//        if trimmed.count >= 6 {
+//            return "(\(trimmed.prefix(3))) \(trimmed.dropFirst(3).prefix(3))-\(trimmed.dropFirst(6))"
+//        }
+//        return trimmed
+//    }
+//    
+//    func formatAsIndianNumber(_ digits: String) -> String {
+//        let maxLength = 10
+//        let trimmed = String(digits.prefix(maxLength))
+//        if trimmed.count >= 5 {
+//            return "\(trimmed.prefix(5))-\(trimmed.dropFirst(5))"
+//        }
+//        return trimmed
+//    }
+    
     func formatAsCanadianNumber(_ digits: String) -> String {
         let maxLength = 10
         let trimmed = String(digits.prefix(maxLength))
         if trimmed.count >= 6 {
             return "(\(trimmed.prefix(3))) \(trimmed.dropFirst(3).prefix(3))-\(trimmed.dropFirst(6))"
+        } else if trimmed.count >= 3 {
+            return "(\(trimmed.prefix(3))) \(trimmed.dropFirst(3))"
+        } else {
+            return trimmed
         }
-        return trimmed
     }
-    
+
     func formatAsIndianNumber(_ digits: String) -> String {
         let maxLength = 10
         let trimmed = String(digits.prefix(maxLength))
         if trimmed.count >= 5 {
-            return "\(trimmed.prefix(5))-\(trimmed.dropFirst(5))"
+            return "\(trimmed.prefix(5)) \(trimmed.dropFirst(5))"
         }
         return trimmed
     }
+
 }
 
 //contact confirm
@@ -367,7 +411,7 @@ struct ContactConfirmationView: View {
 
     // Save contact function
     private func saveContact() {
-        print("🔹 Security Answer Before Saving: \(securityAnswer)") // ✅ Debug
+        print("🔹 Security Answer Before Saving: \(securityAnswer)") // Debug
 
         let newContact = Contact(
             id: UUID(),
@@ -380,7 +424,7 @@ struct ContactConfirmationView: View {
             securityQuestion: securityQuestion,
             securityAnswer: securityAnswer
         )
-        print("Saving Contact: \(newContact)") // ✅ Debug print before saving
+        print("Saving Contact: \(newContact)") // Debug print before saving
 
         contactManager.addContact(newContact)
         contactManager.saveContacts()
