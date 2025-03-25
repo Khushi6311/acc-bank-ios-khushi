@@ -144,18 +144,18 @@ struct SendMoneyView: View {
                     
                     // Show only Security Question if a contact is selected
                     if let contact = selectedContact {
-                        if !contact.securityQuestion.isEmpty {
-                            // Security Question
-                            Text(NSLocalizedString("security_question", comment: ""))
-                                .font(.subheadline)
-                                .foregroundColor(.gray)
-                            
-                            TextField("", text: .constant(contact.securityQuestion))
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                                .disabled(true) // Make it non-editable
-                                .foregroundColor(.gray) // Display as read-only
-                                .padding(.bottom, 5)
-                        }
+//                        if !contact.securityQuestion.isEmpty {
+//                            // Security Question
+//                            Text(NSLocalizedString("security_question", comment: ""))
+//                                .font(.subheadline)
+//                                .foregroundColor(.gray)
+//                            
+//                            TextField("", text: .constant(contact.securityQuestion))
+//                                .textFieldStyle(RoundedBorderTextFieldStyle())
+//                                .disabled(true) // Make it non-editable
+//                                .foregroundColor(.gray) // Display as read-only
+//                                .padding(.bottom, 5)
+//                        }
 
                         if !contact.email.isEmpty {
                             // Email Field
@@ -216,7 +216,7 @@ struct SendMoneyView: View {
                     
                     // Error Message
 //                    if showError {
-//                        Text("⚠️ Please select a contact, enter an amount, and acknowledge the terms.")//
+//                        Text("Please select a contact, enter an amount, and acknowledge the terms.")//
                     if showError {
                         Text(NSLocalizedString("error_select_contact", comment: ""))
                             .foregroundColor(.red)
@@ -460,7 +460,7 @@ struct SendMoneyView: View {
                                     }
 
 //                                    PaymentDetailRow(title: "Security question", value: contact?.securityQuestion ?? "N/A", bold: true)//
-                                    PaymentDetailRow(title: NSLocalizedString("security_question_label", comment: ""), value: contact?.securityQuestion ?? "N/A", bold: true)
+//                                    PaymentDetailRow(title: NSLocalizedString("security_question_label", comment: ""), value: contact?.securityQuestion ?? "N/A", bold: true)
                                 }
                                 .padding()
                             }
@@ -564,7 +564,7 @@ struct SendMoneyView: View {
                         PaymentDetailRow(title: NSLocalizedString("message", comment: ""), value: message)
                     }
 
-                    PaymentDetailRow(title: "Security question", value: contact?.securityQuestion ?? "", bold: true)
+//                    PaymentDetailRow(title: "Security question", value: contact?.securityQuestion ?? "", bold: true)
                 }
                 .padding(.horizontal)
                 
@@ -734,6 +734,9 @@ struct SendMoneyView: View {
         
         @State private var name = ""
         @State private var email = ""
+        @State private var language = ""
+        @State private var nickname = ""
+
         @State private var mobilePhone = ""
         @State private var sendByEmail = false
         @State private var sendByMobile = false
@@ -753,7 +756,8 @@ struct SendMoneyView: View {
         @State private var mobilePhoneError = false
         @State private var securityAnswerError = false
         @State private var reEnterSecurityAnswerError = false
-        
+        @State private var previousMobilePhone = ""
+
         // Country Code Options
         let countryCodes = [
             "+1",  // Canada
@@ -845,9 +849,30 @@ struct SendMoneyView: View {
 //                                .onChange(of: mobilePhone) { newValue in
 //                                    mobilePhone = formatPhoneNumber(newValue)
 //                                }
-                                .onChange(of: mobilePhone) {
-                                    mobilePhone = formatPhoneNumber(mobilePhone)
-                                }
+//                                .onChange(of: mobilePhone) {
+//                                    mobilePhone = formatPhoneNumber(mobilePhone)
+//                                }
+                            //25 march
+                                .onChange(of: mobilePhone) { newValue in
+                                        let digits = newValue.filter { $0.isNumber }
+
+                                        // Check if user is deleting
+                                        if newValue.count < previousMobilePhone.count {
+                                            previousMobilePhone = newValue
+                                            return
+                                        }
+
+                                        // Apply formatting
+                                        if selectedCountry.contains("+1") {
+                                            let formatted = formatAsCanadianNumber(digits)
+                                            mobilePhone = formatted
+                                            previousMobilePhone = formatted
+                                        } else {
+                                            let formatted = formatAsIndianNumber(digits)
+                                            mobilePhone = formatted
+                                            previousMobilePhone = formatted
+                                        }
+                                    }
 
                         }
                         
@@ -866,40 +891,40 @@ struct SendMoneyView: View {
                         
                         // Security Details
                         //TextField("Security question", text: $securityQuestion)
-                        TextField(NSLocalizedString("security_question", comment: ""), text: $securityQuestion)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
+//                        TextField(NSLocalizedString("security_question", comment: ""), text: $securityQuestion)
+//                            .textFieldStyle(RoundedBorderTextFieldStyle())
                         
                             //SecureField("Security answer", text: $securityAnswer)
-                        SecureField(NSLocalizedString("security_answer", comment: ""), text: $securityAnswer)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                            .onChange(of: securityAnswer) { newValue in
-                                print("🔹 Security Answer Entered: \(newValue)") // ✅ Debug if value updates
-                            }
+//                        SecureField(NSLocalizedString("security_answer", comment: ""), text: $securityAnswer)
+//                            .textFieldStyle(RoundedBorderTextFieldStyle())
+//                            .onChange(of: securityAnswer) { newValue in
+//                                print("Security Answer Entered: \(newValue)") // Debug if value updates
+//                            }
 
-                            .overlay(RoundedRectangle(cornerRadius: 8).stroke(securityAnswerError ? Color.red : Color.clear, lineWidth: 1))
-                        if securityAnswerError {
-                            //Text("Required field.")
-                            Text(NSLocalizedString("error_required_field", comment: ""))
-
-                                .font(.footnote)
-                                .foregroundColor(.red)
-                        }
+//                            .overlay(RoundedRectangle(cornerRadius: 8).stroke(securityAnswerError ? Color.red : Color.clear, lineWidth: 1))
+//                        if securityAnswerError {
+//                            //Text("Required field.")
+//                            Text(NSLocalizedString("error_required_field", comment: ""))
+//
+//                                .font(.footnote)
+//                                .foregroundColor(.red)
+//                        }
                         
 //                        SecureField("Re-enter security answer", text: $reEnterSecurityAnswer)
-                        SecureField(NSLocalizedString("re-enter_sec_answer", comment: ""), text: $reEnterSecurityAnswer)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                            .overlay(RoundedRectangle(cornerRadius: 8).stroke(reEnterSecurityAnswerError ? Color.red : Color.clear, lineWidth: 1))
-                        if reEnterSecurityAnswerError {
-                            //Text("Answers do not match.")answer_not_match
-                            Text(NSLocalizedString("answer_not_match", comment: ""))
-
-                                .font(.footnote)
-                                .foregroundColor(.red)
-                        }
+//                        SecureField(NSLocalizedString("re-enter_sec_answer", comment: ""), text: $reEnterSecurityAnswer)
+//                            .textFieldStyle(RoundedBorderTextFieldStyle())
+//                            .overlay(RoundedRectangle(cornerRadius: 8).stroke(reEnterSecurityAnswerError ? Color.red : Color.clear, lineWidth: 1))
+//                        if reEnterSecurityAnswerError {
+//                            //Text("Answers do not match.")answer_not_match
+//                            Text(NSLocalizedString("answer_not_match", comment: ""))
+//
+//                                .font(.footnote)
+//                                .foregroundColor(.red)
+//                        }
                         
                         // Review Contact Button with Validation
                         Button(action: {
-                            print("Security Answer Entered Before Saving: \(securityAnswer)") // ✅ Debug
+                            //print("Security Answer Entered Before Saving: \(securityAnswer)") // Debug
 
                             if validateFields() {
                                 showConfirmationSheet = true
@@ -931,8 +956,9 @@ struct SendMoneyView: View {
                     mobilePhone: fullPhoneNumber(),
                     sendByEmail: sendByEmail,
                     sendByMobile: sendByMobile,
-                    securityQuestion: securityQuestion,
-                    securityAnswer: securityAnswer
+                    language: language, nickname:nickname
+//                    securityQuestion: securityQuestion,
+//                    securityAnswer: securityAnswer
                 )
                 .presentationDetents([.large])
                 .presentationDragIndicator(.hidden)
@@ -942,17 +968,17 @@ struct SendMoneyView: View {
         // Function to Validate Fields
         func validateFields() -> Bool {
             nameError = name.isEmpty
-            //emailError = email.isEmpty || !isValidEmail(email)
+            emailError = email.isEmpty || !isValidEmail(email)
             mobilePhoneError = mobilePhone.isEmpty || mobilePhone.count < 10
             securityAnswerError = securityAnswer.isEmpty
             reEnterSecurityAnswerError = securityAnswer != reEnterSecurityAnswer
             
             return !(nameError || emailError || mobilePhoneError || securityAnswerError || reEnterSecurityAnswerError)
         }
-//        func isValidEmail(_ email: String) -> Bool {
-//                let emailRegex = #"^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$"#
-//                return email.range(of: emailRegex, options: .regularExpression, range: nil, locale: nil) != nil
-//            }
+        func isValidEmail(_ email: String) -> Bool {
+                let emailRegex = #"^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$"#
+                return email.range(of: emailRegex, options: .regularExpression, range: nil, locale: nil) != nil
+            }
 
         // Function to Get Full Phone Number with Country Code
         func fullPhoneNumber() -> String {
@@ -976,18 +1002,22 @@ struct SendMoneyView: View {
             let trimmed = String(digits.prefix(maxLength))
             if trimmed.count >= 6 {
                 return "(\(trimmed.prefix(3))) \(trimmed.dropFirst(3).prefix(3))-\(trimmed.dropFirst(6))"
+            } else if trimmed.count >= 3 {
+                return "(\(trimmed.prefix(3))) \(trimmed.dropFirst(3))"
+            } else {
+                return trimmed
             }
-            return trimmed
         }
         
         func formatAsIndianNumber(_ digits: String) -> String {
             let maxLength = 10
             let trimmed = String(digits.prefix(maxLength))
             if trimmed.count >= 5 {
-                return "\(trimmed.prefix(5))-\(trimmed.dropFirst(5))"
+                return "\(trimmed.prefix(5)) \(trimmed.dropFirst(5))"
             }
             return trimmed
         }
+
     }
 
     // summary form of conatct
@@ -1000,8 +1030,10 @@ struct SendMoneyView: View {
         var mobilePhone: String
         var sendByEmail: Bool
         var sendByMobile: Bool
-        var securityQuestion: String
-        var securityAnswer: String
+        var language:String
+        var nickname:String
+//        var securityQuestion: String
+//        var securityAnswer: String
 
         @State private var showSuccessScreen = false // State to show success screen
         @State private var navigateToSendMoney = false // State to go back to Send Money
@@ -1048,13 +1080,13 @@ struct SendMoneyView: View {
                         )
                         
                                    //Text("Debug Security Answer: \(securityAnswer)") // Debug: Check if securityAnswer is empty
-                        DetailRow(title: NSLocalizedString("security_question", comment: ""), value: securityQuestion, bold: true)
+//                        DetailRow(title: NSLocalizedString("security_question", comment: ""), value: securityQuestion, bold: true)
                         //DetailRow(title: NSLocalizedString("security_answer", comment: ""), value: securityAnswer, bold: true)
-                        DetailRow(
-                            title: NSLocalizedString("security_answer", comment: ""),
-                            value: String(repeating: "*", count: securityAnswer.count), // Mask answer with asterisks
-                            bold: true
-                        )
+//                        DetailRow(
+//                            title: NSLocalizedString("security_answer", comment: ""),
+//                            value: String(repeating: "*", count: securityAnswer.count), // Mask answer with asterisks
+//                            bold: true
+//                        )
 
 
                     }
@@ -1089,7 +1121,7 @@ struct SendMoneyView: View {
 
         // Save contact function
         private func saveContact() {
-            print("🔹 Security Answer Before Saving: \(securityAnswer)") // ✅ Debug
+            //print("🔹 Security Answer Before Saving: \(securityAnswer)") // Debug
 
             let newContact = Contact(
                 id: UUID(),
@@ -1099,10 +1131,12 @@ struct SendMoneyView: View {
                 mobilePhone: mobilePhone,
                 sendByEmail: sendByEmail,
                 sendByMobile: sendByMobile,
-                securityQuestion: securityQuestion,
-                securityAnswer: securityAnswer
+                nickname: nickname,
+                language:language
+                //securityQuestion: securityQuestion,
+                //securityAnswer: securityAnswer
             )
-            print("Saving Contact: \(newContact)") // ✅ Debug print before saving
+            print("Saving Contact: \(newContact)") // Debug print before saving
 
             contactManager.addContact(newContact)
             contactManager.saveContacts()

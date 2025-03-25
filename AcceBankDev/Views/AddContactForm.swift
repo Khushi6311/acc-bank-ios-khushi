@@ -12,12 +12,16 @@ struct AddContactFormView: View {
     @ObservedObject var contactManager: ContactManager
     
     @State private var name = ""
+    @State private var nickname = ""
+    @State private var language = ""
+
+
     @State private var email = ""
     @State private var mobilePhone = ""
     @State private var sendByEmail = false
     @State private var sendByMobile = false
-    @State private var securityQuestion = ""
-    @State private var securityAnswer = ""
+    //@State private var securityQuestion = ""
+    //@State private var securityAnswer = ""
     @State private var reEnterSecurityAnswer = ""
     
     @State private var showConfirmationSheet = false
@@ -76,7 +80,18 @@ struct AddContactFormView: View {
                             .font(.footnote)
                             .foregroundColor(.red)
                     }
-                    
+                    TextField(NSLocalizedString("nick_name", comment: ""), text: $nickname)
+
+                        .padding()
+                        .background(Color(.systemGray6))
+                        .cornerRadius(8)
+                        .overlay(RoundedRectangle(cornerRadius: 8).stroke(nameError ? Color.red : Color.clear, lineWidth: 1))
+                    TextField(NSLocalizedString("preffered_language", comment: ""), text: $language)
+
+                        .padding()
+                        .background(Color(.systemGray6))
+                        .cornerRadius(8)
+                        .overlay(RoundedRectangle(cornerRadius: 8).stroke(nameError ? Color.red : Color.clear, lineWidth: 1))
                     // Email Field
                     //TextField("Email", text: $email)
                     TextField(NSLocalizedString("email", comment: ""), text: $email)
@@ -168,32 +183,32 @@ struct AddContactFormView: View {
                     
                     // Security Details
                     //TextField("Security question", text: $securityQuestion)
-                    TextField(NSLocalizedString("security_question", comment: ""), text: $securityQuestion)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                    
-                        //SecureField("Security answer", text: $securityAnswer)
-                    SecureField(NSLocalizedString("security_answer", comment: ""), text: $securityAnswer)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .overlay(RoundedRectangle(cornerRadius: 8).stroke(securityAnswerError ? Color.red : Color.clear, lineWidth: 1))
-                    if securityAnswerError {
-                        //Text("Required field.")
-                        Text(NSLocalizedString("error_required_field", comment: ""))
-
-                            .font(.footnote)
-                            .foregroundColor(.red)
-                    }
-                    
-//                        SecureField("Re-enter security answer", text: $reEnterSecurityAnswer)
-                    SecureField(NSLocalizedString("re-enter_sec_answer", comment: ""), text: $reEnterSecurityAnswer)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .overlay(RoundedRectangle(cornerRadius: 8).stroke(reEnterSecurityAnswerError ? Color.red : Color.clear, lineWidth: 1))
-                    if reEnterSecurityAnswerError {
-                        //Text("Answers do not match.")answer_not_match
-                        Text(NSLocalizedString("answer_not_match", comment: ""))
-
-                            .font(.footnote)
-                            .foregroundColor(.red)
-                    }
+//                    TextField(NSLocalizedString("security_question", comment: ""), text: $securityQuestion)
+//                        .textFieldStyle(RoundedBorderTextFieldStyle())
+//                    
+//                        //SecureField("Security answer", text: $securityAnswer)
+//                    SecureField(NSLocalizedString("security_answer", comment: ""), text: $securityAnswer)
+//                        .textFieldStyle(RoundedBorderTextFieldStyle())
+//                        .overlay(RoundedRectangle(cornerRadius: 8).stroke(securityAnswerError ? Color.red : Color.clear, lineWidth: 1))
+//                    if securityAnswerError {
+//                        //Text("Required field.")
+//                        Text(NSLocalizedString("error_required_field", comment: ""))
+//
+//                            .font(.footnote)
+//                            .foregroundColor(.red)
+//                    }
+//                    
+////                        SecureField("Re-enter security answer", text: $reEnterSecurityAnswer)
+//                    SecureField(NSLocalizedString("re-enter_sec_answer", comment: ""), text: $reEnterSecurityAnswer)
+//                        .textFieldStyle(RoundedBorderTextFieldStyle())
+//                        .overlay(RoundedRectangle(cornerRadius: 8).stroke(reEnterSecurityAnswerError ? Color.red : Color.clear, lineWidth: 1))
+//                    if reEnterSecurityAnswerError {
+//                        //Text("Answers do not match.")answer_not_match
+//                        Text(NSLocalizedString("answer_not_match", comment: ""))
+//
+//                            .font(.footnote)
+//                            .foregroundColor(.red)
+//                    }
                     //Spacer()
                     // Review Contact Button with Validation
                     Button(action: {
@@ -228,8 +243,10 @@ struct AddContactFormView: View {
             mobilePhone: fullPhoneNumber(),
             sendByEmail: sendByEmail,
             sendByMobile: sendByMobile,
-            securityQuestion: securityQuestion,
-            securityAnswer: securityAnswer
+            nickname:nickname,
+            language:language
+            //securityQuestion: securityQuestion,
+            //securityAnswer: securityAnswer
         )
     }
     }
@@ -237,17 +254,22 @@ struct AddContactFormView: View {
     // Function to Validate Fields
     func validateFields() -> Bool {
         nameError = name.isEmpty
-        //emailError = email.isEmpty || !isValidEmail(email)
+        emailError = email.isEmpty || !isValidEmail(email)
         mobilePhoneError = mobilePhone.isEmpty || mobilePhone.count < 10
-        securityAnswerError = securityAnswer.isEmpty
-        reEnterSecurityAnswerError = securityAnswer != reEnterSecurityAnswer
+        //securityAnswerError = securityAnswer.isEmpty
+        //reEnterSecurityAnswerError = securityAnswer != reEnterSecurityAnswer
         
         return !(nameError || emailError || mobilePhoneError || securityAnswerError || reEnterSecurityAnswerError)
     }
-        func isValidEmail(_ email: String) -> Bool {
-                let emailRegex = #"^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$"#
-                return email.range(of: emailRegex, options: .regularExpression, range: nil, locale: nil) != nil
-            }
+//        func isValidEmail(_ email: String) -> Bool {
+//                let emailRegex = #"^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$"#
+//                return email.range(of: emailRegex, options: .regularExpression, range: nil, locale: nil) != nil
+//            }
+    func isValidEmail(_ email: String) -> Bool {
+        let emailRegex = #"^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$"#
+        return email.range(of: emailRegex, options: [.regularExpression, .caseInsensitive]) != nil
+    }
+
 
     // Function to Get Full Phone Number with Country Code
     func fullPhoneNumber() -> String {
@@ -317,8 +339,10 @@ struct ContactConfirmationView: View {
     var mobilePhone: String
     var sendByEmail: Bool
     var sendByMobile: Bool
-    var securityQuestion: String
-    var securityAnswer: String
+    var nickname:String
+    var language:String
+    //var securityQuestion: String
+    //var securityAnswer: String
 
     @State private var showSuccessScreen = false // State to show success screen
     @State private var navigateToSendMoney = false // State to go back to Send Money
@@ -369,15 +393,16 @@ struct ContactConfirmationView: View {
                         value: sendByEmail ? NSLocalizedString("send_by_email", comment: "") : NSLocalizedString("send_by_mobile", comment: "")
                     )
                     
-                               //Text("Debug Security Answer: \(securityAnswer)") // ✅ Debug: Check if securityAnswer is empty
-                    DetailRow(title: NSLocalizedString("security_question", comment: ""), value: securityQuestion, bold: true)
+                               //Text("Debug Security Answer: \(securityAnswer)") // Debug: Check if securityAnswer is empty
+//                    DetailRow(title: NSLocalizedString("security_question", comment: ""), value: securityQuestion, bold: true)
                     //DetailRow(title: NSLocalizedString("security_answer", comment: ""), value: securityAnswer, bold: true)
-                    DetailRow(
-                        title: NSLocalizedString("security_answer", comment: ""),
-                        value: String(repeating: "*", count: securityAnswer.count), // Mask answer with asterisks
-                        bold: true
-                    )
-
+//                    DetailRow(
+//                        title: NSLocalizedString("security_answer", comment: ""),
+//                        value: String(repeating: "*", count: securityAnswer.count), // Mask answer with asterisks
+//                        bold: true
+//                    )
+                    DetailRow(title: NSLocalizedString("nick_name", comment: ""), value: nickname)
+                    DetailRow(title: NSLocalizedString("language", comment: ""), value: language)
 
                 }
                 .padding(.horizontal)
@@ -411,7 +436,7 @@ struct ContactConfirmationView: View {
 
     // Save contact function
     private func saveContact() {
-        print("🔹 Security Answer Before Saving: \(securityAnswer)") // Debug
+        //print("🔹 Security Answer Before Saving: \(securityAnswer)") // Debug
 
         let newContact = Contact(
             id: UUID(),
@@ -421,8 +446,10 @@ struct ContactConfirmationView: View {
             mobilePhone: mobilePhone,
             sendByEmail: sendByEmail,
             sendByMobile: sendByMobile,
-            securityQuestion: securityQuestion,
-            securityAnswer: securityAnswer
+            nickname: nickname,
+            language: language
+            //securityQuestion: securityQuestion,
+            //securityAnswer: securityAnswer
         )
         print("Saving Contact: \(newContact)") // Debug print before saving
 

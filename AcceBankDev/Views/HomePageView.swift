@@ -83,7 +83,7 @@ struct HomePageView: View {
                             VStack(spacing: 15) {
                                 ScrollView(.horizontal, showsIndicators: false) {
                                     HStack(spacing: 12) {
-                                        AccountView(icon: "dollarsign.circle.fill", title: "Balance", number: "(6982)", amount: "$ 9006.23", isSelected: selectedAccount == "Balance")
+                                        AccountView(icon: "dollarsign.circle.fill",title:  NSLocalizedString("balance", comment: ""), number: "(6982)", amount: "$ 9006.23", isSelected: selectedAccount == "Balance")
                                             .onTapGesture {
                                                 withAnimation { selectedAccount = "Balance" }
                                             }

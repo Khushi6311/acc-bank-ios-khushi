@@ -11,7 +11,7 @@ struct BankAccount: Identifiable, Codable, Equatable {
     var balance: String       // $51,494.78
     
     
-    // ✅ Define equality check
+    // Define equality check
     static func == (lhs: BankAccount, rhs: BankAccount) -> Bool {
         return lhs.id == rhs.id // Compare by unique ID
     }

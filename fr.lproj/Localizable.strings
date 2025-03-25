@@ -159,6 +159,8 @@
 "bank_name" = "Acceinfo Banque";
 "greeting_text" = "Bonjour";
 "savings" = "Épargne";
+"balance"="Équilibre";
+
 "chequing" = "Compte courant";
 "loan" = "Prêt";
 "investments" = "Investissements";
@@ -172,21 +174,31 @@
 
 //#########new MoveMoney files data
 "move_money_title" = "Transférer de l'argent";
-"transfers_title" = "Transferts";
+"transfers_option" = "Transferts";
+"transfers_options_subtitle"="PROPRES COMPTES BANCAIRES";
+
 "bank_transfer" = "Virement bancaire";
 "wire_transfer" = "Virement électronique";
 "international_transfer" = "Transfert international";
-"instant_transfer" = "Transfert instantané";
+//"interac_transfer" = "Transfert instantané";
+"interac_transfer_subtitle"="ENVOYER OU DEMANDER DE L'ARGENT";
+"payments_option" = "Paiements";
+
+"payments_option_subtitle"="TRANSFERT DE FONDS ENTRE BANQUES CANADIENNES";
+"scheduled_transfers_option"="ENVOYEZ DE L'ARGENT À VOTRE CLIENT";
+
 "quick_pay" = "Paiement rapide";
 "local_transfer" = "Transfert local";
 "mobile_wallet" = "Portefeuille mobile";
 "crypto_transfer" = "Transfert crypto";
 "manage_recipient"="Gérer le destinataire";
 "transfer_money"="Transférer de l'argent";
+"transfer_money"="Transférer de l'argent";
+"to_another_bank"="Vers une autre banque";
 
 
 
-"interac_transfer" = "Interac e-Transfer®";
+//"interac_transfer" = "Interac e-Transfer®";
 "send_money" = "Envoyer de l'argent";
 "request_money" = "Demander de l'argent";
 "manage_contacts" = "Gérer les contacts";
@@ -233,10 +245,47 @@
 //below is for transfer money screen
 "tansfer_money"="Transférer de l'argent";
 "memo"="Memo";
-"transfer_to"="Transfer to";
-"transfer_from"="Transfer from";
-"onetime_payment"="Onetime";
-"recurring_payment"="Recurring";
+//"transfer_to"="Transfer to";
+//"transfer_from"="Transfer from";
+"onetime_payment"="Une fois";
+"recurring_payment"="Récurrente";
+
+//transfer money screen
+"one_time_payment"="Paiement unique";
+"recurring_payment"="Paiement récurrent";
+"select_frequency"="Sélectionnez la fréquence";
+"frequency"="Fréquence";
+"weekly"="Hebdomadaire";
+"monthly"="Mensuelle";
+"yearly"="Annuelle";
+"select_date"="Sélectionnez une date";
+"start_date"="Date de début";
+"end_date"="Date de fin";
+"memo"="Note";
+//"select_contact"="Sélectionnez Contact";
+"pending"="En attente";
+"profile_setting"="Paramètres du profil";
+
+
+
+//welcome page
+"welcome"="Bienvenue";
+"continue_to_login"="Continuer à vous connecter";
+
+
+
+
+//25 march
+"confirmation"="Confirmation";
+"no_account"="Pas de compte";
+"no_contact_selected"="Aucun contact sélectionné";
+"payment_type"="Type de paiement";
+"date"="Date";
+"na"="N/A";
+"nick_name"="Surnom (facultatif)";//contact from
+"preffered_language"="Preferred Language";
+"error_transaction_limit" = "Paiement échoué. Le montant du transfert dépasse votre limite de transaction.";
+
 
 
 

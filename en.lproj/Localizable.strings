@@ -30,9 +30,13 @@
 // Move Money Screen
 "move_money_title" = "Move money";
 "transfers_option" = "Transfers";
+"transfers_options_subtitle"="OWN BANK ACCOUNTS";
 "interac_transfer" = "Interac e-Transfer®";
+"interac_transfer_subtitle"="SEND OR REQUEST MONEY";
 "payments_option" = "Payments";
+"payments_option_subtitle"="TRANSFER FUNDS BETWEEN CANADIAN BANK";
 "scheduled_transfers" = "Scheduled transfers & payments";
+"scheduled_transfers_option"="SEND MONEY TO YOUR CLIENT";
 "manage_recipient"="Manage Recipient";
 "transfer_money"="Transfer Money";
 
@@ -51,7 +55,8 @@
 "transfer_history" = "History";
 "auto_deposit" = "Autodeposit settings";
 "profile_settings" = "Profile settings";
-
+"pending"="Pending";
+"profile_setting"="Profile settings";
 // General UI Elements
 "close_button" = "Close";
 
@@ -155,6 +160,7 @@
 "bank_name" = "Acceinfo Bank";
 "greeting_text" = "Good Morning";
 "savings" = "Savings";
+"balance"="Balance";
 "chequing" = "Chequing";
 "loan" = "Loan";
 "investments" = "Investments";
@@ -177,7 +183,8 @@
 "local_transfer" = "Local Transfer";
 "mobile_wallet" = "Mobile Wallet";
 "crypto_transfer" = "Crypto Transfer";
-
+"transfer_money"="Transfer money";
+"to_another_bank"="To Another Bank";
 "interac_transfer" = "Interac e-Transfer®";
 "send_money" = "Send Money";
 "request_money" = "Request Money";
@@ -225,7 +232,39 @@
 //below is for transfer money screen
 "tansfer_money"="Transfer Money";
 "memo"="Memo";
-"transfer_to"="Transfer to";
-"transfer_from"="Transfer from";
+//"transfer_to"="Transfer to";
+//"transfer_from"="Transfer from";
 "onetime_payment"="Onetime";
 "recurring_payment"="Recurring";
+
+
+//transfer money screen
+"one_time_payment"="One-Time Payment";
+"recurring_payment"="Recurring Payment";
+"select_frequency"="Select Frequency";
+"frequency"="Frequency";
+"weekly"="Weekly";
+"monthly"="Monthly";
+"yearly"="Yearly";
+"select_date"="Select Date";
+"start_date"="Start Date";
+"end_date"="End Date";
+"memo"="Memo";
+//"select_contact"="Select Contact";
+
+
+
+//welcome page
+"welcome"="Welcome";
+"continue_to_login"="Continue to Login";
+
+//25 march
+"confirmation"="Confirmation";
+"no_account"="No account";
+"no_contact_selected"="No Contact Selected";
+"payment_type"="Payment type";
+"date"="Date";
+"na"="N/A";
+"nick_name"="Nick name(Optional)";
+"preffered_language"="Preferred Language";
+"error_transaction_limit" = "Payment failed. This transfer amount exceeds your transaction limit.";

@@ -9,6 +9,8 @@ import SwiftUI
 
 struct WelcomePageView: View {
     var username: String
+    @State private var showLogin = false
+
     //var user: User // Receive full user details
 
     @State private var navigateToLogin = false
@@ -18,7 +20,9 @@ struct WelcomePageView: View {
             backgroundGradient
 
             VStack(spacing: 20) {
-                Text("Welcome, \(username)!")
+                //Text("Welcome, \(username)!")
+                Text(String(format: NSLocalizedString("welcome_text", comment: "Welcome message with username"), username))
+
                     .font(.largeTitle)
                     .fontWeight(.bold)
                     .foregroundColor(.white)
@@ -29,16 +33,23 @@ struct WelcomePageView: View {
                     .foregroundColor(.white)
 
                 Button(action: {
-                    navigateToLogin = true
+                    //navigateToLogin = true
+                    showLogin = true
+
                 }) {
-                    actionButton(title: "Continue to Login")
+                    //actionButton(title: "Continue to Login")
+                    actionButton(title: NSLocalizedString("continue_to_login", comment: "Button title to proceed to login screen"))
+
                 }
                 .padding(.top, 20)
-
-                NavigationLink("", destination: LoginView(), isActive: $navigateToLogin)
-                    .hidden()
+                .fullScreenCover(isPresented: $showLogin) {
+                    LoginView()
+                }
+//                NavigationLink("", destination: LoginView(), isActive: $navigateToLogin)
+//                    .hidden()
             }
         }
+        .navigationBarBackButtonHidden(true)
     }
 }
 

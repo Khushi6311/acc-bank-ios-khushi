@@ -7,8 +7,10 @@ struct Contact: Identifiable, Codable {
     var mobilePhone: String
     var sendByEmail: Bool
     var sendByMobile: Bool
-    var securityQuestion: String
-    var securityAnswer: String
+    //var securityQuestion: String
+    //var securityAnswer: String
+    var nickname: String //
+    var language: String //
 }
 
 class ContactManager: ObservableObject {
@@ -49,17 +51,17 @@ class ContactManager: ObservableObject {
         do {
             let jsonData = try encoder.encode(contacts)
 
-            // ✅ Debug JSON before saving
+            // Debug JSON before saving
             if let jsonString = String(data: jsonData, encoding: .utf8) {
-                print("🔹 JSON Data Before Saving:\n\(jsonString)") // ✅ Check if securityAnswer is missing
+                print("JSON Data Before Saving:\n\(jsonString)") // Check if securityAnswer is missing
             }
 
             if let fileURL = getContactsFileURL() {
                 try jsonData.write(to: fileURL, options: .atomic)
-                print("✅ Contacts saved successfully at: \(fileURL.path)")
+                print("Contacts saved successfully at: \(fileURL.path)")
             }
         } catch {
-            print("❌ Error saving contacts: \(error)")
+            print("Error saving contacts: \(error)")
         }
     }
 
@@ -88,14 +90,14 @@ class ContactManager: ObservableObject {
                 let decoder = JSONDecoder()
                 let loadedContacts = try decoder.decode([Contact].self, from: jsonData)
 
-                print("🔹 Contacts Loaded from JSON:\n\(loadedContacts)") // ✅ Debug JSON load
+                print("Contacts Loaded from JSON:\n\(loadedContacts)") // Debug JSON load
 
                 self.contacts = loadedContacts
             } else {
-                print("⚠️ No saved contacts found.")
+                print("No saved contacts found.")
             }
         } catch {
-            print("❌ Error loading contacts: \(error)")
+            print("Error loading contacts: \(error)")
         }
     }
 

@@ -23,7 +23,9 @@ struct MoveMoneyView: View {
                     
                     Spacer().frame(height: 10)
                     
-                    Text("Move Money")
+                    //Text("Move Money")
+                    Text(NSLocalizedString("move_money_title", comment: "Title for move money screen or section"))
+
                         .font(.title)
                         .bold()
                         .foregroundColor(.white)
@@ -37,7 +39,13 @@ struct MoveMoneyView: View {
                                     selectedSheet = .transferOptions
                                     showBottomSheet = true
                                 }) {
-                                    MoveMoneyOptionRow(icon: "arrow.left.arrow.right", title: "Transfers", subtitle: "OWN BANK ACCOUNTS")
+//                                    MoveMoneyOptionRow(icon: "arrow.left.arrow.right", title: "Transfers", subtitle: "OWN BANK ACCOUNTS")
+                                    
+                                    MoveMoneyOptionRow(
+                                        icon: "arrow.left.arrow.right",
+                                        title: NSLocalizedString("transfers_option", comment: "Title for transfer between own accounts"),
+                                        subtitle: NSLocalizedString("transfers_options_subtitle", comment: "Subtitle for own bank account transfers")
+                                    )
                                 }
                                 .buttonStyle(PlainButtonStyle())
                                 Divider().background(Color.gray.opacity(0.9)).padding(.horizontal, 20)
@@ -46,16 +54,33 @@ struct MoveMoneyView: View {
                                     selectedSheet = .interac
                                     showBottomSheet = true
                                 }) {
-                                    MoveMoneyOptionRow(icon: "doc.text", title: "Interac e-Transfer", subtitle: "SEND OR REQUEST MONEY")
+//                                    MoveMoneyOptionRow(icon: "doc.text", title: "Interac e-Transfer", subtitle: "SEND OR REQUEST MONEY")
+                                    MoveMoneyOptionRow(
+                                        icon: "doc.text",
+                                        title: NSLocalizedString("interac_transfer", comment: "Title for Interac e-Transfer option"),
+                                        subtitle: NSLocalizedString("interac_transfer_subtitle", comment: "Subtitle for Interac e-Transfer")
+                                    )
                                 }
                                 .buttonStyle(PlainButtonStyle())
                                 
                                 Divider().background(Color.gray.opacity(0.9)).padding(.horizontal, 20)
                                 
-                                MoveMoneyOptionRow(icon: "building.columns.fill", title: "Payments", subtitle: "TRANSFER FUNDS BETWEEN CANADIAN BANK")
-                                Divider().background(Color.gray.opacity(0.9)).padding(.horizontal, 20)
+//                                MoveMoneyOptionRow(icon: "building.columns.fill", title: "Payments", subtitle: "TRANSFER FUNDS BETWEEN CANADIAN BANK")
                                 
-                                MoveMoneyOptionRow(icon: "person.fill.checkmark", title: "Scheduled transfers & payments", subtitle: "SEND MONEY TO YOUR CLIENT")
+                                MoveMoneyOptionRow(
+                                    icon: "building.columns.fill",
+                                    title: NSLocalizedString("payments_option", comment: "Title for payments between banks"),
+                                    subtitle: NSLocalizedString("payments_option_subtitle", comment: "Subtitle for bank payments")
+                                )
+
+                                Divider().background(Color.gray.opacity(0.9)).padding(.horizontal, 20)
+//                                
+//                                MoveMoneyOptionRow(icon: "person.fill.checkmark", title: "Scheduled transfers & payments", subtitle: "SEND MONEY TO YOUR CLIENT")
+                                MoveMoneyOptionRow(
+                                    icon: "person.fill.checkmark",
+                                    title: NSLocalizedString("scheduled_transfers", comment: "Title for scheduled transfers and payments"),
+                                    subtitle: NSLocalizedString("scheduled_transfers_option", comment: "Subtitle for scheduled client payments")
+                                )
                                 Divider().background(Color.gray.opacity(0.9)).padding(.horizontal, 20)
                             }
                             .padding(.horizontal, 5)
@@ -105,7 +130,9 @@ struct MoveMoneyView: View {
         var body: some View {
             VStack {
                 HStack {
-                    Text("Transfers")
+                    //Text("Transfers")
+                    Text(NSLocalizedString("transfers_option", comment: "Title for transfers section"))
+
                         .font(.headline)
                         .bold()
                         .padding()
@@ -126,11 +153,32 @@ struct MoveMoneyView: View {
                 
                 ScrollView {
                     VStack(alignment: .leading, spacing: 15) {
-                        InteracOptionRow(icon: "arrow.left.arrow.right", title: "Transfer money")
-                        InteracOptionRow(icon: "building.columns.fill", title: "To Another Bank")
+//                        InteracOptionRow(icon: "arrow.left.arrow.right", title: "Transfer money")
+//                        InteracOptionRow(
+//                            icon: "arrow.left.arrow.right",
+//                            title: NSLocalizedString("transfer_money", comment: "Option to transfer money")
+//                        )
+                        InteracOptionRow(option: .transferMoney)
+                        InteracOptionRow(option: .manageContacts)
+                        InteracOptionRow(option: .manageAccounts)
+
+//                        InteracOptionRow(icon: "building.columns.fill", title: "To Another Bank")
+//                        InteracOptionRow(
+//                            icon: "building.columns.fill",
+//                            title: NSLocalizedString("to_another_bank", comment: "Option to transfer money to another bank")
+//                        )
+
                         //InteracOptionRow(icon: "clock.fill", title: "Scheduled Transfers")
-                        InteracOptionRow(icon: "building.columns.fill", title: "Manage Contacts")
-                        InteracOptionRow(icon: "clock.fill", title: "Manage Accounts")
+//                        InteracOptionRow(icon: "building.columns.fill", title: "Manage Contacts")
+//                        InteracOptionRow(
+//                            icon: "building.columns.fill",
+//                            title: NSLocalizedString("manage_contacts", comment: "Option to manage transfer contacts")
+//                        )
+//                        InteracOptionRow(icon: "clock.fill", title: "Manage Accounts")
+//                        InteracOptionRow(
+//                            icon: "clock.fill",
+//                            title: NSLocalizedString("manage_accounts", comment: "Option to manage transfer accounts")
+//                        )
                     }
                     .padding()
                 }
@@ -151,7 +199,8 @@ struct MoveMoneyView: View {
         var body: some View {
             VStack {
                 HStack {
-                    Text("Interac e-Transfer®")
+                    //Text("Interac e-Transfer®")
+                    Text(NSLocalizedString("interac_transfer", comment: "Title for transfers section"))
                         .font(.headline)
                         .bold()
                         .padding()
@@ -172,13 +221,41 @@ struct MoveMoneyView: View {
                 
                 ScrollView {
                     VStack(alignment: .leading, spacing: 15) {
-                        InteracOptionRow(icon: "paperplane.fill", title: "Send money")
-                        InteracOptionRow(icon: "arrow.down.doc.fill", title: "Request money")
-                        InteracOptionRow(icon: "person.crop.circle.fill", title: "Manage contacts")
-                        InteracOptionRow(icon: "clock.fill", title: "Pending")
-                        InteracOptionRow(icon: "list.bullet", title: "History")
-                        InteracOptionRow(icon: "gearshape.fill", title: "Autodeposit settings")
-                        InteracOptionRow(icon: "person.text.rectangle.fill", title: "Profile settings")
+//                        InteracOptionRow(icon: "paperplane.fill", title: "Send money")
+                        
+                        InteracOptionRow(option: .sendMoney)
+                        InteracOptionRow(option: .requestMoney)
+                        InteracOptionRow(option: .manageContacts)
+                        InteracOptionRow(option: .pending)
+                        InteracOptionRow(option: .profileSettings)
+
+                        
+//                        InteracOptionRow(
+//                            icon: "paperplane.fill",
+//                            title: NSLocalizedString("send_money", comment: "Option to send money")
+//                        )
+//                        InteracOptionRow(icon: "arrow.down.doc.fill", title: "Request money")
+//                        InteracOptionRow(
+//                            icon: "arrow.down.doc.fill",
+//                            title: NSLocalizedString("request_money", comment: "Option to request money")
+//                        )
+//                        InteracOptionRow(icon: "person.crop.circle.fill", title: "Manage contacts")
+//                        InteracOptionRow(
+//                            icon: "person.crop.circle.fill",
+//                            title: NSLocalizedString("manage_contacts", comment: "Option to manage contacts")
+//                        )
+                        //InteracOptionRow(icon: "clock.fill", title: "Pending")
+//                        InteracOptionRow(
+//                            icon: "clock.fill",
+//                            title: NSLocalizedString("pending", comment: "Option to view pending transfers or requests")
+//                        )
+//                        InteracOptionRow(icon: "list.bullet", title: "History")
+//                        InteracOptionRow(icon: "gearshape.fill", title: "Autodeposit settings")
+//                        InteracOptionRow(icon: "person.text.rectangle.fill", title: "Profile settings")
+//                        InteracOptionRow(
+//                            icon: "person.text.rectangle.fill",
+//                            title: NSLocalizedString("profile_setting", comment: "Option to configure user profile settings")
+//                        )
                     }
                     .padding()
                 }
@@ -190,68 +267,164 @@ struct MoveMoneyView: View {
             .edgesIgnoringSafeArea(.bottom)
         }
     }
-    
-    // Interac Option Row
+    //25 march
+    enum InteracOptionType {
+        case sendMoney
+        case transferMoney
+        case manageContacts
+        case manageAccounts
+        case requestMoney
+        case pending
+        case profileSettings
+        // Add more as needed
+
+        var icon: String {
+            switch self {
+            case .sendMoney: return "paperplane.fill"
+            case .transferMoney: return "arrow.left.arrow.right"
+            case .manageContacts: return "building.columns.fill"
+            case .manageAccounts: return "clock.fill"
+            case .requestMoney: return "arrow.down.doc.fill"
+            case .pending: return "clock.fill"
+            case .profileSettings: return "person.text.rectangle.fill"
+            }
+        }
+
+        var localizedTitle: String {
+            switch self {
+            case .sendMoney:
+                return NSLocalizedString("send_money", comment: "")
+            case .transferMoney:
+                return NSLocalizedString("transfer_money", comment: "")
+            case .manageContacts:
+                return NSLocalizedString("manage_contacts", comment: "")
+            case .manageAccounts:
+                return NSLocalizedString("manage_accounts", comment: "")
+            case .requestMoney:
+                return NSLocalizedString("request_money", comment: "")
+            case .pending:
+                return NSLocalizedString("pending", comment: "")
+            case .profileSettings:
+                return NSLocalizedString("profile_setting", comment: "")
+            }
+        }
+    }
     struct InteracOptionRow: View {
-        let icon: String
-        let title: String
-        
+        let option: InteracOptionType
+
         @State private var isShowingSendMoney = false
         @State private var isShowingTransferMoney = false
         @State private var isShowingContactForm = false
         @State private var isShowingAccountForm = false
 
-
         var body: some View {
             HStack {
-                Image(systemName: icon)
+                Image(systemName: option.icon)
                     .font(.title2)
-                    .foregroundColor(Color.black)
+                    .foregroundColor(.black)
                     .frame(width: 35, height: 35)
-                
-                Text(title)
+
+                Text(option.localizedTitle)
                     .font(.headline)
-                
+
                 Spacer()
-                
+
                 Image(systemName: "chevron.right")
                     .foregroundColor(.gray)
             }
             .padding(.vertical, 10)
             .padding(.horizontal, 20)
             .onTapGesture {
-                if title == "Send money" {
+                switch option {
+                case .sendMoney:
                     isShowingSendMoney = true
-                }
-                else if title == "Transfer money" {
+                case .transferMoney:
                     isShowingTransferMoney = true
-                }
-                else if title == "Manage Contacts" {
+                case .manageContacts:
                     isShowingContactForm = true
-                }
-                else if title == "Manage Accounts" {
+                case .manageAccounts:
                     isShowingAccountForm = true
+                default:
+                    break
                 }
-                
             }
             .fullScreenCover(isPresented: $isShowingSendMoney) {
                 SendMoneyView()
             }
             .fullScreenCover(isPresented: $isShowingTransferMoney) {
-                //TransferMoneyScreen(showContactSheet: .constant(false))
                 TransferMoneyScreen()
-
             }
             .fullScreenCover(isPresented: $isShowingContactForm) {
                 AddContactFormView(isPresented: $isShowingContactForm, contactManager: ContactManager())
             }
             .fullScreenCover(isPresented: $isShowingAccountForm) {
-                //TransferMoneyScreen()
                 AddAccountFormView(accountManager: AccountManager())
-
             }
         }
     }
+
+    // Interac Option Row
+//    struct InteracOptionRow: View {
+//        let icon: String
+//        let title: String
+//        
+//        @State private var isShowingSendMoney = false
+//        @State private var isShowingTransferMoney = false
+//        @State private var isShowingContactForm = false
+//        @State private var isShowingAccountForm = false
+//
+//
+//        var body: some View {
+//            HStack {
+//                Image(systemName: icon)
+//                    .font(.title2)
+//                    .foregroundColor(Color.black)
+//                    .frame(width: 35, height: 35)
+//                
+//                Text(title)
+//                    .font(.headline)
+//                
+//                Spacer()
+//                
+//                Image(systemName: "chevron.right")
+//                    .foregroundColor(.gray)
+//            }
+//            .padding(.vertical, 10)
+//            .padding(.horizontal, 20)
+//            .onTapGesture {
+//                if title == "Send money" {
+//                    isShowingSendMoney = true
+//                }
+//                else if title == "Transfer money" {
+//                    isShowingTransferMoney = true
+//                }
+//                else if title == "Manage Contacts" {
+//                    isShowingContactForm = true
+//                }
+//                else if title == "Manage Accounts" {
+//                    isShowingAccountForm = true
+//                }
+//                
+//            }
+//            .fullScreenCover(isPresented: $isShowingSendMoney) {
+//                SendMoneyView()
+//            }
+//            .fullScreenCover(isPresented: $isShowingTransferMoney) {
+//                //TransferMoneyScreen(showContactSheet: .constant(false))
+//                TransferMoneyScreen()
+//
+//            }
+//            .fullScreenCover(isPresented: $isShowingContactForm) {
+//                AddContactFormView(isPresented: $isShowingContactForm, contactManager: ContactManager())
+//            }
+//            .fullScreenCover(isPresented: $isShowingAccountForm) {
+//                //TransferMoneyScreen()
+//                AddAccountFormView(accountManager: AccountManager())
+//
+//            }
+//        }
+//    }
+    //25 march
     
     // Move Money Row View
     struct MoveMoneyOptionRow: View {
