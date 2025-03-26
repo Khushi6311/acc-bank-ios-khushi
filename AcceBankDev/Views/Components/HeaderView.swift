@@ -32,16 +32,16 @@ struct HeaderView: View {
                 Color.white
                     .frame(height: 40) // Fixed header height
                     .frame(maxWidth: .infinity)
-                    .ignoresSafeArea(edges: .top) // ✅ Fixes notch issues
+                    .ignoresSafeArea(edges: .top) // Fixes notch issues
 
-                // ✅ Properly Scaled Logo
+                // Properly Scaled Logo
                 Image("AppLogo")
                     .resizable()
                     .scaledToFit()
                     .frame(width: UIScreen.main.bounds.width * 0.4, height: 40)
                     .padding(.top, 10) // Prevents overlap with the notch
                     .padding(.top,-19)
-//                    .padding(.top, UIApplication.shared.windows.first?.safeAreaInsets.top ?? -15) // ✅ Prevents logo from overlapping with notch
+//                    .padding(.top, UIApplication.shared.windows.first?.safeAreaInsets.top ?? -15) // Prevents logo from overlapping with notch
 
             }
         }

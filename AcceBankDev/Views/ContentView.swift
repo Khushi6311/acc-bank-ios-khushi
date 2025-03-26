@@ -4,7 +4,7 @@ struct ContentView: View {
     
     var body: some View {
         //Text("hello")
-        
+        //PayBillScreen()
         LoginView() //  login screen
         //HomeView(username: "Danielle")
         //MoveMoneyView()

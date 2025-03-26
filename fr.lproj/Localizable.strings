@@ -141,7 +141,7 @@
 
 //below is for register view of register
 "register_title" = "S'inscrire";
-"username_placeholder" = "Nom d'utilisateur";
+//"username_placeholder" = "Nom d'utilisateur";
 "password_placeholder" = "Mot de passe";
 "confirm_password_placeholder" = "Confirmez le mot de passe";
 "all_fields_required" = "Tous les champs sont obligatoires.";
@@ -285,6 +285,9 @@
 "nick_name"="Surnom (facultatif)";//contact from
 "preffered_language"="Preferred Language";
 "error_transaction_limit" = "Paiement échoué. Le montant du transfert dépasse votre limite de transaction.";
+"my_accounts"="Mes comptes";
+"another_member"="Un autre membre";
+"payment_sent"="Paiement envoyé";
 
 
 

@@ -125,9 +125,13 @@ struct HomePageView: View {
                                 if selectedAccount == "Chequing" {
                                     ScrollView(.horizontal, showsIndicators: false) {
                                         HStack(spacing: 15) {
-                                            ForEach(cardImages, id: \.self) { card in
+//                                            ForEach(cardImages, id: \.self) { card in
+//                                                CreditCardView(imageName: card)
+//                                            }
+                                            ForEach(Array(cardImages.enumerated()), id: \.offset) { index, card in
                                                 CreditCardView(imageName: card)
                                             }
+
                                         }
                                         .padding(.horizontal)
                                     }

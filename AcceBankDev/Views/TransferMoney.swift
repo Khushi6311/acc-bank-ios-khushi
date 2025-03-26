@@ -27,6 +27,9 @@ struct TransferMoneyScreen: View {
     @State private var dateText: String? = nil
     @State private var showAmountError = false
     @State private var showTransferToError = false
+    @State private var showTransferFromError = false
+
+    
     @State private var showMemoError = false
     @State private var showInsufficientFundsError = false
     
@@ -96,8 +99,11 @@ struct TransferMoneyScreen: View {
                                 showDateError = false
                                 showRecurringDateError = false
                                 showInsufficientFundsError = false
+                                showTransferFromError=false
 }) {
-                                Text("My accounts")
+                                //Text("My accounts")
+    Text(NSLocalizedString("my_accounts", comment: "Title for 'My accounts' tab"))
+
         .font(.headline)
                                     .padding()
                                     .frame(maxWidth: .infinity)
@@ -129,8 +135,11 @@ struct TransferMoneyScreen: View {
                                 showDateError = false
                                 showRecurringDateError = false
                                 showInsufficientFundsError = false
+                                showTransferFromError=false
 }) {
-                                Text("Another member")
+                                //Text("Another member")
+    Text(NSLocalizedString("another_member", comment: "Title for 'My accounts' tab"))
+
                                     .font(.headline)
                                     .padding()
                                     .frame(maxWidth: .infinity)
@@ -170,6 +179,7 @@ struct TransferMoneyScreen: View {
                         showDateError:$showDateError,
                         showRecurringDateError:$showRecurringDateError,
                         showTransferToError: $showTransferToError,
+                        showTransferFromError:$showTransferFromError,
                         showMemoError: $showMemoError,
                         showInsufficientFundsError: $showInsufficientFundsError,
                      isSelectingStartDate: $isSelectingStartDate,
@@ -184,7 +194,7 @@ struct TransferMoneyScreen: View {
                     AnotherMemberTransferForm(
                         selectedFromAccount: $selectedFromAccount,
                             selectedContact: $selectedContact,
-                            isTransferFromSheetPresented: $isTransferFromSheetPresented,
+                        isTransferFromSheetPresented: $isTransferFromSheetPresented,
                             showContactSheet: $showContactSheet,
                             showDatePicker: $showDatePicker,
                             recurring: $recurring,
@@ -194,8 +204,9 @@ struct TransferMoneyScreen: View {
                             dateText: $dateText,
                             showAmountError: $showAmountError,
                             showTransferToError: $showTransferToError,
+
                         showRecurringDateError:$showRecurringDateError,
-                        showDateError:$showDateError,
+                        showDateError:$showDateError, showTransferFromError: $showTransferFromError,
                             showMemoError: $showMemoError,
                             showInsufficientFundsError: $showInsufficientFundsError,
                             isSelectingStartDate: $isSelectingStartDate,
@@ -212,6 +223,16 @@ struct TransferMoneyScreen: View {
                 Button(action: {
                     
                     validateFields()
+                    print("Validation result - showConfirmationSheet: \(showConfirmationSheet)")
+                    print("showTransferFromError: \(showTransferFromError)")
+                    print("showTransferToError: \(showTransferToError)")
+                    print("showAmountError: \(showAmountError)")
+                    print("showMemoError: \(showMemoError)")
+                    print("showInsufficientFundsError: \(showInsufficientFundsError)")
+                    print("showDateError: \(showDateError)")
+                    print("showRecurringDateError: \(showRecurringDateError)")
+
+
 //                    if showInsufficientFundsError {
 //                            return
 //                        }
@@ -219,15 +240,15 @@ struct TransferMoneyScreen: View {
 //                           showConfirmationSheet = true
 //                       }
 //                    showConfirmationSheet = true
-                    DispatchQueue.main.async {
-                        print("Selected Contact: \(selectedContact?.name ?? "nil")")
-                        print("Is Another Member Selected: \(isAnotherMemberSelected)")
-                            
-                        
-                        if !showInsufficientFundsError && !showAmountError && !showTransferToError && !showMemoError {
-                            showConfirmationSheet = true
-                        }
-                    }
+//                    DispatchQueue.main.async {
+//                        print("Selected Contact: \(selectedContact?.name ?? "nil")")
+//                        print("Is Another Member Selected: \(isAnotherMemberSelected)")
+//                            
+//                        
+//                        if !showInsufficientFundsError && !showAmountError && !showTransferToError && !showMemoError && !showTransferFromError && !showRecurringDateError && !showDateError && !showMemoError {
+//                            showConfirmationSheet = true
+//                        }
+//                    }
 
                 }) {
                     //Text("Continue")
@@ -251,14 +272,12 @@ struct TransferMoneyScreen: View {
                         toAccount: $selectedToAccount,
                         amount: $amount,
                         dateText: $dateText,
-//                        dateText: Binding(get: { dateText ?? "N/A" }, set: { dateText = $0 }), // Fix for optional binding
-//                        dateText: Binding(get: { dateText ?? "" }, set: { dateText = $0 }),
 
                         memo: $memo,
                         isRecurring: $recurring,
                         //selectedFrequency: $selectedFrequency,
-                        selectedFrequency: Binding(get: { selectedFrequency ?? "Weekly" }, set: { selectedFrequency = $0! }), // Fix for optional binding
-
+                        selectedFrequency: Binding(get: { selectedFrequency }, set: { selectedFrequency = $0! }), // Fix for optional binding
+//                        selectedFrequency: Binding(get: { selectedFrequency ?? "Weekly" }, set: { selectedFrequency = $0! })
                         startDateText: $startDateText,
                         endDateText: $endDateText,
                         isAnotherMemberSelected: $isAnotherMemberSelected,
@@ -279,12 +298,6 @@ struct TransferMoneyScreen: View {
             .padding(.horizontal, 10)
         }
     }
-
-//    private func validateFields() {
-//        showTransferToError = selectedToAccount == nil && selectedContact == nil
-//        showAmountError = amount.trimmingCharacters(in: .whitespaces).isEmpty
-//        showMemoError = memo.trimmingCharacters(in: .whitespaces).isEmpty
-//    }
     private func validateFields() {
         // Convert amount string to a double after removing currency symbols
         let enteredAmount = Double(amount.replacingOccurrences(of: "$", with: "").trimmingCharacters(in: .whitespaces)) ?? 0.0
@@ -304,21 +317,35 @@ struct TransferMoneyScreen: View {
         print("Final dateText before confirmation: \(dateText ?? "nil")") // Debug
 
         showDateError = !recurring && (dateText?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
-        showRecurringDateError = (startDateText?.isEmpty ?? true) || (endDateText?.isEmpty ?? true)
-//showStartDateError = startDateText?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true
-//       showEndDateError = endDateText?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true
-
+//        showRecurringDateError = (startDateText?.isEmpty ?? true) || (endDateText?.isEmpty ?? true)
+        showRecurringDateError = recurring && ((startDateText?.isEmpty ?? true) || (endDateText?.isEmpty ?? true))
 
         // Validate required fields
-        showTransferToError = selectedToAccount == nil
+        showTransferFromError=selectedFromAccount==nil
+        //showTransferToError = selectedToAccount == nil
         showAmountError = amount.trimmingCharacters(in: .whitespaces).isEmpty
         showMemoError = memo.trimmingCharacters(in: .whitespaces).isEmpty
-        // Validate Date (One-Time vs Recurring)
-//        showDateError = recurring
-//            ? (startDateText?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
-//            : (dateText?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
-        // Check for insufficient funds
-        showInsufficientFundsError = enteredAmount > availableBalance
+        if isAnotherMemberSelected {
+                showTransferToError = selectedContact == nil
+            } else {
+                showTransferToError = selectedToAccount == nil
+            }
+        if let fromAccount = selectedFromAccount,
+           !amount.trimmingCharacters(in: .whitespaces).isEmpty,
+           let available = Double(fromAccount.balance.replacingOccurrences(of: "$", with: "").replacingOccurrences(of: ",", with: "").trimmingCharacters(in: .whitespaces)) {
+            
+            showInsufficientFundsError = enteredAmount > available
+        } else {
+            showInsufficientFundsError = false
+        }
+        
+//        if isAnotherMemberSelected {
+//            showTransferToError = selectedContact == nil
+//        } else {
+//            showTransferToError = selectedToAccount == nil
+//        }
+
+
 
         // Only show confirmation sheet if all validations pass and no insufficient funds error
         showConfirmationSheet = !showTransferToError &&
@@ -326,7 +353,8 @@ struct TransferMoneyScreen: View {
                                 !showMemoError &&
                                 !showInsufficientFundsError &&
                                 !showDateError &&
-            !showRecurringDateError
+            !showRecurringDateError &&
+        !showTransferFromError
     }
 
     
@@ -350,6 +378,8 @@ struct MyAccountsTransferForm: View {
     @Binding var showDateError: Bool
     @Binding var showRecurringDateError: Bool
     @Binding var showTransferToError: Bool
+    @Binding var showTransferFromError: Bool
+
     @Binding var showMemoError: Bool
     @Binding var showInsufficientFundsError: Bool
     @Binding var isSelectingStartDate: Bool
@@ -364,301 +394,349 @@ struct MyAccountsTransferForm: View {
     @StateObject private var accountManager = AccountManager()
 
     var body: some View {
-        
-        VStack(spacing: 15) {
-            // Error message for insufficient funds
-            if showInsufficientFundsError {
-//                ErrorMessageView(text: "Payment failed. This transfer amount exceeds your transaction limit.")//transaction_limit_exceeded
-                ErrorMessageView(text: NSLocalizedString("error_transaction_limit", comment: "Shown when transfer amount exceeds allowed limit"))
-
-            }
+        ScrollViewReader { proxy in
+            ScrollView {
                 
-            // **Transfer From Account Selection**
-//            AccountSelectionButton(title: "Transfer From", account: $selectedFromAccount)
-            AccountSelectionButton(title: NSLocalizedString("transfer_from", comment: ""), account: $selectedFromAccount)
-
-            {
-                isTransferFromSheetPresented.toggle()
-            }
-//            .sheet(isPresented: $isTransferFromSheetPresented) {
-//                TransferAccountSheet(selectedAccount_from: $selectedFromAccount)
-//            }
-            .sheet(isPresented: $isTransferFromSheetPresented) {
-                TransferAccountSheet(
-                    accountManager: accountManager,  // Add this
-                    selectedAccount_from: $selectedFromAccount,
-                    isPresented: $isTransferFromSheetPresented  // Add this
-                )
-            }
-
-
-            // **Transfer To Account Selection**
-//            AccountSelectionButton(title: "Transfer To", account: $selectedToAccount)
-            AccountSelectionButton(title: NSLocalizedString("transfer_to", comment: ""), account: $selectedToAccount)
-            {
-                isSendToSheetPresented.toggle()
-                showTransferToError = false
-            }
-//            .sheet(isPresented: $isSendToSheetPresented) {
-//                SendToSheet(selectedAccount_to: $selectedToAccount)
-//            }
-//            .sheet(isPresented: $isSendToSheetPresented) {
-//                SendToSheet(
-//                    accountManager_to: accountManager,  // Add this
-//                    selectedAccount_to: $selectedToAccount,
-//                    isPresented_to: $isSendToSheetPresented,  // Add this
-//                    excludeAccount: selectedFromAccount // pass the selected from account
-//
-//                )
-//            }
-            .sheet(item: Binding(
-                get: {
-                    isSendToSheetPresented ? selectedFromAccount : nil
-                },
-                set: { _ in
-                    isSendToSheetPresented = false
-                }
-            )) { fromAccount in
-                SendToSheet(
-                    accountManager_to: accountManager,
-                    selectedAccount_to: $selectedToAccount,
-                    isPresented_to: $isSendToSheetPresented,
-                    excludeAccount: fromAccount
-                )
-            }
-            
-            if showTransferToError {
-                //ErrorMessage(text: "This field is required")
-                ErrorMessage(text: NSLocalizedString("error_required_field", comment: "Validation error for empty field"))
-
-            }
-
-            // **One-Time or Recurring Toggle**
-            HStack(spacing: 20) {
-                VStack {
-                    Toggle(NSLocalizedString("one_time_payment", comment: ""), isOn: Binding(
-                        get: { !recurring },
-                        set: { newValue in
-                            recurring = !newValue
-                            
-                            showAmountError = false
-                            showMemoError = false
-                            showTransferToError = false
-                            showDateError = false
-                            showRecurringDateError = false
-                            showInsufficientFundsError = false                        }
-                    ))
-                    .toggleStyle(SwitchToggleStyle(tint: .blue))
-                    .scaleEffect(0.8)
-                    .lineLimit(1)
-                    .padding(.horizontal, 10)
-                }
-                .frame(width: 160, height: 60)
-                .background(Color(.systemGray6))
-                .cornerRadius(10)
-
-                VStack {
-                    Toggle(NSLocalizedString("recurring_payment", comment: ""), isOn: Binding(
-                        get: { recurring },
-                        set: { newValue in
-                            recurring = newValue
-                            showAmountError = false
-                            showMemoError = false
-                            showTransferToError = false
-                            showDateError = false
-                            showRecurringDateError = false
-                            showInsufficientFundsError = false
-                        }
-                    ))
-                    .toggleStyle(SwitchToggleStyle(tint: .blue))
-                    .scaleEffect(0.8)
-                    .lineLimit(1)
-                    .padding(.horizontal, 10)
-                }
-                .frame(width: 160, height: 60)
-                .background(Color(.systemGray6))
-                .cornerRadius(10)
-            }
-            .padding(.horizontal, 10)
-
-            // **Recurring Payment Frequency Selection**
-            if recurring {
-                VStack {
-                    //Text("Select Frequency")
-                    Text(NSLocalizedString("select_frequency", comment: ""))
-
-                        .font(.subheadline)
-                        .foregroundColor(.gray)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.top, 5)
-
-//                    Picker("Frequency", selection: $selectedFrequency) {
-//                        Text("Weekly").tag("Weekly")
-//                        Text("Monthly").tag("Monthly")
-//                        Text("Yearly").tag("Yearly")
-//                    }
-                    Picker(NSLocalizedString("frequency", comment: "Frequency picker label"), selection: $selectedFrequency) {
-                        Text(NSLocalizedString("weekly", comment: "Frequency option")).tag("weekly")
-                        Text(NSLocalizedString("monthly", comment: "Frequency option")).tag("monthly")
-                        Text(NSLocalizedString("yearly", comment: "Frequency option")).tag("yearly")
+                VStack(spacing: 15) {
+                    // Error message for insufficient funds
+                    if showInsufficientFundsError {
+                        //                ErrorMessageView(text: "Payment failed. This transfer amount exceeds your transaction limit.")//transaction_limit_exceeded
+                        ErrorMessageView(text: NSLocalizedString("error_transaction_limit", comment: "Shown when transfer amount exceeds allowed limit"))
+                        
                     }
+                    
+                    // **Transfer From Account Selection**
+                    //            AccountSelectionButton(title: "Transfer From", account: $selectedFromAccount)
+                    AccountSelectionButton(title: NSLocalizedString("transfer_from", comment: ""), account: $selectedFromAccount){
 
-                    .pickerStyle(SegmentedPickerStyle())
-                    .padding()
-                }
-                .transition(.opacity)
-            }
+                        isTransferFromSheetPresented.toggle()
+                    }
+                    //            .sheet(isPresented: $isTransferFromSheetPresented) {
+                    //                TransferAccountSheet(selectedAccount_from: $selectedFromAccount)
+                    //            }
+                    .sheet(isPresented: $isTransferFromSheetPresented) {
+                        TransferAccountSheet(
+                            accountManager: accountManager,  // Add this
+                            selectedAccount_from: $selectedFromAccount,
+                            isPresented: $isTransferFromSheetPresented  // Add this
+                        )
+                    }
+                    if showTransferFromError {
+                        //ErrorMessage(text: "This field is required")
+                        ErrorMessage(text: NSLocalizedString("error_required_field", comment: "Validation error for empty field"))
+                        
+                    }
+                    
+                    // **Transfer To Account Selection**
+                    //            AccountSelectionButton(title: "Transfer To", account: $selectedToAccount)
+                    AccountSelectionButton(title: NSLocalizedString("transfer_to", comment: ""), account: $selectedToAccount)
+                    {
+                        isSendToSheetPresented.toggle()
+                        showTransferToError = false
+                    }
+                    //oldercode
+//            .sheet(isPresented: $isSendToSheetPresented) {
+//                        SendToSheet(selectedAccount_to: $selectedToAccount)
+//                                }
+                    
             
 
-            // **Amount Input**
-//            TextField("Enter Transfer Amount", text: $amount)
-            TextField(NSLocalizedString("enter_transfer_amount", comment: "Placeholder for transfer amount input"), text: $amount)
 
-                .keyboardType(.decimalPad)
-                .padding()
-                .background(RoundedRectangle(cornerRadius: 10).stroke(Color.gray, lineWidth: 1))
-                //.focused($focusedField, equals: .amount)
-                .focused($focusedField, equals: .amount)
-                .onTapGesture {
-                    focusedField = nil
-                }
-
-                .onChange(of: amount) { newValue in
-                    amount = CurrencyFormatter.format(newValue)
+                                .sheet(isPresented: $isSendToSheetPresented) {
+                                    SendToSheet(
+                                        accountManager_to: accountManager,  // Add this
+                                        selectedAccount_to: $selectedToAccount,
+                                        isPresented_to: $isSendToSheetPresented, // Add this
+                                        excludeAccount: selectedFromAccount // pass the selected from account
                     
-                    if !newValue.trimmingCharacters(in: .whitespaces).isEmpty {
-                            showAmountError = false // Hide error as soon as user types
-                        }
-                    
-//                    if !newValue.trimmingCharacters(in: .whitespaces).isEmpty {
-//                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-//                                    focusedField = .date
+                                    )
+                                }
+                    //25
+//                    .sheet(item: Binding(
+//                        get: {
+//                            //isSendToSheetPresented ? selectedFromAccount : nil
+//                            if isSendToSheetPresented, let account = selectedFromAccount {
+//                                    return account
 //                                }
-//                            }
-                }
-
-            if showAmountError {
-                //ErrorMessage(text: "This field is required")
-                ErrorMessage(text: NSLocalizedString("error_required_field", comment: "Validation error for empty field"))
-            }
-
-            // **Date Selection**
-            if !recurring {
-//                DateField(title: "Select Date", dateText: $dateText, action: { showDatePicker.toggle() })
-                DateField(
-                    title: NSLocalizedString("select_date", comment: "Label for selecting a single date"),
-                    dateText: $dateText,
-                    action: { showDatePicker.toggle() }
-                )
-
-                if showDateError {
-//                    ErrorMessage(text: "This field is required")
-                    ErrorMessage(text: NSLocalizedString("error_required_field", comment: "Validation error for empty field"))
-                }
-
-            }
-
-            if recurring {
-                VStack {
-//                    DateField(title: "Start Date", dateText: $startDateText, action: {
-//                        isSelectingStartDate = true
-//                        isSelectingEndDate = false
-//                        showDatePicker.toggle()
-//                        
-//                        
-//                    })
-                    DateField(
-                        title: NSLocalizedString("start_date", comment: "Label for selecting the start date"),
-                        dateText: $startDateText,
-                        action: {
-                            isSelectingStartDate = true
-                            isSelectingEndDate = false
-                            showDatePicker.toggle()
+//                                return nil
+//                        },
+//                        set: { _ in
+//                            isSendToSheetPresented = false
+//                        }
+//                    )) { fromAccount in
+//                        SendToSheet(
+//                            accountManager_to: accountManager,
+//                            selectedAccount_to: $selectedToAccount,
+//                            isPresented_to: $isSendToSheetPresented,
+//                            excludeAccount: fromAccount
+//                        )
+//                    }
+                    
+                    if showTransferToError {
+                        //ErrorMessage(text: "This field is required")
+                        ErrorMessage(text: NSLocalizedString("error_required_field", comment: "Validation error for empty field"))
+                        
+                    }
+                    
+                    // **One-Time or Recurring Toggle**
+                    HStack(spacing: 20) {
+                        VStack {
+                            Toggle(NSLocalizedString("one_time_payment", comment: ""), isOn: Binding(
+                                get: { !recurring },
+                                set: { newValue in
+                                    recurring = !newValue
+                                    
+                                    showAmountError = false
+                                    showMemoError = false
+                                    showTransferToError = false
+                                    showDateError = false
+                                    showRecurringDateError = false
+                                    showInsufficientFundsError = false                        }
+                            ))
+                            .toggleStyle(SwitchToggleStyle(tint: .blue))
+                            .scaleEffect(0.8)
+                            .lineLimit(1)
+                            .padding(.horizontal, 10)
                         }
-                    )
-
-
-//                    DateField(title: "End Date", dateText: $endDateText, action: {
-//                        isSelectingStartDate = false
-//                        isSelectingEndDate = true
-//                        showDatePicker.toggle()
-//                    })
-                    DateField(
-                        title: NSLocalizedString("end_date", comment: "Label for selecting the end date"),
-                        dateText: $endDateText,
-                        action: {
-                            isSelectingStartDate = false
-                            isSelectingEndDate = true
-                            showDatePicker.toggle()
+                        .frame(width: 160, height: 60)
+                        .background(Color(.systemGray6))
+                        .cornerRadius(10)
+                        
+                        VStack {
+                            Toggle(NSLocalizedString("recurring_payment", comment: ""), isOn: Binding(
+                                get: { recurring },
+                                set: { newValue in
+                                    recurring = newValue
+                                    showAmountError = false
+                                    showMemoError = false
+                                    showTransferToError = false
+                                    showDateError = false
+                                    showRecurringDateError = false
+                                    showInsufficientFundsError = false
+                                }
+                            ))
+                            .toggleStyle(SwitchToggleStyle(tint: .blue))
+                            .scaleEffect(0.8)
+                            .lineLimit(1)
+                            .padding(.horizontal, 10)
                         }
-                    )
-
-                    if showRecurringDateError {
-//                        ErrorMessage(text: "This field is required")
+                        .frame(width: 160, height: 60)
+                        .background(Color(.systemGray6))
+                        .cornerRadius(10)
+                    }
+                    .padding(.horizontal, 10)
+                    
+                    // **Recurring Payment Frequency Selection**
+                    if recurring {
+                        VStack {
+                            //Text("Select Frequency")
+                            Text(NSLocalizedString("select_frequency", comment: ""))
+                            
+                                .font(.subheadline)
+                                .foregroundColor(.gray)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.top, 5)
+                            
+                            //                    Picker("Frequency", selection: $selectedFrequency) {
+                            //                        Text("Weekly").tag("Weekly")
+                            //                        Text("Monthly").tag("Monthly")
+                            //                        Text("Yearly").tag("Yearly")
+                            //                    }
+                            Picker(NSLocalizedString("frequency", comment: "Frequency picker label"), selection: $selectedFrequency) {
+                                Text(NSLocalizedString("weekly", comment: "Frequency option")).tag("weekly")
+                                Text(NSLocalizedString("monthly", comment: "Frequency option")).tag("monthly")
+                                Text(NSLocalizedString("yearly", comment: "Frequency option")).tag("yearly")
+                            }
+                            
+                            .pickerStyle(SegmentedPickerStyle())
+                            .padding()
+                        }
+                        .transition(.opacity)
+                    }
+                    
+                    
+                    // **Amount Input**
+                    //            TextField("Enter Transfer Amount", text: $amount)
+                    TextField(NSLocalizedString("enter_transfer_amount", comment: "Placeholder for transfer amount input"), text: $amount)
+                    
+                        .keyboardType(.decimalPad)
+                        .padding()
+                        .background(RoundedRectangle(cornerRadius: 10).stroke(Color.gray, lineWidth: 1))
+                    //.focused($focusedField, equals: .amount)
+                        .focused($focusedField, equals: .amount)
+                        .onTapGesture {
+                            focusedField = nil
+                        }
+                    
+                        .onChange(of: amount) {oldValue, newValue in
+                            amount = CurrencyFormatter.format(newValue)
+                            
+                            if !newValue.trimmingCharacters(in: .whitespaces).isEmpty {
+                                showAmountError = false // Hide error as soon as user types
+                            }
+                            
+                            //                    if !newValue.trimmingCharacters(in: .whitespaces).isEmpty {
+                            //                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                            //                                    focusedField = .date
+                            //                                }
+                            //                            }
+                        }
+                    
+                    if showAmountError {
+                        //ErrorMessage(text: "This field is required")
                         ErrorMessage(text: NSLocalizedString("error_required_field", comment: "Validation error for empty field"))
                     }
-                }
-            }
-           
-
-
-            // **Date Picker Modal**
-            if showDatePicker {
-                VStack {
-                    DatePicker("Select Date", selection: Binding(
-                        get: {
-                            if !recurring { return startDate }
-                            return isSelectingStartDate ? startDate : endDate
-                        },
-                        set: { newValue in
-                            if !recurring {
-                                startDate = newValue
-                                dateText = formatDate(newValue)
-                                if let date = dateText, !date.isEmpty {
+                    
+                    // **Date Selection**
+                    if !recurring {
+                        //                DateField(title: "Select Date", dateText: $dateText, action: { showDatePicker.toggle() })
+                        DateField(
+                            title: NSLocalizedString("select_date", comment: "Label for selecting a single date"),
+                            dateText: $dateText,
+                            action: {
+                                UIApplication.shared.endEditing()//added for calender
+                                
+                                //showDatePicker.toggle()
+                                showDatePicker = true
+                                
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                    withAnimation {
+                                        proxy.scrollTo("calendarSection", anchor: .top)
+                                    }
+                                }
+                                
+                            }
+                        )
+                        
+                        if showDateError {
+                            //                    ErrorMessage(text: "This field is required")
+                            ErrorMessage(text: NSLocalizedString("error_required_field", comment: "Validation error for empty field"))
+                        }
+                        
+                    }
+                    
+                    if recurring {
+                        VStack {
+                            //                    DateField(title: "Start Date", dateText: $startDateText, action: {
+                            //                        isSelectingStartDate = true
+                            //                        isSelectingEndDate = false
+                            //                        showDatePicker.toggle()
+                            //
+                            //
+                            //                    })
+                            DateField(
+                                title: NSLocalizedString("start_date", comment: "Label for selecting the start date"),
+                                dateText: $startDateText,
+                                action: {
+                                    isSelectingStartDate = true
+                                    isSelectingEndDate = false
+                                    //showDatePicker.toggle()
+                                    showDatePicker = true
+                                    
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                        withAnimation {
+                                            proxy.scrollTo("calendarSection", anchor: .top)
+                                        }
+                                    }
+                                }
+                            )
+                            
+                            
+                            //                    DateField(title: "End Date", dateText: $endDateText, action: {
+                            //                        isSelectingStartDate = false
+                            //                        isSelectingEndDate = true
+                            //                        showDatePicker.toggle()
+                            //                    })
+                            DateField(
+                                title: NSLocalizedString("end_date", comment: "Label for selecting the end date"),
+                                dateText: $endDateText,
+                                action: {
+                                    isSelectingStartDate = false
+                                    isSelectingEndDate = true
+                                    //showDatePicker.toggle()
+                                    showDatePicker = true
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                        withAnimation {
+                                            proxy.scrollTo("calendarSection", anchor: .top)
+                                        }
+                                    }
+                                }
+                            )
+                            
+                            if showRecurringDateError {
+                                //                        ErrorMessage(text: "This field is required")
+                                ErrorMessage(text: NSLocalizedString("error_required_field", comment: "Validation error for empty field"))
+                            }
+                        }
+                    }
+                    
+                    
+                    
+                    // **Date Picker Modal**
+                    if showDatePicker {
+                                                      Color.black.opacity(0.001) // Invisible but tappable
+                                    .edgesIgnoringSafeArea(.all)
+                                    .onTapGesture {
+                                        showDatePicker = false
+                                    }
+                        VStack {
+                            DatePicker("Select Date", selection: Binding(
+                                get: {
+                                    if !recurring { return startDate }
+                                    return isSelectingStartDate ? startDate : endDate
+                                },
+                                set: { newValue in
+                                    if !recurring {
+                                        startDate = newValue
+                                        dateText = formatDate(newValue)
+                                        if let date = dateText, !date.isEmpty {
                                             showDateError = false
                                         }
-                            } else {
-                                if isSelectingStartDate {
-                                    startDate = newValue
-                                    startDateText = formatDate(newValue)
-                                } else {
-                                    endDate = newValue
-                                    endDateText = formatDate(newValue)
-                                }
-                                if let start = startDateText, !start.isEmpty,
+                                    } else {
+                                        if isSelectingStartDate {
+                                            startDate = newValue
+                                            startDateText = formatDate(newValue)
+                                        } else {
+                                            endDate = newValue
+                                            endDateText = formatDate(newValue)
+                                        }
+                                        if let start = startDateText, !start.isEmpty,
                                            let end = endDateText, !end.isEmpty {
                                             showRecurringDateError = false
                                         }
-                            }
-                            showDatePicker = false
+                                    }
+                                    showDatePicker = false
+                                }
+                            ), displayedComponents: .date)
+                            .datePickerStyle(GraphicalDatePickerStyle())
+                            .labelsHidden()
+                            .padding()
+                            .background(RoundedRectangle(cornerRadius: 10).fill(Color.white).shadow(radius: 5))
                         }
-                    ), displayedComponents: .date)
-                    .datePickerStyle(GraphicalDatePickerStyle())
-                    .labelsHidden()
-                    .padding()
-                    .background(RoundedRectangle(cornerRadius: 10).fill(Color.white).shadow(radius: 5))
+                        .id("calendarSection") // Important for scrollTo
+                        
+                    
                 }
-            }
-            
-            // **Memo Field**
-            //TextField("Memo", text: $memo)
-            TextField(NSLocalizedString("memo", comment: "Placeholder for memo field"), text: $memo)
-
-                .padding()
-                .background(RoundedRectangle(cornerRadius: 10).stroke(Color.gray, lineWidth: 1))
-                .onChange(of: memo) { newValue in
-                    if !newValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                        showMemoError = false
+                    // **Memo Field**
+                    //TextField("Memo", text: $memo)
+                    TextField(NSLocalizedString("memo", comment: "Placeholder for memo field"), text: $memo)
+                    
+                        .padding()
+                        .background(RoundedRectangle(cornerRadius: 10).stroke(Color.gray, lineWidth: 1))
+                        .onChange(of: memo) { oldValue,newValue in
+                            if !newValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                                showMemoError = false
+                            }
+                        }
+                    if showMemoError {
+                        // ErrorMessage(text: "This field is required")
+                        ErrorMessage(text: NSLocalizedString("error_required_field", comment: "Validation error for empty field"))
                     }
                 }
-            if showMemoError {
-               // ErrorMessage(text: "This field is required")
-                ErrorMessage(text: NSLocalizedString("error_required_field", comment: "Validation error for empty field"))
+                .padding()
             }
         }
-        .padding()
     }
-
 }
 //end
 
@@ -759,7 +837,11 @@ struct AccountSelectionButton: View {
         }
     }
 }
-
+extension UIApplication {
+    func endEditing() {
+        sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+    }
+}
 
 struct AnotherMemberTransferForm: View {
     @Binding var selectedFromAccount: BankAccount?
@@ -776,6 +858,7 @@ struct AnotherMemberTransferForm: View {
     @Binding var showTransferToError: Bool
     @Binding var showRecurringDateError: Bool
     @Binding var showDateError: Bool
+    @Binding var showTransferFromError: Bool
 
     @Binding var showMemoError: Bool
     @Binding var showInsufficientFundsError: Bool
@@ -791,6 +874,7 @@ struct AnotherMemberTransferForm: View {
     @StateObject private var contactManager = ContactManager()
        
     var body: some View {
+        
         VStack(spacing: 15) {
             // Error message for insufficient funds
             if showInsufficientFundsError {
@@ -818,7 +902,11 @@ struct AnotherMemberTransferForm: View {
                 )
             }
 
-
+            if showTransferFromError {
+                //ErrorMessage(text: "This field is required")
+                ErrorMessage(text: NSLocalizedString("error_required_field", comment: "Validation error for empty field"))
+                
+            }
             // **Transfer To Contact Selection**
 //            ContactSelectionButton(title: "Select Contact", contact: selectedContact)
             ContactSelectionButton(
@@ -919,13 +1007,16 @@ struct AnotherMemberTransferForm: View {
                 .keyboardType(.decimalPad)
                 .padding()
                 .background(RoundedRectangle(cornerRadius: 10).stroke(Color.gray, lineWidth: 1))
-                .onChange(of: amount) { newValue in
+                .onChange(of: amount) { oldValue,newValue in
                     //amount = formatCurrencyInput(newValue)
                     amount = CurrencyFormatter.format(newValue)
                     if !newValue.trimmingCharacters(in: .whitespaces).isEmpty {
                             showAmountError = false // Hide error as soon as user types
                         }
                 }
+                .onTapGesture {
+                            UIApplication.shared.endEditing()
+                        }
 
             if showAmountError {
                 //ErrorMessage(text: "This field is required")
@@ -938,7 +1029,10 @@ struct AnotherMemberTransferForm: View {
                 DateField(
                     title: NSLocalizedString("select_date", comment: "Label for selecting a single date"),
                     dateText: $dateText,
-                    action: { showDatePicker.toggle() }
+                    action: {
+                        UIApplication.shared.endEditing() // Dismiss keyboard
+
+                        showDatePicker.toggle() }
                 )
                 if showDateError {
                     //ErrorMessage(text: "This field is required")
@@ -1031,7 +1125,7 @@ struct AnotherMemberTransferForm: View {
             TextField(NSLocalizedString("memo", comment: "Placeholder for memo field"), text: $memo)
                 .padding()
                 .background(RoundedRectangle(cornerRadius: 10).stroke(Color.gray, lineWidth: 1))
-                .onChange(of: memo) { newValue in
+                .onChange(of: memo) { oldValue,newValue in
                         if !newValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                             showMemoError = false
                         }
@@ -1348,7 +1442,9 @@ struct SummarySheet: View { //SummarySheet
                 Image(systemName: "checkmark.circle.fill")
                     .foregroundColor(.white)
                     .font(.title3)
-                Text("Payment Sent")
+                //Text("Payment Sent")
+                Text(NSLocalizedString("payment_sent", comment: "Message shown when a payment is successfully sent"))
+
                     .font(.headline)
                     .foregroundColor(.white)
                 Spacer()
@@ -1361,7 +1457,8 @@ struct SummarySheet: View { //SummarySheet
 
             // Payment Summary Card
             VStack(alignment: .leading, spacing: 10) {
-                Text("Payment Summary")
+                //Text("Payment Summary")
+                Text(NSLocalizedString("payment_summary", comment: "Message shown when a payment is successfully sent"))
                     .font(.title3)
                     .bold()
                     .frame(maxWidth: .infinity, alignment: .center)
@@ -1477,7 +1574,7 @@ struct SummarySheet: View { //SummarySheet
 
                        PaymentDetailRow(
                            title: NSLocalizedString("date", comment: "Label for payment date"),
-                           value: dateText ?? NSLocalizedString("na", comment: "Not available fallback"),
+                           value: dateText,
                            bold: false
                        )
                    }
@@ -1734,6 +1831,7 @@ struct SendToSheet: View {
     var excludeAccount: BankAccount? // Add this//
 
     @State private var filteredAccounts: [BankAccount] = []
+    
     var body: some View {
         VStack {
             headerView
@@ -1763,22 +1861,44 @@ struct SendToSheet: View {
     private var accountListView: some View {
         ScrollView {
             VStack(spacing: 10) {
-                let filteredAccounts = accountManager_to.accounts.filter {
-                    $0.id != excludeAccount?.id
-                }
+                //tried for from and to
+//                let filteredAccounts = accountManager_to.accounts.filter {
+//                    $0.id != excludeAccount?.id
+////                }
+//                let filteredAccounts = accountManager_to.accounts.filter {
+//                    guard let exclude = excludeAccount else { return true }
+//                    return $0.id != exclude.id
+//                }
 
-                ForEach(filteredAccounts) { account in
-                                       accountButton(for: account)
-                                   
-              
-
+//end
+                //26 march
+//                ForEach(filteredAccounts) { account in
+//                                       accountButton(for: account)
+//                                   
+//              
+//
+//                }
+                ForEach(accountManager_to.accounts.filter { $0.id != excludeAccount?.id }) { account in
+                    AccountSelectionButton(title: "", account: .constant(account)) {
+                        selectedAccount_to = account
+                        isPresented_to = false
+                    }
                 }
+                
             }
             .padding()
         }
+//        .onAppear {
+//                    filteredAccounts = accountManager_to.accounts.filter { $0.id != excludeAccount?.id }
+//                }
         .onAppear {
-                    filteredAccounts = accountManager_to.accounts.filter { $0.id != excludeAccount?.id }
+            
+            if let exclude = excludeAccount {
+                    filteredAccounts = accountManager_to.accounts.filter { $0.id != exclude.id }
+                } else {
+                    filteredAccounts = accountManager_to.accounts
                 }
+            }
     }
 
     /// Extracted Button Component

@@ -1,65 +1,4 @@
-////
-////  PayBillScreen.swift
-////  AcceBankDev
-////
-////  Created by MCT on 05/03/25.
-////
-//
-//import SwiftUI
-//
-//struct PayBillScreen: View {
-//    @Environment(\.presentationMode) var presentationMode // To dismiss the modal
-//    //@State private var selectedPaymentType: String = "One-time Payment" // Track the payment type
-//    @State private var selectedPaymentType: String? = nil // Track selected payment type
-//    
-//    var body: some View {
-//        //Text("Hello, World!")
-//        ScrollView {
-//            
-//            VStack {
-//                //  Top Bar with Back Button
-//                HStack {
-//                    Button(action: { presentationMode.wrappedValue.dismiss() }) {
-//                        Image(systemName: "arrow.left")
-//                            .font(.title2)
-//                            .foregroundColor(.black)
-//                    }
-//                    Spacer()
-//                    // Text("Send Money")//
-//                    Text(NSLocalizedString("make_payment", comment: ""))
-//                    
-//                        .font(.title2)
-//                        .bold()
-//                    Spacer()
-//                }
-//                .padding()
-//                VStack(alignment: .leading, spacing: 15) {
-//                    //                    Text(NSLocalizedString("select_payment_type", comment: ""))
-//                    //                        .font(.headline)
-//                    //                        .padding(.top, 20)
-//                    
-//                    // Option to choose between one-time and recurring payments
-//                    Picker("Payment Type", selection: $selectedPaymentType) {
-//                        Text("One-time Payment").tag("One-time Payment")
-//                        Text("Recurring Payment").tag("Recurring Payment")
-//                    }
-//                    .pickerStyle(SegmentedPickerStyle()) // Segmented style for better UI
-//                    .padding()
-//
-//                    
-//                }
-//                
-//            }
-//        }
-//        
-//    }
-//}
-//    struct PayBillScreen_Previews: PreviewProvider {
-//        static var previews: some View {
-//            PayBillScreen()
-//        }
-//    }
-//
+
 
 import SwiftUI
 
@@ -98,152 +37,212 @@ struct PayBillScreen: View {
                     Spacer()
                 }
                 .padding()
+                HStack(spacing: 0)  {
+                    ZStack {
+                        LinearGradient(
+                            gradient: Gradient(colors: [Color.gray.opacity(0.1), Color.gray.opacity(0.3)]),
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                        .cornerRadius(30)
 
-                VStack(alignment: .leading, spacing: 15) {
-                    // Option to choose between one-time and recurring payments
-                    Picker("Payment Type", selection: $selectedPaymentType) {
-                        Text("One-time Payment").tag("One-time Payment")
-                        Text("Recurring Payment").tag("Recurring Payment")
-                    }
-                    .pickerStyle(SegmentedPickerStyle()) // Segmented style for better UI
-                    .padding()
+                        HStack(spacing: 0) {
+                            Button(action: { selectedPaymentType = "My accounts"
+                               
+}) {
+                                Text("One-time Payment")
+    //Text(NSLocalizedString("my_accounts", comment: "Title for 'My accounts' tab"))
 
-                    // Show the form when One-time Payment is selected
-                    if selectedPaymentType == "One-time Payment" {
-                        VStack(spacing: 15) {
-                            // "Pay from" Dropdown
-                            Text(NSLocalizedString("pay_from", comment: ""))
-                                .font(.subheadline)
-                                .foregroundColor(.gray)
-                                .frame(maxWidth: .infinity, alignment: .leading) // Align text to the left
-
-                            Button(action: { showAccountSheet = true }) {
-                                HStack {
-                                    VStack(alignment: .leading, spacing: 2) {
-        //                                Text(accountManager.selectedAccount?.accountName ?? "Select Account")
-                                        Text(accountManager.selectedAccount?.accountName ?? NSLocalizedString("select_account", comment: ""))
-
-                                        .font(.headline)
-                                            .bold()
-                                            .foregroundColor(.black)
-                                        Text(accountManager.selectedAccount?.accountType ?? "")
-                                            .font(.subheadline)
-                                            .foregroundColor(.gray)
-                                        Text(accountManager.selectedAccount?.accountNumber ?? "")
-                                            .font(.subheadline)
-                                            .foregroundColor(.gray)
-                                    }
-                                    Spacer()
-                                    Text(accountManager.selectedAccount?.balance ?? "")
-                                        .font(.headline)
-                                        .bold()
-                                        .foregroundColor(.black)
-                                    
-                                    Image(systemName: "chevron.down")
-                                        .foregroundColor(.black)
-                                }
-                                .padding()
-                                .background(Color(.systemGray6))
-                                .cornerRadius(10)
-                            }
-                            
-                            // "Payee" Dropdown
-                            //Text("Send to")//
-//                            Text(NSLocalizedString("send_to", comment: ""))
-//
-//                            .font(.subheadline)
-//                                .foregroundColor(.gray)
-//                                .frame(maxWidth: .infinity, alignment: .leading) // Align text to the left
-                            Button(action: { showContactSheet = true }) {
-                                HStack {
-        //                            Text(selectedContact?.name ?? "Select Contact")
-                                    Text(selectedContact?.name ?? NSLocalizedString("payee", comment: ""))
-                                    Spacer()
-                                    Image(systemName: "chevron.down")
-                                }
-                                .padding()
-                                .background(Color(.systemGray6))
-                                .cornerRadius(10)
-                            }
-                            
-                            // Add Contact Button (Opens Form)
-                            Button(action: { showAddContactSheet = true }) {
-                                HStack {
-                                    Image(systemName: "plus")
-                                        .foregroundColor(.white)
-                                        .padding()
-                                        .background(Color.colorBlue)
-                                        .clipShape(Circle())
-                                    //Text("Add contact")//
-                                    Text(NSLocalizedString("add_payee", comment: ""))
-                                        .foregroundColor(.colorBlue)
-                                        .frame(maxWidth: .infinity, alignment: .leading) // Align text to the left
-                                }
-                            }
-                            .padding(.vertical)
-                            // "Amount" Text Field
-                            TextField("enter_transfer_amount", text: $amount)
-                                .keyboardType(.decimalPad)
-                                .padding()
-                                .background(RoundedRectangle(cornerRadius: 10).stroke(Color.gray, lineWidth: 1))
-
-//                            // "Date" Date Picker
-//                            DatePicker("date", selection: $date, displayedComponents: .date)
-//                                .padding()
-//                                .background(RoundedRectangle(cornerRadius: 10).stroke(Color.gray, lineWidth: 1))
-//                            TextField("date", text: $amount)
-//                                //.keyboardType(.decimalPad)
-//                                .padding()
-//                                .background(RoundedRectangle(cornerRadius: 10).stroke(Color.gray, lineWidth: 1))
-                            HStack {
-                                               TextField("Date", text: $amount)
-                                                   .padding()
-                                                   .background(RoundedRectangle(cornerRadius: 10).stroke(Color.gray, lineWidth: 1))
-                                                   .padding(.leading, 10)
-
-                                               // Calendar Icon Button to trigger DatePicker
-                                               Button(action: {
-                                                   showDatePicker.toggle()
-                                               }) {
-                                                   Image(systemName: "calendar")
-                                                       .foregroundColor(.gray)
-                                                       .padding(.trailing, 10)
-                                               }
-                                           }
-
-                                           // Display DatePicker when showDatePicker is true
-                                           if showDatePicker {
-                                               DatePicker("Select Date", selection: $selectedDate, displayedComponents: .date)
-                                                   .datePickerStyle(GraphicalDatePickerStyle())
-                                                   .padding()
-                                                   .background(RoundedRectangle(cornerRadius: 10).stroke(Color.gray, lineWidth: 1))
-                                                   .padding(.top, 10)
-                                           }
-
-
-                            // Continue Button
-                            Button(action: {
-                                print("Continue tapped")
-                            }) {
-                                Text("Continue")
-                                    .font(.headline)
-                                    .frame(maxWidth: .infinity)
+        .font(.headline)
                                     .padding()
-                                    .background(Color.black)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(10)
+                                    .frame(maxWidth: .infinity)
+//                                    .background(selectedPaymentType == "My accounts" ? Constants.backgroundGradient : Color.clear)
+                                    .background(
+                                        selectedPaymentType == "My accounts"
+                                            ? AnyView(Constants.backgroundGradient)
+                                            : AnyView(Color.clear)
+                                    )
+
+                                    .foregroundColor(selectedPaymentType == "My accounts" ? .white : .gray)
+                                    .cornerRadius(30)
                             }
-                            .padding(.top, 20)
+
+                            Button(action: { selectedPaymentType = "Another member"
+                                
+}) {
+                                Text("Recurring Payment")
+    //Text(NSLocalizedString("another_member", comment: "Title for 'My accounts' tab"))
+
+                                    .font(.headline)
+                                    .padding()
+                                    .frame(maxWidth: .infinity)
+//                                    .background(selectedPaymentType == "Another member" ? Constants.backgroundGradient : Color.clear)
+                                    .background(
+                                        selectedPaymentType == "Another member"
+                                            ? Constants.backgroundGradient
+                                            : LinearGradient(gradient: Gradient(colors: [Color.clear, Color.clear]),
+                                                             startPoint: .leading,
+                                                             endPoint: .trailing)
+                                    )
+
+                                    .foregroundColor(selectedPaymentType == "Another member" ? .white : .gray)
+                                    .cornerRadius(30)
+                            }
                         }
-                        .padding(.horizontal, 20)
+                        .cornerRadius(30)
                     }
-                }.sheet(isPresented: $showAccountSheet) {
-                    AccountSelectionSheet(accountManager: accountManager, isPresented: $showAccountSheet)
                 }
+                .padding(.horizontal)
+                
+                
+                
+                if selectedPaymentType == "My accounts" {
+
+                    OneTimePaymentForm(accountManager: accountManager, selectedContact: $selectedContact,
+                        showAccountSheet: $showAccountSheet,
+                        showContactSheet: $showContactSheet,
+                    showAddContactSheet: $showAddContactSheet,
+                            amount: $amount,
+                        showDatePicker: $showDatePicker,
+                        selectedDate: $selectedDate
+                        
+                    )
+
+//                } else if selectedPaymentType == "Another member" {
+//                   
+//                    )
+                }
+//^^^^^^^^^^^^^
+                
             }
         }
     }
 }
+
+
+
+struct OneTimePaymentForm: View {
+    @ObservedObject var accountManager: AccountManager
+    @Binding var selectedContact: Contact?
+    @Binding var showAccountSheet: Bool
+    @Binding var showContactSheet: Bool
+    @Binding var showAddContactSheet: Bool
+    @Binding var amount: String
+    @Binding var showDatePicker: Bool
+    @Binding var selectedDate: Date
+
+    var body: some View {
+        VStack(spacing: 15) {
+            // Pay From
+            Text(NSLocalizedString("pay_from", comment: ""))
+                .font(.subheadline)
+                .foregroundColor(.gray)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            Button(action: { showAccountSheet = true }) {
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(accountManager.selectedAccount?.accountName ?? NSLocalizedString("select_account", comment: ""))
+                            .font(.headline)
+                            .bold()
+                            .foregroundColor(.black)
+
+                        Text(accountManager.selectedAccount?.accountType ?? "")
+                            .font(.subheadline)
+                            .foregroundColor(.gray)
+
+                        Text(accountManager.selectedAccount?.accountNumber ?? "")
+                            .font(.subheadline)
+                            .foregroundColor(.gray)
+                    }
+                    Spacer()
+                    Text(accountManager.selectedAccount?.balance ?? "")
+                        .font(.headline)
+                        .bold()
+                        .foregroundColor(.black)
+                    Image(systemName: "chevron.down")
+                        .foregroundColor(.black)
+                }
+                .padding()
+                .background(Color(.systemGray6))
+                .cornerRadius(10)
+            }
+
+            // Payee
+            Button(action: { showContactSheet = true }) {
+                HStack {
+                    Text(selectedContact?.name ?? NSLocalizedString("payee", comment: ""))
+                    Spacer()
+                    Image(systemName: "chevron.down")
+                }
+                .padding()
+                .background(Color(.systemGray6))
+                .cornerRadius(10)
+            }
+
+            // Add Contact
+            Button(action: { showAddContactSheet = true }) {
+                HStack {
+                    Image(systemName: "plus")
+                        .foregroundColor(.white)
+                        .padding()
+                        .background(Color.colorBlue)
+                        .clipShape(Circle())
+                    Text(NSLocalizedString("add_payee", comment: ""))
+                        .foregroundColor(.colorBlue)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
+            .padding(.vertical)
+
+            // Amount Field
+            TextField("enter_transfer_amount", text: $amount)
+                .keyboardType(.decimalPad)
+                .padding()
+                .background(RoundedRectangle(cornerRadius: 10).stroke(Color.gray, lineWidth: 1))
+
+            // Date Picker with Icon
+            HStack {
+                TextField("Date", text: $amount)
+                    .padding()
+                    .background(RoundedRectangle(cornerRadius: 10).stroke(Color.gray, lineWidth: 1))
+                    .padding(.leading, 10)
+
+                Button(action: {
+                    showDatePicker.toggle()
+                }) {
+                    Image(systemName: "calendar")
+                        .foregroundColor(.gray)
+                        .padding(.trailing, 10)
+                }
+            }
+
+            if showDatePicker {
+                DatePicker("Select Date", selection: $selectedDate, displayedComponents: .date)
+                    .datePickerStyle(GraphicalDatePickerStyle())
+                    .padding()
+                    .background(RoundedRectangle(cornerRadius: 10).stroke(Color.gray, lineWidth: 1))
+                    .padding(.top, 10)
+            }
+
+            // Continue
+            Button(action: {
+                print("Continue tapped")
+            }) {
+                Text("Continue")
+                    .font(.headline)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.black)
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
+            }
+            .padding(.top, 20)
+        }
+        .padding(.horizontal, 20)
+    }
+}
+
 struct AccountSelectionSheet: View {
     @ObservedObject var accountManager: AccountManager
     @Binding var isPresented: Bool
@@ -320,6 +319,9 @@ struct AccountSelectionSheet: View {
         .presentationDetents([.medium, .large]) // Allows swipe-up bottom sheet
     }
 }
+
+//for date
+
 struct PayBillScreen_Previews: PreviewProvider {
     static var previews: some View {
         PayBillScreen()

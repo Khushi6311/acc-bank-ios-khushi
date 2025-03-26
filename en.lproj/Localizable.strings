@@ -95,7 +95,7 @@
 "cancel" = "Cancel";
 
 // Validation Errors
-"error_select_contact" = "⚠️ Please select a contact, enter an amount, and acknowledge the terms.";
+"error_select_contact" = "Please select a contact, enter an amount, and acknowledge the terms.";
 "error_required_field" = "Required field.";
 "error_invalid_email" = "Invalid email format.";
 "error_invalid_phone" = "Invalid phone number format.";
@@ -142,7 +142,7 @@
 
 //below is for register view of register
 "register_title" = "Register";
-"username_placeholder" = "Username";
+//"username_placeholder" = "Username";
 "password_placeholder" = "Password";
 "confirm_password_placeholder" = "Confirm Password";
 "all_fields_required" = "All fields are required.";
@@ -268,3 +268,6 @@
 "nick_name"="Nick name(Optional)";
 "preffered_language"="Preferred Language";
 "error_transaction_limit" = "Payment failed. This transfer amount exceeds your transaction limit.";
+"my_accounts"="My accounts";
+"another_member"="Another member";
+"payment_sent"="Payment Sent";
