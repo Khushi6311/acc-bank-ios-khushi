@@ -4,7 +4,7 @@ import SwiftUI
 struct HomePageView: View {
     var username: String
     @State private var selectedAccount: String = "Chequing" // Default selected account
-    let cardImages = ["Card", "Card", "Card"] // Replace with actual image names
+    let cardImages = ["Card", "Card2", "Card3"] // Replace with actual image names
 
     var body: some View {
         GeometryReader { geometry in // Use GeometryReader for dynamic layouts
@@ -138,7 +138,18 @@ struct HomePageView: View {
                                     .frame(height: 190)
                                     .transition(.opacity)
                                     .padding(.bottom, 20)
-                                } else {
+                                }
+                                else if selectedAccount == "Savings" {
+                                    HStack {
+                                        if cardImages.indices.contains(1) {
+                                                    CreditCardView(imageName: cardImages[1]) // Use second image
+                                                }
+                                    }
+                                    .frame(height: 190)
+                                    .padding(.horizontal)
+                                    .transition(.opacity)
+                                    .padding(.bottom, 20)
+                                }else {
                                     Spacer()
                                         .frame(height: 190) // Keeps space for consistency
                                         .padding(.bottom, 20)
