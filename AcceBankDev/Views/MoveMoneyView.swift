@@ -97,10 +97,16 @@ struct MoveMoneyView: View {
                 }
             }
             .navigationBarHidden(true)
-            .onChange(of: selectedSheet) { _ in
-                // Trigger the sheet when selectedSheet changes
+//            .onChange(of: selectedSheet) { _ in
+//                // Trigger the sheet when selectedSheet changes
+//                showBottomSheet = true
+//            }
+            .onChange(of: selectedSheet, initial: false) { _,_  in
                 showBottomSheet = true
             }
+
+
+
             .sheet(isPresented: $showBottomSheet) {
                 Group {
                     if let selectedSheet = selectedSheet {
@@ -194,6 +200,80 @@ struct MoveMoneyView: View {
     
     // Interac e-Transfer sheet
     struct InteracETransferSheet: View {
+        @Environment(\.presentationMode) var presentationMode
+        
+        var body: some View {
+            VStack {
+                HStack {
+                    //Text("Interac e-Transfer®")
+                    Text(NSLocalizedString("interac_transfer", comment: "Title for transfers section"))
+                        .font(.headline)
+                        .bold()
+                        .padding()
+                    
+                    Spacer()
+                    
+                    Button(action: {
+                        presentationMode.wrappedValue.dismiss()
+                    }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.title)
+                            .foregroundColor(.gray)
+                    }
+                    .padding()
+                }
+                
+                Divider()
+                
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 15) {
+//                        InteracOptionRow(icon: "paperplane.fill", title: "Send money")
+                        
+                        InteracOptionRow(option: .sendMoney)
+                        InteracOptionRow(option: .requestMoney)
+                        InteracOptionRow(option: .manageContacts)
+                        InteracOptionRow(option: .pending)
+                        InteracOptionRow(option: .profileSettings)
+
+                        
+//                        InteracOptionRow(
+//                            icon: "paperplane.fill",
+//                            title: NSLocalizedString("send_money", comment: "Option to send money")
+//                        )
+//                        InteracOptionRow(icon: "arrow.down.doc.fill", title: "Request money")
+//                        InteracOptionRow(
+//                            icon: "arrow.down.doc.fill",
+//                            title: NSLocalizedString("request_money", comment: "Option to request money")
+//                        )
+//                        InteracOptionRow(icon: "person.crop.circle.fill", title: "Manage contacts")
+//                        InteracOptionRow(
+//                            icon: "person.crop.circle.fill",
+//                            title: NSLocalizedString("manage_contacts", comment: "Option to manage contacts")
+//                        )
+                        //InteracOptionRow(icon: "clock.fill", title: "Pending")
+//                        InteracOptionRow(
+//                            icon: "clock.fill",
+//                            title: NSLocalizedString("pending", comment: "Option to view pending transfers or requests")
+//                        )
+//                        InteracOptionRow(icon: "list.bullet", title: "History")
+//                        InteracOptionRow(icon: "gearshape.fill", title: "Autodeposit settings")
+//                        InteracOptionRow(icon: "person.text.rectangle.fill", title: "Profile settings")
+//                        InteracOptionRow(
+//                            icon: "person.text.rectangle.fill",
+//                            title: NSLocalizedString("profile_setting", comment: "Option to configure user profile settings")
+//                        )
+                    }
+                    .padding()
+                }
+                
+                Spacer()
+            }
+            .frame(maxWidth: .infinity)
+            .background(Color(UIColor.systemGray6))
+            .edgesIgnoringSafeArea(.bottom)
+        }
+    }
+    struct Paymentsheet: View {
         @Environment(\.presentationMode) var presentationMode
         
         var body: some View {

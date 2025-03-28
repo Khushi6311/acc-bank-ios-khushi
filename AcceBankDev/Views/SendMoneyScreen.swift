@@ -182,7 +182,7 @@ struct SendMoneyView: View {
                         .keyboardType(.decimalPad) // Ensure numeric input
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                         .padding(.top,5)
-                        .onChange(of: transferAmount) { newValue in
+                        .onChange(of: transferAmount,initial:false) {_, newValue in
                             transferAmount = formatCurrencyInput(newValue)
                         }
                         
@@ -235,7 +235,9 @@ struct SendMoneyView: View {
                             .font(.headline)
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity, minHeight: 50)
-                            .background(Color.black)
+                            //.background(Color.black)
+                            .background(Constants.backgroundGradient)
+
                             .cornerRadius(10)
                     }
                     .padding(.top, 20)
@@ -853,7 +855,7 @@ struct SendMoneyView: View {
 //                                    mobilePhone = formatPhoneNumber(mobilePhone)
 //                                }
                             //25 march
-                                .onChange(of: mobilePhone) { newValue in
+                                .onChange(of: mobilePhone,initial:false) {_, newValue in
                                         let digits = newValue.filter { $0.isNumber }
 
                                         // Check if user is deleting

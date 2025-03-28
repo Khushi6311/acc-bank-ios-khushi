@@ -187,7 +187,10 @@ struct TransferMoneyScreen: View {
                      startDate: $startDate,
                         endDate: $endDate,
                         startDateText: $startDateText,
-                 endDateText: $endDateText
+                 endDateText: $endDateText,
+                        isAnotherMemberSelected: $showConfirmationSheet, // new
+                        selectedContact: $selectedContact,             // new
+                        showConfirmationSheet: $isAnotherMemberSelected
                     )
 
                 } else if selectedPaymentType == "Another member" {
@@ -215,146 +218,18 @@ struct TransferMoneyScreen: View {
                             endDate: $endDate,
                             startDateText: $startDateText,
                             endDateText: $endDateText,
-                            isContactSheetPresented: $isContactSheetPresented
+                            isContactSheetPresented: $isContactSheetPresented,
+                        showConfirmationSheet: $showConfirmationSheet,
+                        isAnotherMemberSelected: $isAnotherMemberSelected
+
                     )
                 }
 
-                // **Continue Button**
-                Button(action: {
-                    
-                    validateFields()
-                    print("Validation result - showConfirmationSheet: \(showConfirmationSheet)")
-                    print("showTransferFromError: \(showTransferFromError)")
-                    print("showTransferToError: \(showTransferToError)")
-                    print("showAmountError: \(showAmountError)")
-                    print("showMemoError: \(showMemoError)")
-                    print("showInsufficientFundsError: \(showInsufficientFundsError)")
-                    print("showDateError: \(showDateError)")
-                    print("showRecurringDateError: \(showRecurringDateError)")
-
-
-//                    if showInsufficientFundsError {
-//                            return
-//                        }
-//                    if !showAmountError && !showTransferToError && !showMemoError {
-//                           showConfirmationSheet = true
-//                       }
-//                    showConfirmationSheet = true
-//                    DispatchQueue.main.async {
-//                        print("Selected Contact: \(selectedContact?.name ?? "nil")")
-//                        print("Is Another Member Selected: \(isAnotherMemberSelected)")
-//                            
-//                        
-//                        if !showInsufficientFundsError && !showAmountError && !showTransferToError && !showMemoError && !showTransferFromError && !showRecurringDateError && !showDateError && !showMemoError {
-//                            showConfirmationSheet = true
-//                        }
-//                    }
-
-                }) {
-                    //Text("Continue")
-                    Text(NSLocalizedString("continue", comment: "Button label for continue"))
-
-                        .font(.headline)
-                        .frame(width: 330)
-                        .padding()
-                        .background(Constants.backgroundGradient)
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
-                }
-                .frame(maxWidth: .infinity, alignment: .center)
-                .padding(.top, 5)
                 
-                
-
-                .sheet(isPresented: $showConfirmationSheet) {
-                    ConfirmationSheet(
-                        fromAccount: $selectedFromAccount,
-                        toAccount: $selectedToAccount,
-                        amount: $amount,
-                        dateText: $dateText,
-
-                        memo: $memo,
-                        isRecurring: $recurring,
-                        //selectedFrequency: $selectedFrequency,
-                        selectedFrequency: Binding(get: { selectedFrequency }, set: { selectedFrequency = $0! }), // Fix for optional binding
-//                        selectedFrequency: Binding(get: { selectedFrequency ?? "Weekly" }, set: { selectedFrequency = $0! })
-                        startDateText: $startDateText,
-                        endDateText: $endDateText,
-                        isAnotherMemberSelected: $isAnotherMemberSelected,
-                        selectedContact: $selectedContact // Add this
-
-                        
-                    )
-//                    .presentationDetents([.medium, .fraction(2)]) // Makes the sheet smaller
-//                        .presentationDragIndicator(.visible)
-                }
-
-
-                
-
-
 
             }
             .padding(.horizontal, 10)
         }
-    }
-    private func validateFields() {
-        // Convert amount string to a double after removing currency symbols
-        let enteredAmount = Double(amount.replacingOccurrences(of: "$", with: "").trimmingCharacters(in: .whitespaces)) ?? 0.0
-        let availableBalance = Double(selectedFromAccount?.balance.replacingOccurrences(of: "$", with: "").replacingOccurrences(of: ",", with: "").trimmingCharacters(in: .whitespaces) ?? "0") ?? 0.0
-
-        print("Entered Amount: \(enteredAmount)")
-        print("Available Balance: \(availableBalance)")
-        
-        print("Opening Confirmation Sheet")
-           print("From Account: \(selectedFromAccount?.accountName ?? "No Account") - \(selectedFromAccount?.accountNumber ?? "")")
-           print("To Account: \(selectedToAccount?.accountName ?? "No Account") - \(selectedToAccount?.accountNumber ?? "")")
-           print("Selected Contact: \(selectedContact?.name ?? "No Contact Selected")")
-           print("Is Another Member Selected: \(isAnotherMemberSelected)")
-           print("Amount: \(amount)")
-           print("Date: \(dateText ?? "No Date")")
-           print("Memo: \(memo)")
-        print("Final dateText before confirmation: \(dateText ?? "nil")") // Debug
-
-        showDateError = !recurring && (dateText?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
-//        showRecurringDateError = (startDateText?.isEmpty ?? true) || (endDateText?.isEmpty ?? true)
-        showRecurringDateError = recurring && ((startDateText?.isEmpty ?? true) || (endDateText?.isEmpty ?? true))
-
-        // Validate required fields
-        showTransferFromError=selectedFromAccount==nil
-        //showTransferToError = selectedToAccount == nil
-        showAmountError = amount.trimmingCharacters(in: .whitespaces).isEmpty
-        showMemoError = memo.trimmingCharacters(in: .whitespaces).isEmpty
-        if isAnotherMemberSelected {
-                showTransferToError = selectedContact == nil
-            } else {
-                showTransferToError = selectedToAccount == nil
-            }
-        if let fromAccount = selectedFromAccount,
-           !amount.trimmingCharacters(in: .whitespaces).isEmpty,
-           let available = Double(fromAccount.balance.replacingOccurrences(of: "$", with: "").replacingOccurrences(of: ",", with: "").trimmingCharacters(in: .whitespaces)) {
-            
-            showInsufficientFundsError = enteredAmount > available
-        } else {
-            showInsufficientFundsError = false
-        }
-        
-//        if isAnotherMemberSelected {
-//            showTransferToError = selectedContact == nil
-//        } else {
-//            showTransferToError = selectedToAccount == nil
-//        }
-
-
-
-        // Only show confirmation sheet if all validations pass and no insufficient funds error
-        showConfirmationSheet = !showTransferToError &&
-                                !showAmountError &&
-                                !showMemoError &&
-                                !showInsufficientFundsError &&
-                                !showDateError &&
-            !showRecurringDateError &&
-        !showTransferFromError
     }
 
     
@@ -389,8 +264,9 @@ struct MyAccountsTransferForm: View {
     @Binding var startDateText: String?
     @Binding var endDateText: String?
     @FocusState private var focusedField: FieldFocus?
-
-    
+    @Binding var isAnotherMemberSelected: Bool           // Add this
+    @Binding var selectedContact: Contact?                // Add this
+    @Binding var showConfirmationSheet: Bool
     @StateObject private var accountManager = AccountManager()
 
     var body: some View {
@@ -732,13 +608,129 @@ struct MyAccountsTransferForm: View {
                         // ErrorMessage(text: "This field is required")
                         ErrorMessage(text: NSLocalizedString("error_required_field", comment: "Validation error for empty field"))
                     }
+                    
+                    Button(action: {
+                        //validateFields()
+                        let result = TransferFormValidator.validate(
+                               selectedFromAccount: selectedFromAccount,
+                               selectedToAccount: selectedToAccount,
+                               amount: amount,
+                               memo: memo,
+                               dateText: dateText,
+                               startDateText: startDateText,
+                               endDateText: endDateText,
+                               recurring: recurring
+                           )
+
+                           showTransferFromError = result.showTransferFromError
+                           showTransferToError = result.showTransferToError
+                           showAmountError = result.showAmountError
+                           showMemoError = result.showMemoError
+                           showDateError = result.showDateError
+                           showRecurringDateError = result.showRecurringDateError
+                           showInsufficientFundsError = result.showInsufficientFundsError
+                           showConfirmationSheet = result.isFormValid
+                    }) {
+                        Text(NSLocalizedString("continue", comment: "Button label for continue"))
+                            .font(.headline)
+                            .frame(width: 330)
+                            .padding()
+                            .background(Constants.backgroundGradient)
+                            .foregroundColor(.white)
+                            .cornerRadius(10)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.top, 10)
+                    .sheet(isPresented: $showConfirmationSheet) {
+                        ConfirmationSheet(
+                            fromAccount: $selectedFromAccount,
+                            toAccount: $selectedToAccount,
+                            amount: $amount,
+                            dateText: $dateText,
+
+                            memo: $memo,
+                            isRecurring: $recurring,
+                            //selectedFrequency: $selectedFrequency,
+                            selectedFrequency: Binding(get: { selectedFrequency }, set: { selectedFrequency = $0! }), // Fix for optional binding
+    //                        selectedFrequency: Binding(get: { selectedFrequency ?? "Weekly" }, set: { selectedFrequency = $0! })
+                            startDateText: $startDateText,
+                            endDateText: $endDateText,
+                            isAnotherMemberSelected: $isAnotherMemberSelected,
+                            selectedContact: $selectedContact // Add this
+
+                            
+                        )
+    //                    .presentationDetents([.medium, .fraction(2)]) // Makes the sheet smaller
+    //                        .presentationDragIndicator(.visible)
+                    }
+
+
                 }
                 .padding()
+                
+                
             }
         }
     }
 }
 //end
+import Foundation
+
+struct TransferFormValidator {
+    static func validate(
+        selectedFromAccount: BankAccount?,
+        selectedToAccount: BankAccount?=nil,
+        selectedContact: Contact? = nil, // <-- Add this line
+
+        amount: String,
+        memo: String,
+        dateText: String?,
+        startDateText: String?,
+        endDateText: String?,
+        recurring: Bool
+    ) -> (
+        showTransferFromError: Bool,
+        showTransferToError: Bool,
+        showAmountError: Bool,
+        showMemoError: Bool,
+        showDateError: Bool,
+        showRecurringDateError: Bool,
+        showInsufficientFundsError: Bool,
+        isFormValid: Bool
+    ) {
+        let enteredAmount = Double(amount.replacingOccurrences(of: "$", with: "").trimmingCharacters(in: .whitespaces)) ?? 0.0
+        let availableBalance = Double(selectedFromAccount?.balance.replacingOccurrences(of: "$", with: "").replacingOccurrences(of: ",", with: "").trimmingCharacters(in: .whitespaces) ?? "0") ?? 0.0
+        
+        let showDateError = !recurring && (dateText?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
+        let showRecurringDateError = recurring && ((startDateText?.isEmpty ?? true) || (endDateText?.isEmpty ?? true))
+        let showTransferFromError = selectedFromAccount == nil
+        //let showTransferToError = selectedToAccount == nil
+        let showTransferToError = selectedToAccount == nil && selectedContact == nil
+
+        let showAmountError = amount.trimmingCharacters(in: .whitespaces).isEmpty
+        let showMemoError = memo.trimmingCharacters(in: .whitespaces).isEmpty
+        let showInsufficientFundsError = enteredAmount > availableBalance
+        
+        let isFormValid = !showTransferToError &&
+                          !showAmountError &&
+                          !showMemoError &&
+                          !showInsufficientFundsError &&
+                          !showDateError &&
+                          !showRecurringDateError &&
+                          !showTransferFromError
+        
+        return (
+            showTransferFromError,
+            showTransferToError,
+            showAmountError,
+            showMemoError,
+            showDateError,
+            showRecurringDateError,
+            showInsufficientFundsError,
+            isFormValid
+        )
+    }
+}
 
 struct CurrencyFormatter {
     static func format(_ input: String) -> String {
@@ -870,6 +862,8 @@ struct AnotherMemberTransferForm: View {
     @Binding var endDateText: String?
     @StateObject private var accountManager = AccountManager()
     @Binding var isContactSheetPresented: Bool // Ensure this exists
+    @Binding var showConfirmationSheet: Bool
+    @Binding var isAnotherMemberSelected: Bool
 
     @StateObject private var contactManager = ContactManager()
        
@@ -921,10 +915,10 @@ struct AnotherMemberTransferForm: View {
                 ContactSelectionSheet(contactManager: contactManager, selectedContact: $selectedContact, isPresented: $showContactSheet)
             }
 
-            if showTransferToError {
-                //ErrorMessage(text: "This field is required")
-                ErrorMessage(text: NSLocalizedString("error_required_field", comment: "Validation error for empty field"))
-            }
+//            if showTransferToError {
+//                //ErrorMessage(text: "This field is required")
+//                ErrorMessage(text: NSLocalizedString("error_required_field", comment: "Validation error for empty field"))
+//            }
 
             // **One-Time or Recurring Toggle**
             HStack(spacing: 20) {
@@ -1136,6 +1130,67 @@ struct AnotherMemberTransferForm: View {
                 //ErrorMessage(text: "This field is required")
                 ErrorMessage(text: NSLocalizedString("error_required_field", comment: "Validation error for empty field"))
             }
+            Button(action: {
+                //validateFields()
+                
+                let result = TransferFormValidator.validate(
+                       selectedFromAccount: selectedFromAccount,
+                       selectedContact: selectedContact, // Now accepted
+
+                       //selectedToAccount: selectedToAccount,
+                       amount: amount,
+                       memo: memo,
+                       dateText: dateText,
+                       startDateText: startDateText,
+                       endDateText: endDateText,
+                       recurring: recurring
+                   )
+
+                   showTransferFromError = result.showTransferFromError
+                   showTransferToError = result.showTransferToError
+                   showAmountError = result.showAmountError
+                   showMemoError = result.showMemoError
+                   showDateError = result.showDateError
+                   showRecurringDateError = result.showRecurringDateError
+                   showInsufficientFundsError = result.showInsufficientFundsError
+                   showConfirmationSheet = result.isFormValid
+            }) {
+                Text(NSLocalizedString("continue", comment: "Button label for continue"))
+                    .font(.headline)
+                    .frame(width: 330)
+                    .padding()
+                    .background(Constants.backgroundGradient)
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
+            }
+            .frame(maxWidth: .infinity, alignment: .center)
+            .padding(.top, 10)
+            .sheet(isPresented: $showConfirmationSheet) {
+                ConfirmationSheet(
+                    fromAccount: $selectedFromAccount,
+                   // toAccount: $selectedToAccount,
+                    toAccount: .constant(nil), // <-- explicitly pass nil if not used
+
+                    amount: $amount,
+                    dateText: $dateText,
+
+                    memo: $memo,
+                    isRecurring: $recurring,
+                    //selectedFrequency: $selectedFrequency,
+                    selectedFrequency: Binding(get: { selectedFrequency }, set: { selectedFrequency = $0! }), // Fix for optional binding
+//                        selectedFrequency: Binding(get: { selectedFrequency ?? "Weekly" }, set: { selectedFrequency = $0! })
+                    startDateText: $startDateText,
+                    endDateText: $endDateText,
+                    isAnotherMemberSelected: $isAnotherMemberSelected,
+                    selectedContact: $selectedContact // Add this
+
+                    
+                )
+//                    .presentationDetents([.medium, .fraction(2)]) // Makes the sheet smaller
+//                        .presentationDragIndicator(.visible)
+            }
+
+
         }
         .padding()
     }
@@ -1754,6 +1809,7 @@ struct TransferAccountSheet: View {
         HStack {
             Text(NSLocalizedString("transfer_from", comment: ""))
                 .font(.headline)
+                .foregroundColor(.black)
                 .bold()
             Spacer()
             Button(action: { isPresented = false }) {
