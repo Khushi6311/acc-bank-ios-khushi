@@ -130,8 +130,12 @@ struct EmailView: View {
                     }
                     .padding(.top, 20)
                     
-                    NavigationLink("", destination: WelcomePageView(username: username), isActive: $isNavigatingToWelcomePage)
-                        .hidden()
+//                    NavigationLink("", destination: WelcomePageView(username: username), isActive: $isNavigatingToWelcomePage)
+//                        .hidden()
+                    .navigationDestination(isPresented: $isNavigatingToWelcomePage) {
+                        WelcomePageView(username: username)
+                    }
+
                 }
                 .padding(.horizontal, 30)
             }

@@ -145,7 +145,7 @@ struct AddContactFormView: View {
 //                                mobilePhone = formatPhoneNumber(mobilePhone)
 //                            }
                         //24 march
-                            .onChange(of: mobilePhone) { newValue in
+                            .onChange(of: mobilePhone) { oldValue,newValue in
                                     let digits = newValue.filter { $0.isNumber }
 
                                     // Check if user is deleting

@@ -68,9 +68,12 @@ struct RegisterView: View {
                     }
                     .padding(.top, 20)
                     .disabled(!isPasswordValidState)
-
-                    NavigationLink("", destination: PhoneNumberView(username: username), isActive: $isFormCompleted)
-                        .hidden()
+//
+//                    NavigationLink("", destination: PhoneNumberView(username: username), isActive: $isFormCompleted)
+//                        .hidden()
+                    .navigationDestination(isPresented: $isFormCompleted) {
+                                    PhoneNumberView(username: username)
+                                }
                 }
                 .padding(.horizontal, 30)
                 

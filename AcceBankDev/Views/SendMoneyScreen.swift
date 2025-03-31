@@ -23,9 +23,9 @@ struct SendMoneyView: View {
     var body: some View {
         NavigationStack {
 
-        ScrollView {
+        //ScrollView {
             
-            VStack {
+            VStack() {
                 //  Top Bar with Back Button
                 HStack {
                     Button(action: { presentationMode.wrappedValue.dismiss() }) {
@@ -34,9 +34,9 @@ struct SendMoneyView: View {
                             .foregroundColor(.black)
                     }
                     Spacer()
-                   // Text("Send Money")//
+                    // Text("Send Money")//
                     Text(NSLocalizedString("send_money", comment: ""))
-
+                    
                         .font(.title2)
                         .bold()
                     Spacer()
@@ -44,30 +44,52 @@ struct SendMoneyView: View {
                 .padding()
                 
                 //  Payment Error Banner
-                if showPaymentError {
-                    HStack {
-                        Image(systemName: "exclamationmark.triangle.fill")
-                            .foregroundColor(.white)
-                        VStack(alignment: .leading) {
-                            //Text("Payment failed")//
-                            Text(NSLocalizedString("payment_failed", comment: ""))
-
-                                .font(.headline)
-                                .bold()
-//                            Text("This payment amount exceeds your transaction limit. Please try again.")//
-                            Text(NSLocalizedString("transaction_limit_exceeded", comment: ""))
-                                .font(.subheadline)
-                        }
-                        Spacer()
-                    }
-                    .padding()
-                    .background(Color.red.opacity(0.9))
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
-                    .padding(.horizontal)
-                }
-                
+                //                if showPaymentError {
+                //                    HStack {
+                //                        Image(systemName: "exclamationmark.triangle.fill")
+                //                            .foregroundColor(.white)
+                //                        VStack(alignment: .leading) {
+                //                            //Text("Payment failed")//
+                //                            Text(NSLocalizedString("payment_failed", comment: ""))
+                //
+                //                                .font(.headline)
+                //                                .bold()
+                ////                            Text("This payment amount exceeds your transaction limit. Please try again.")//
+                //                            Text(NSLocalizedString("transaction_limit_exceeded", comment: ""))
+                //                                .font(.subheadline)
+                //                        }
+                //                        Spacer()
+                //                    }
+                //                    .padding()
+                //                    .background(Color.red.opacity(0.9))
+                //                    .foregroundColor(.white)
+                //                    .cornerRadius(10)
+                //                    .padding(.horizontal)
+                //                }
+                ScrollView{
                 VStack(alignment: .leading, spacing: 15) {
+                    if showPaymentError {
+                        HStack {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundColor(.white)
+                            VStack(alignment: .leading) {
+                                //Text("Payment failed")//
+                                Text(NSLocalizedString("payment_failed", comment: ""))
+                                
+                                    .font(.headline)
+                                    .bold()
+                                //                            Text("This payment amount exceeds your transaction limit. Please try again.")//
+                                Text(NSLocalizedString("transaction_limit_exceeded", comment: ""))
+                                    .font(.subheadline)
+                            }
+                            Spacer()
+                        }
+                        .padding()
+                        .background(Color.red.opacity(0.9))
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                        .padding(.horizontal)
+                    }
                     //Transfer From
                     //Text("Transfer from")//
                     Text(NSLocalizedString("transfer_from", comment: ""))
@@ -77,10 +99,10 @@ struct SendMoneyView: View {
                     Button(action: { showAccountSheet = true }) {
                         HStack {
                             VStack(alignment: .leading, spacing: 2) {
-//                                Text(accountManager.selectedAccount?.accountName ?? "Select Account")
+                                //                                Text(accountManager.selectedAccount?.accountName ?? "Select Account")
                                 Text(accountManager.selectedAccount?.accountName ?? NSLocalizedString("select_account", comment: ""))
-
-                                .font(.headline)
+                                
+                                    .font(.headline)
                                     .bold()
                                     .foregroundColor(.black)
                                 Text(accountManager.selectedAccount?.accountType ?? "")
@@ -107,13 +129,13 @@ struct SendMoneyView: View {
                     // Send To (Dropdown with Contact List)
                     //Text("Send to")//
                     Text(NSLocalizedString("send_to", comment: ""))
-
-                    .font(.subheadline)
+                    
+                        .font(.subheadline)
                         .foregroundColor(.gray)
                     
                     Button(action: { showContactSheet = true }) {
                         HStack {
-//                            Text(selectedContact?.name ?? "Select Contact")
+                            //                            Text(selectedContact?.name ?? "Select Contact")
                             Text(selectedContact?.name ?? NSLocalizedString("select_contact", comment: ""))
                             
                             Spacer()
@@ -144,25 +166,25 @@ struct SendMoneyView: View {
                     
                     // Show only Security Question if a contact is selected
                     if let contact = selectedContact {
-//                        if !contact.securityQuestion.isEmpty {
-//                            // Security Question
-//                            Text(NSLocalizedString("security_question", comment: ""))
-//                                .font(.subheadline)
-//                                .foregroundColor(.gray)
-//                            
-//                            TextField("", text: .constant(contact.securityQuestion))
-//                                .textFieldStyle(RoundedBorderTextFieldStyle())
-//                                .disabled(true) // Make it non-editable
-//                                .foregroundColor(.gray) // Display as read-only
-//                                .padding(.bottom, 5)
-//                        }
-
+                        //                        if !contact.securityQuestion.isEmpty {
+                        //                            // Security Question
+                        //                            Text(NSLocalizedString("security_question", comment: ""))
+                        //                                .font(.subheadline)
+                        //                                .foregroundColor(.gray)
+                        //
+                        //                            TextField("", text: .constant(contact.securityQuestion))
+                        //                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                        //                                .disabled(true) // Make it non-editable
+                        //                                .foregroundColor(.gray) // Display as read-only
+                        //                                .padding(.bottom, 5)
+                        //                        }
+                        
                         if !contact.email.isEmpty {
                             // Email Field
                             Text(NSLocalizedString("email", comment: ""))
                                 .font(.subheadline)
                                 .foregroundColor(.gray)
-
+                            
                             TextField("", text: .constant(contact.email))
                                 .textFieldStyle(RoundedBorderTextFieldStyle())
                                 .disabled(true) // Make it non-editable
@@ -170,29 +192,29 @@ struct SendMoneyView: View {
                                 .padding(.bottom, 5)
                         }
                     }
-
+                    
                     
                     // Transfer Amount & Message Fields
                     //                    TextField("Enter transfer amount", text: $transferAmount)
                     //                        .textFieldStyle(RoundedBorderTextFieldStyle())
                     //                        .padding(.top, 5)
-//                    TextField("Enter transfer amount", text: $transferAmount)//
+                    //                    TextField("Enter transfer amount", text: $transferAmount)//
                     TextField(NSLocalizedString("enter_transfer_amount", comment: ""), text: $transferAmount)
-
+                    
                         .keyboardType(.decimalPad) // Ensure numeric input
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                         .padding(.top,5)
                         .onChange(of: transferAmount,initial:false) {_, newValue in
                             transferAmount = formatCurrencyInput(newValue)
                         }
-                        
+                    
                     
                     
                     
                     
                     //TextField("Message (optional)", text: $message)//
                     TextField(NSLocalizedString("message_optional", comment: ""), text: $message)
-
+                    
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                     
                     // Auto-Deposit Acknowledgment Checkbox
@@ -203,9 +225,9 @@ struct SendMoneyView: View {
                             Image(systemName: isAcknowledged ? "checkmark.square.fill" : "square")
                                 .foregroundColor(.colorBlue)
                         }
-//                        Text("I acknowledge that this recipient has auto-deposit enabled. They won't need to answer a security question, and the funds will be deposited automatically.")//
+                        //                        Text("I acknowledge that this recipient has auto-deposit enabled. They won't need to answer a security question, and the funds will be deposited automatically.")//
                         Text(NSLocalizedString("acknowledge_auto_deposit", comment: ""))
-
+                        
                             .font(.footnote)
                             .foregroundColor(.black)
                             .padding(.leading, 5)
@@ -215,8 +237,8 @@ struct SendMoneyView: View {
                     .cornerRadius(8)
                     
                     // Error Message
-//                    if showError {
-//                        Text("Please select a contact, enter an amount, and acknowledge the terms.")//
+                    //                    if showError {
+                    //                        Text("Please select a contact, enter an amount, and acknowledge the terms.")//
                     if showError {
                         Text(NSLocalizedString("error_select_contact", comment: ""))
                             .foregroundColor(.red)
@@ -231,19 +253,20 @@ struct SendMoneyView: View {
                     }) {
                         //Text("Continue")//
                         Text(NSLocalizedString("continue", comment: ""))
-
+                        
                             .font(.headline)
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity, minHeight: 50)
-                            //.background(Color.black)
+                        //.background(Color.black)
                             .background(Constants.backgroundGradient)
-
+                        
                             .cornerRadius(10)
                     }
                     .padding(.top, 20)
                     
                     Spacer()
                 }
+            }
                 .padding()
             }
             .background(Color(.white))
@@ -274,7 +297,7 @@ struct SendMoneyView: View {
             .navigationBarBackButtonHidden(true)
 
             
-        }
+        //}
         .frame(maxWidth: .infinity, alignment: .center)
         
     }

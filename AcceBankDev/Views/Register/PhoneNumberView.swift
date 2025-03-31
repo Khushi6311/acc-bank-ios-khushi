@@ -138,8 +138,11 @@ struct PhoneNumberView: View {
                     }
                     .padding(.top, 20)
                     
-                    NavigationLink("", destination: EmailView(username: username), isActive: $isMobileNumberFormCompleted)
-                        .hidden()
+//                    NavigationLink("", destination: EmailView(username: username), isActive: $isMobileNumberFormCompleted)
+//                        .hidden()
+                    .navigationDestination(isPresented: $isMobileNumberFormCompleted) {
+                                    EmailView(username: username)
+                                }
                 }
                 .padding(.horizontal, 30)
             }

@@ -118,9 +118,12 @@ struct MoreOptionsView: View {
             //                                .hidden()
             //                        )
             .navigationBarHidden(true)
-            NavigationLink(destination: LoginView(), isActive: $isLoggedOut) {
-                EmptyView()
-            }
+//            NavigationLink(destination: LoginView(), isActive: $isLoggedOut) {
+//                EmptyView()
+//            }
+            .navigationDestination(isPresented: $isLoggedOut) {
+                            LoginView()
+                        }
         }
     }
 }

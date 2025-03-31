@@ -52,8 +52,8 @@ struct TransferMoneyScreen: View {
 
 
     var body: some View {
-        ScrollView {
-            VStack {
+        //ScrollView {
+            VStack (spacing: 0){
                 // **Navigation Bar**
                 HStack {
                     Button(action: { presentationMode.wrappedValue.dismiss() }) {
@@ -73,13 +73,13 @@ struct TransferMoneyScreen: View {
 
                 // **Payment Type Selector**
                 HStack(spacing: 0) {
-                    ZStack {
-                        LinearGradient(
-                            gradient: Gradient(colors: [Color.gray.opacity(0.1), Color.gray.opacity(0.3)]),
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                        .cornerRadius(30)
+//                    ZStack {
+//                        LinearGradient(
+//                            gradient: Gradient(colors: [Color.gray.opacity(0.1), Color.gray.opacity(0.3)]),
+//                            startPoint: .leading,
+//                            endPoint: .trailing
+//                        )
+//                        .cornerRadius(30)
 
                         HStack(spacing: 0) {
                             Button(action: { selectedPaymentType = "My accounts"
@@ -157,47 +157,55 @@ struct TransferMoneyScreen: View {
                             }
                         }
                         .cornerRadius(30)
-                    }
+                    //}
                 }
+                .padding(1)
+
+                .background(Color(.systemGray5)) // this brings back the soft gray pill background
+                .clipShape(RoundedRectangle(cornerRadius: 30))
                 .padding(.horizontal)
+                Spacer().frame(height: 30)
 
                 // **Dynamic Form Based on Selected Payment Type**
-                if selectedPaymentType == "My accounts" {
-
-                    MyAccountsTransferForm(
-                        selectedFromAccount: $selectedFromAccount,
-                        selectedToAccount: $selectedToAccount,
-                        isTransferFromSheetPresented: $isTransferFromSheetPresented,
-                        isSendToSheetPresented: $isSendToSheetPresented,
-                        showDatePicker: $showDatePicker,
-                        recurring: $recurring,
-                        selectedFrequency: $selectedFrequency,
-                        amount: $amount,
-                        memo: $memo,
-                        dateText: $dateText,
-                        showAmountError: $showAmountError,
-                        showDateError:$showDateError,
-                        showRecurringDateError:$showRecurringDateError,
-                        showTransferToError: $showTransferToError,
-                        showTransferFromError:$showTransferFromError,
-                        showMemoError: $showMemoError,
-                        showInsufficientFundsError: $showInsufficientFundsError,
-                     isSelectingStartDate: $isSelectingStartDate,
-                       isSelectingEndDate: $isSelectingEndDate,
-                     startDate: $startDate,
-                        endDate: $endDate,
-                        startDateText: $startDateText,
-                 endDateText: $endDateText,
-                        isAnotherMemberSelected: $showConfirmationSheet, // new
-                        selectedContact: $selectedContact,             // new
-                        showConfirmationSheet: $isAnotherMemberSelected
-                    )
-
-                } else if selectedPaymentType == "Another member" {
-                    AnotherMemberTransferForm(
-                        selectedFromAccount: $selectedFromAccount,
+                ScrollView{//scrrolview and vstack add to remove button scroll 
+                    VStack{
+                    if selectedPaymentType == "My accounts" {
+                        
+                        MyAccountsTransferForm(
+                            selectedFromAccount: $selectedFromAccount,
+                            selectedToAccount: $selectedToAccount,
+                            isTransferFromSheetPresented: $isTransferFromSheetPresented,
+                            isSendToSheetPresented: $isSendToSheetPresented,
+                            showDatePicker: $showDatePicker,
+                            recurring: $recurring,
+                            selectedFrequency: $selectedFrequency,
+                            amount: $amount,
+                            memo: $memo,
+                            dateText: $dateText,
+                            showAmountError: $showAmountError,
+                            showDateError:$showDateError,
+                            showRecurringDateError:$showRecurringDateError,
+                            showTransferToError: $showTransferToError,
+                            showTransferFromError:$showTransferFromError,
+                            showMemoError: $showMemoError,
+                            showInsufficientFundsError: $showInsufficientFundsError,
+                            isSelectingStartDate: $isSelectingStartDate,
+                            isSelectingEndDate: $isSelectingEndDate,
+                            startDate: $startDate,
+                            endDate: $endDate,
+                            startDateText: $startDateText,
+                            endDateText: $endDateText,
+                            isAnotherMemberSelected: $showConfirmationSheet, // new
+                            selectedContact: $selectedContact,             // new
+                            showConfirmationSheet: $isAnotherMemberSelected
+                        )
+                        
+                        
+                    } else if selectedPaymentType == "Another member" {
+                        AnotherMemberTransferForm(
+                            selectedFromAccount: $selectedFromAccount,
                             selectedContact: $selectedContact,
-                        isTransferFromSheetPresented: $isTransferFromSheetPresented,
+                            isTransferFromSheetPresented: $isTransferFromSheetPresented,
                             showContactSheet: $showContactSheet,
                             showDatePicker: $showDatePicker,
                             recurring: $recurring,
@@ -207,9 +215,9 @@ struct TransferMoneyScreen: View {
                             dateText: $dateText,
                             showAmountError: $showAmountError,
                             showTransferToError: $showTransferToError,
-
-                        showRecurringDateError:$showRecurringDateError,
-                        showDateError:$showDateError, showTransferFromError: $showTransferFromError,
+                            
+                            showRecurringDateError:$showRecurringDateError,
+                            showDateError:$showDateError, showTransferFromError: $showTransferFromError,
                             showMemoError: $showMemoError,
                             showInsufficientFundsError: $showInsufficientFundsError,
                             isSelectingStartDate: $isSelectingStartDate,
@@ -219,17 +227,17 @@ struct TransferMoneyScreen: View {
                             startDateText: $startDateText,
                             endDateText: $endDateText,
                             isContactSheetPresented: $isContactSheetPresented,
-                        showConfirmationSheet: $showConfirmationSheet,
-                        isAnotherMemberSelected: $isAnotherMemberSelected
-
-                    )
+                            showConfirmationSheet: $showConfirmationSheet,
+                            isAnotherMemberSelected: $isAnotherMemberSelected
+                            
+                        )
+                    }
+                    
                 }
-
-                
-
+                }
             }
             .padding(.horizontal, 10)
-        }
+        //}
     }
 
     
@@ -286,6 +294,8 @@ struct MyAccountsTransferForm: View {
                     AccountSelectionButton(title: NSLocalizedString("transfer_from", comment: ""), account: $selectedFromAccount){
 
                         isTransferFromSheetPresented.toggle()
+                        showTransferFromError = false
+
                     }
                     //            .sheet(isPresented: $isTransferFromSheetPresented) {
                     //                TransferAccountSheet(selectedAccount_from: $selectedFromAccount)
@@ -886,6 +896,8 @@ struct AnotherMemberTransferForm: View {
                 account: $selectedFromAccount
             ) {
                 isTransferFromSheetPresented.toggle()
+                showTransferFromError = false
+
             }
 
             .sheet(isPresented: $isTransferFromSheetPresented) {

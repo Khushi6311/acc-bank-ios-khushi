@@ -150,8 +150,8 @@ struct AccountView: View {
                                 .foregroundColor(.white)
                                 .font(.system(size: 10, weight: .bold))
                         )
-                        .offset(x: 17, y: 17) // ✅ Move checkmark to the **bottom right**
-                        .shadow(radius: 2) // ✅ Adds subtle shadow for visibility
+                        .offset(x: 17, y: 17) // Move checkmark to the **bottom right**
+                        .shadow(radius: 2) // Adds subtle shadow for visibility
                 }
             }
 

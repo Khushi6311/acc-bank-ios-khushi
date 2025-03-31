@@ -84,10 +84,10 @@
 //        //}
 //        //}
 //    }
-//    //// ✅ Preview
+//    ////  Preview
 //    struct BottomNavigationBar_Previews: PreviewProvider {
 //        static var previews: some View {
-//            BottomNavigationBar(selectedTab: .constant(0)) // ✅ Provide default binding
+//            BottomNavigationBar(selectedTab: .constant(0)) // Provide default binding
 //        }
 //    }
 //    
@@ -95,7 +95,7 @@
 import SwiftUI
 
 struct BottomNavigationBar: View {
-    @Binding var selectedTab: Int // ✅ Binding to track selected tab
+    @Binding var selectedTab: Int //Binding to track selected tab
 
     var body: some View {
         VStack {
@@ -104,7 +104,7 @@ struct BottomNavigationBar: View {
             HStack {
                 Spacer()
 
-                // ✅ Home Button
+                // Home Button
                 Button(action: {
                     selectedTab = 0 // Switch to Home
                 }) {

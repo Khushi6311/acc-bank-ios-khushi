@@ -7,6 +7,7 @@ struct MoveMoneyView: View {
     enum BottomSheetType {
         case transferOptions
         case interac
+        case payment
     }
     
     var body: some View {
@@ -66,12 +67,17 @@ struct MoveMoneyView: View {
                                 Divider().background(Color.gray.opacity(0.9)).padding(.horizontal, 20)
                                 
 //                                MoveMoneyOptionRow(icon: "building.columns.fill", title: "Payments", subtitle: "TRANSFER FUNDS BETWEEN CANADIAN BANK")
-                                
-                                MoveMoneyOptionRow(
-                                    icon: "building.columns.fill",
-                                    title: NSLocalizedString("payments_option", comment: "Title for payments between banks"),
-                                    subtitle: NSLocalizedString("payments_option_subtitle", comment: "Subtitle for bank payments")
-                                )
+                                Button(action: {
+                                    selectedSheet = .payment
+                                    showBottomSheet = true
+                                }) {
+                                    MoveMoneyOptionRow(
+                                        icon: "building.columns.fill",
+                                        title: NSLocalizedString("payments_option", comment: "Title for payments between banks"),
+                                        subtitle: NSLocalizedString("payments_option_subtitle", comment: "Subtitle for bank payments")
+                                    )
+                                }
+                                .buttonStyle(PlainButtonStyle())
 
                                 Divider().background(Color.gray.opacity(0.9)).padding(.horizontal, 20)
 //                                
@@ -118,6 +124,10 @@ struct MoveMoneyView: View {
                             
                         case .interac:
                             InteracETransferSheet()
+                                .presentationDetents([.fraction(0.5)])
+                                .edgesIgnoringSafeArea(.bottom)
+                        case .payment:
+                            paymentsOptionsSheet()
                                 .presentationDetents([.fraction(0.5)])
                                 .edgesIgnoringSafeArea(.bottom)
                         }
@@ -167,6 +177,7 @@ struct MoveMoneyView: View {
                         InteracOptionRow(option: .transferMoney)
                         InteracOptionRow(option: .manageContacts)
                         InteracOptionRow(option: .manageAccounts)
+                        //InteracOptionRow(option: .transferMoney)
 
 //                        InteracOptionRow(icon: "building.columns.fill", title: "To Another Bank")
 //                        InteracOptionRow(
@@ -197,7 +208,53 @@ struct MoveMoneyView: View {
 
         }
     }
-    
+    //payments
+    //need to crete like this for options
+    struct paymentsOptionsSheet: View {
+        @Environment(\.presentationMode) var presentationMode
+        
+        var body: some View {
+            VStack {
+                HStack {
+                    //Text("Transfers")
+                    Text(NSLocalizedString("transfers_option", comment: "Title for transfers section"))
+
+                        .font(.headline)
+                        .bold()
+                        .padding()
+                    
+                    Spacer()
+                    
+                    Button(action: {
+                        presentationMode.wrappedValue.dismiss()
+                    }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.title)
+                            .foregroundColor(.gray)
+                    }
+                    .padding()
+                }
+                
+                Divider()
+                
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 15) {
+                       
+                        InteracOptionRow(option: .payBills)
+
+
+                    }
+                    .padding()
+                }
+                
+                Spacer()
+            }
+            .background(Color(UIColor.systemGray6))
+            .clipShape(RoundedRectangle(cornerRadius: 15))
+            //.presentationDetents([.fraction(0.3)])  // Set bottom sheet height to 30% of the screen height
+
+        }
+    }
     // Interac e-Transfer sheet
     struct InteracETransferSheet: View {
         @Environment(\.presentationMode) var presentationMode
@@ -234,6 +291,7 @@ struct MoveMoneyView: View {
                         InteracOptionRow(option: .manageContacts)
                         InteracOptionRow(option: .pending)
                         InteracOptionRow(option: .profileSettings)
+
 
                         
 //                        InteracOptionRow(
@@ -348,6 +406,7 @@ struct MoveMoneyView: View {
         }
     }
     //25 march
+    //add more option in below code
     enum InteracOptionType {
         case sendMoney
         case transferMoney
@@ -356,6 +415,8 @@ struct MoveMoneyView: View {
         case requestMoney
         case pending
         case profileSettings
+        case payBills // New option
+
         // Add more as needed
 
         var icon: String {
@@ -367,6 +428,8 @@ struct MoveMoneyView: View {
             case .requestMoney: return "arrow.down.doc.fill"
             case .pending: return "clock.fill"
             case .profileSettings: return "person.text.rectangle.fill"
+            case .payBills: return "doc.plaintext" // Icon for Pay Bills
+
             }
         }
 
@@ -386,9 +449,13 @@ struct MoveMoneyView: View {
                 return NSLocalizedString("pending", comment: "")
             case .profileSettings:
                 return NSLocalizedString("profile_setting", comment: "")
+            case .payBills:
+                        return NSLocalizedString("pay_bills", comment: "")
             }
         }
     }
+    
+    //add in this want to open which screen
     struct InteracOptionRow: View {
         let option: InteracOptionType
 
@@ -396,6 +463,8 @@ struct MoveMoneyView: View {
         @State private var isShowingTransferMoney = false
         @State private var isShowingContactForm = false
         @State private var isShowingAccountForm = false
+        @State private var isShowingPayBills = false
+
 
         var body: some View {
             HStack {
@@ -424,6 +493,8 @@ struct MoveMoneyView: View {
                     isShowingContactForm = true
                 case .manageAccounts:
                     isShowingAccountForm = true
+                case .payBills:
+                    isShowingPayBills = true
                 default:
                     break
                 }
@@ -440,6 +511,10 @@ struct MoveMoneyView: View {
             .fullScreenCover(isPresented: $isShowingAccountForm) {
                 AddAccountFormView(accountManager: AccountManager())
             }
+            .fullScreenCover(isPresented: $isShowingPayBills) {
+                PayBillScreen() // Replace with your Pay Bills screen
+            }
+
         }
     }
 
