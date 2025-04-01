@@ -9,7 +9,7 @@ struct PayBillScreen: View {
     @Environment(\.presentationMode) var presentationMode // To dismiss the modal
     @StateObject private var accountManager = AccountManager()
 
-    @State private var selectedPaymentType: String? = "One-time Payment" // Track selected payment type
+    @State private var selectedPaymentType: String? = "One-time Payment" //Track selected payment type
     @State private var showAccountSheet = false // Toggle for full-screen modal
     @State private var selectedContact: Contact?
     @State private var showContactSheet = false // Show Contact Selection Sheet
@@ -40,6 +40,11 @@ struct PayBillScreen: View {
     @State private var showEndDateError = false
     @State private var startDate = Date()
     @State private var endDate = Date()
+     // for payee
+    @StateObject private var viewModel = PayeeViewModel()
+    @State private var showPayeeSheet = false
+    //@State private var selectedPayee: Payee?
+    @State private var selectedPayees: [Payee] = []
 
 
     var body: some View {
@@ -139,13 +144,18 @@ struct PayBillScreen: View {
                                                amount: $amount,
                                                showDatePicker: $showDatePicker,
                                                selectedDate: $selectedDate,
+                                               formattedDate: $formattedDate, //  Add this binding
+
                                                selectedFromAccount: $selectedFromAccount,
                                                isTransferFromSheetPresented:$isTransferFromSheetPresented,
                                                showBillConfirmationSheet: $showBillConfirmationSheet,
                                                showAccountError: $showAccountError,
                                                showContactError: $showContactError,
                                                showAmountError: $showAmountError,
-                                               showDateError: $showDateError
+                                               showDateError: $showDateError,
+                                               viewModel: viewModel,                    // Pass PayeeViewModel
+                                               selectedPayees: $selectedPayees,           // Pass selected payee
+                                               showPayeeSheet: $showPayeeSheet
                                                
                                                
                             )
@@ -174,7 +184,9 @@ struct PayBillScreen: View {
                                 showAmountError: $showContactError,
                                 showStartDateError: $showAmountError,
                                 showEndDateError: $showStartDateError,
-                                showBillConfirmationSheet: $showEndDateError
+                                showBillConfirmationSheet: $showEndDateError,
+                                showPayeeSheet: $showPayeeSheet, viewModel: viewModel,                    // Pass PayeeViewModel
+                                selectedPayees: $selectedPayees
                             )
                             .padding(.top,30)
 
@@ -186,7 +198,12 @@ struct PayBillScreen: View {
        }
     }
 }
-
+struct PayeePaymentDetail: Identifiable {
+    let payee: Payee
+    var amount: String
+    var date: Date
+    var id: String { payee.id }
+}
 
 
 struct OneTimePaymentForm: View {
@@ -198,7 +215,7 @@ struct OneTimePaymentForm: View {
     @Binding var amount: String
     @Binding var showDatePicker: Bool
     @Binding var selectedDate: Date
-    @State private var formattedDate: String? = nil
+    @Binding var formattedDate:String?
     @Binding var selectedFromAccount: BankAccount?
     @Binding var isTransferFromSheetPresented: Bool
     @Binding var showBillConfirmationSheet: Bool
@@ -206,7 +223,9 @@ struct OneTimePaymentForm: View {
     @Binding var showContactError:Bool
     @Binding var showAmountError:Bool
     @Binding var showDateError:Bool
-
+    @ObservedObject var viewModel: PayeeViewModel
+    @Binding var selectedPayees: [Payee]
+        @Binding var showPayeeSheet: Bool
     
     var body: some View {
         VStack(spacing: 15) {
@@ -257,9 +276,20 @@ struct OneTimePaymentForm: View {
 //            FieldErrorView(message: "Please select an account", show: $showAccountError)
 
             // Payee
-            Button(action: { showContactSheet = true }) {
+            Text(NSLocalizedString("payee", comment: ""))
+                .font(.subheadline)
+                .foregroundColor(.gray)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            Button(action: { showPayeeSheet = true }) {
                 HStack {
-                    Text(NSLocalizedString("payee", comment: ""))
+                    //Text(NSLocalizedString("payee", comment: ""))
+                    //for payee
+//                    Text(selectedPayee?.name ?? NSLocalizedString("payee", comment: "Placeholder for payee selection"))
+//                            .foregroundColor(selectedPayee == nil ? .blue : .blue)
+                    //for payees
+                    Text(selectedPayees.isEmpty ? "Select payee(s)" : selectedPayees.map { $0.name }.joined(separator: ", "))
+                        .foregroundColor(selectedPayees.isEmpty ? .blue : .black)
+
                     Spacer()
                     Image(systemName: "chevron.down")
                 }
@@ -267,6 +297,19 @@ struct OneTimePaymentForm: View {
                 .background(Color(.systemGray6))
                 .cornerRadius(10)
             }
+//            .sheet(isPresented: $showPayeeSheet) {
+//                PayeeSelectionSheet(viewModel: viewModel,
+//                                    selectedPayee: $selectedPayee,
+//                                    showPayeeSheet: $showPayeeSheet)
+//            }
+            .sheet(isPresented: $showPayeeSheet) {
+                //PayeeListView()
+                PayeeListView(
+                    viewModel: PayeeViewModel(),
+selectedPayees: $selectedPayees, showPayeeSheet: $showPayeeSheet)
+
+            }
+
 //            FieldErrorView(message: NSLocalizedString("error_required_field", comment: "Amount is required"), show: $showContactError)
             // Add Contact
             Button(action: { showAddContactSheet = true }) {
@@ -285,7 +328,9 @@ struct OneTimePaymentForm: View {
          
 
             // Amount Field
-            TextField("enter_transfer_amount", text: $amount)
+            //TextField("enter_transfer_amount", text: $amount)
+            TextField(NSLocalizedString("enter_transfer_amount", comment: ""), text: $amount)
+
                 .keyboardType(.decimalPad)
                 .padding()
                 .background(RoundedRectangle(cornerRadius: 10).stroke(Color.gray, lineWidth: 1))
@@ -298,35 +343,19 @@ struct OneTimePaymentForm: View {
                 }
                 .onTapGesture {
                             UIApplication.shared.endEditing()
+                    showDatePicker = false
+
                         }
             FieldErrorView(message: NSLocalizedString("error_required_field", comment: "Amount is required"), show: $showAmountError)
 //error_required_field
-            // Date Picker with Icon
-//            HStack {
-//                DateField("Date", datetext:$formatteddate)
-//                    .padding()
-//                    .background(RoundedRectangle(cornerRadius: 10).stroke(Color.gray, lineWidth: 1))
-//                    .padding(.leading, 10)
-//
-//                Button(action: {
-//                    showDatePicker.toggle()
-//                }) {
-//                    Image(systemName: "calendar")
-//                        .foregroundColor(.gray)
-//                        .padding(.trailing, 10)
-//                }
-//            }
-//
-//            if showDatePicker {
-//                DatePicker("Select Date", selection: $selectedDate, displayedComponents: .date)
-//                    .datePickerStyle(GraphicalDatePickerStyle())
-//                    .padding()
-//                    .background(RoundedRectangle(cornerRadius: 10).stroke(Color.gray, lineWidth: 1))
-//                    .padding(.top, 10)
-//            }
-            DateField(title: "Date", dateText: $formattedDate) {
-                            showDatePicker.toggle()
-                        }
+            
+            DateField(title: NSLocalizedString("date", comment: "date"),
+                      dateText: $formattedDate) {
+                UIApplication.shared.endEditing()
+
+                showDatePicker=true
+            }
+
             FieldErrorView(message: NSLocalizedString("error_required_field", comment: "Amount is required"), show: $showDateError)
 
                         // Show DatePicker below when tapped
@@ -340,6 +369,7 @@ struct OneTimePaymentForm: View {
                                     formatter.dateStyle = .medium
                                     //formattedDate = formatter.string(from: newDate)
                                     formattedDate = formatter.string(from: newValue)
+                                    showDatePicker=false
 
                                 }
                         }
@@ -373,7 +403,8 @@ struct OneTimePaymentForm: View {
                     }
 
             }) {
-                Text("Continue")
+                //Text("Continue")
+                Text(NSLocalizedString("continue",comment: ""))
                     .font(.headline)
                     .frame(maxWidth: .infinity)
                     .padding()
@@ -388,8 +419,11 @@ struct OneTimePaymentForm: View {
                 BillConfirmationSheet(
                     fromAccount: selectedFromAccount,
                     toContact: selectedContact,
+                   
                     amount: amount,
-                    date: formattedDate ?? ""
+                    date: formattedDate ?? "",
+                    selectedPayees: selectedPayees
+                    
                 )
             }
             
@@ -397,8 +431,201 @@ struct OneTimePaymentForm: View {
        
     }
 //}
-//validations of feilds]
-    
+//}
+
+
+//struct PayeeListView: View {
+//    @ObservedObject var viewModel = PayeeViewModel()
+//    @Binding var selectedPayee: Payee?
+//    @Binding var showPayeeSheet: Bool
+//
+//    var body: some View {
+//        VStack {
+//            // Header
+//            HStack {
+//                Text("Select Payee")
+//                    .font(.headline)
+//                    .bold()
+//                Spacer()
+////                Button("Close") {
+////                    showPayeeSheet = false
+////                }
+////                .foregroundColor(.blue)
+////            }
+//                Button(action: {
+//                showPayeeSheet = false
+//
+//                }) {
+//                    Image(systemName: "xmark")
+//                        .font(.title3)
+//                        .foregroundColor(.gray)
+//                }
+//            }
+//            .padding()
+//
+//            ScrollView {
+//                VStack(spacing: 10) {
+//                    ForEach(viewModel.payees) { payee in
+//                        Button(action: {
+//                            selectedPayee = payee
+//                            showPayeeSheet = false
+//                        }) {
+//                            HStack {
+//                                VStack(alignment: .leading, spacing: 2) {
+//                                    Text(payee.name)
+//                                        .font(.headline)
+//                                        .bold()
+//                                        .foregroundColor(.black)
+//
+//                                    Text("Account: \(payee.accountNumber)")
+//                                        .font(.subheadline)
+//                                        .foregroundColor(.gray)
+//
+//                                    Text("Bank: \(payee.bank)")
+//                                        .font(.subheadline)
+//                                        .foregroundColor(.gray)
+//                                }
+//                                Spacer()
+//
+//                                if selectedPayee?.id == payee.id {
+//                                    Image(systemName: "checkmark.circle.fill")
+//                                        .foregroundColor(.blue)
+//                                }
+//                            }
+//                            .padding()
+//                            .background(
+//                                RoundedRectangle(cornerRadius: 12)
+//                                    //.fill(Color(UIColor.systemGray6))
+//                                    .fill(selectedPayee?.id == payee.id ? Color.blue.opacity(0.2) : Color(UIColor.systemGray6))
+//
+//                            )
+////                            .overlay(
+////                                RoundedRectangle(cornerRadius: 12)
+////                                    .stroke(selectedPayee?.id == payee.id ? Color.blue : Color.clear, lineWidth: 2)
+////                            )
+//                        }
+//                    }
+//                }
+//                .padding()
+//            }
+//        }
+//        .padding(.horizontal)
+//        .presentationDetents([.medium, .large])
+//    }
+//}
+//
+//
+
+struct PayeeListView: View {
+    @ObservedObject var viewModel = PayeeViewModel()
+    @Binding var selectedPayees: [Payee]
+    @Binding var showPayeeSheet: Bool
+    @State private var searchText = ""
+
+    var filteredPayees: [Payee] {
+        searchText.isEmpty
+        ? viewModel.payees
+        : viewModel.payees.filter {
+            $0.name.lowercased().contains(searchText.lowercased()) ||
+            $0.accountNumber.contains(searchText)
+        }
+    }
+
+    var body: some View {
+        VStack {
+            HStack {
+                Text("Select Payee").font(.headline).bold()
+                Spacer()
+                Button(action: { showPayeeSheet = false }) {
+                    Image(systemName: "xmark")
+                        .font(.title3)
+                        .foregroundColor(.gray)
+                }
+            }
+            .padding(.horizontal)
+            .padding(.top)
+
+            TextField("Search", text: $searchText)
+                .padding(10)
+                .background(Color(.systemGray6))
+                .cornerRadius(10)
+                .padding(.horizontal)
+
+            ScrollView {
+                VStack(spacing: 10) {
+                    ForEach(filteredPayees) { payee in
+                        Button(action: {
+                            if selectedPayees.contains(where: { $0.id == payee.id }) {
+                                selectedPayees.removeAll { $0.id == payee.id }
+                            } else {
+                                selectedPayees.append(payee)
+                            }
+                        }) {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(payee.name).font(.headline).bold().foregroundColor(.black)
+                                    Text("Account: \(payee.accountNumber)").font(.subheadline).foregroundColor(.gray)
+                                    Text("Bank: \(payee.bank)").font(.subheadline).foregroundColor(.gray)
+                                }
+                                Spacer()
+                                if selectedPayees.contains(where: { $0.id == payee.id }) {
+                                    Image(systemName: "checkmark.square.fill").foregroundColor(.blue)
+                                } else {
+                                    Image(systemName: "square").foregroundColor(.gray)
+                                }
+                            }
+                            .padding()
+//                            .background(RoundedRectangle(cornerRadius: 12).fill(Color(UIColor.systemGray6)))
+                            .background(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(selectedPayees.contains(where: { $0.id == payee.id }) ? Color.blue.opacity(0.2) : Color(UIColor.systemGray6))
+                            )
+
+                        }
+                    }
+                }
+                .padding()
+            }
+        }
+        .presentationDetents([.medium, .large])
+    }
+}
+
+//date field
+struct PaymentDateField: View {
+    var title: String
+    @Binding var dateText: String?
+    var action: () -> Void
+
+    var body: some View {
+        ZStack {
+            HStack {
+                Text(dateText?.isEmpty == false ? dateText! : title)
+                    .foregroundColor(dateText?.isEmpty == false ? .black : .gray)
+                Spacer()
+                Image(systemName: "calendar")
+                    .foregroundColor(.gray)
+                    .padding(.trailing, 10)
+            }
+            .padding()
+            .frame(height: 50)
+            .background(RoundedRectangle(cornerRadius: 10).stroke(Color.gray, lineWidth: 1))
+        }
+        .contentShape(Rectangle()) // Make the full area tappable
+        .onTapGesture {
+            action()
+        }
+    }
+    private var dateTextValue: String {
+            if let text = dateText, !text.isEmpty {
+                return text
+            } else {
+                return title
+            }
+        }
+}
+
+
     
 struct OneTimePaymentFormValidator {
         static func validate(
@@ -472,6 +699,10 @@ struct RecuuringPaymentForm: View {
     @Binding var showEndDateError:Bool
 
     @Binding var showBillConfirmationSheet: Bool
+    @Binding var showPayeeSheet: Bool
+    @ObservedObject var viewModel: PayeeViewModel
+    @Binding var selectedPayees: [Payee]
+
 
     @FocusState private var focusedField: FieldFocus?
 
@@ -520,15 +751,25 @@ struct RecuuringPaymentForm: View {
             }
 //            FieldErrorView(message: NSLocalizedString("error_required_field", comment: "Amount is required"), show: $showAccountError)
             // Payee
-            Button(action: { showContactSheet = true }) {
+            Button(action: { showPayeeSheet = true }) {
                 HStack {
-                    Text(selectedContact?.name ?? NSLocalizedString("payee", comment: ""))
+                    //Text(selectedContact?.name ?? NSLocalizedString("payee", comment: ""))
+                    Text(selectedPayees.isEmpty ? "Select payee(s)" : selectedPayees.map { $0.name }.joined(separator: ", "))
+                        .foregroundColor(selectedPayees.isEmpty ? .blue : .black)
                     Spacer()
                     Image(systemName: "chevron.down")
                 }
                 .padding()
                 .background(Color(.systemGray6))
                 .cornerRadius(10)
+            }
+            .sheet(isPresented: $showPayeeSheet) {
+                //PayeeListView()
+                PayeeListView(
+                    viewModel: PayeeViewModel(),
+                    selectedPayees: $selectedPayees,
+                    showPayeeSheet: $showPayeeSheet)
+
             }
             
             // Add Contact
@@ -547,7 +788,9 @@ struct RecuuringPaymentForm: View {
             .padding(.vertical)
             
             // Amount Field
-            TextField("enter_transfer_amount", text: $amount)
+            //TextField("enter_transfer_amount", text: $amount)
+            TextField(NSLocalizedString("enter_transfer_amount", comment: ""), text: $amount)
+
                 .keyboardType(.decimalPad)
                 .padding()
                 .background(RoundedRectangle(cornerRadius: 10).stroke(Color.gray, lineWidth: 1))
@@ -581,7 +824,8 @@ struct RecuuringPaymentForm: View {
                 //Spacer()
             }
             // Start Date Field
-            DateField(title: "Start Date", dateText: $formattedStartDate) {
+            //DateField(title: "Start Date", dateText: $formattedStartDate)
+            DateField(title: NSLocalizedString("start_date", comment: "date"), dateText: $formattedStartDate){
                 isSelectingStartDate = true
                 showDatePicker.toggle()
             }
@@ -589,7 +833,9 @@ struct RecuuringPaymentForm: View {
             FieldErrorView(message: NSLocalizedString("error_required_field", comment: "Amount is required"), show: $showStartDateError)
 
             // End Date Field
-            DateField(title: "End Date", dateText: $formattedEndDate) {
+            //DateField(title: "End Date", dateText: $formattedEndDate)
+            DateField(title: NSLocalizedString("end_date", comment: "date"), dateText: $formattedEndDate)
+            {
                 isSelectingStartDate = false
                 showDatePicker.toggle()
             }
@@ -668,7 +914,9 @@ struct RecuuringPaymentForm: View {
                 }
 
             }) {
-                Text("Continue")
+                //Text("Continue")
+                Text(NSLocalizedString("continue",comment: ""))
+
                     .font(.headline)
                     .frame(maxWidth: .infinity)
                     .padding()
@@ -684,7 +932,9 @@ struct RecuuringPaymentForm: View {
                     fromAccount: selectedFromAccount,
                     toContact: selectedContact,
                     amount: amount,
-                    date: formattedStartDate ?? "", // This is the first payment date
+                    date: formattedStartDate ?? "",
+                    selectedPayees: selectedPayees,
+// This is the first payment date
                     isRecurring: true,
                     frequency: selectedFrequency,
                     startDate: formattedStartDate,
@@ -834,7 +1084,7 @@ struct BillConfirmationSheet: View {
     var toContact: Contact?
     var amount: String
     var date: String
-
+    var selectedPayees: [Payee] = []  // <-- Add this line
     // New for recurring
     var isRecurring: Bool = false
     var frequency: String? = nil
@@ -867,22 +1117,31 @@ struct BillConfirmationSheet: View {
             VStack{
                 Group {
                     BillDetailRow(
-                        title: "Pay from",
+                        //title: "Pay from",
+                        title: NSLocalizedString("pay_from", comment: "Label for transfer amount"),
                         value: "\(fromAccount?.accountName ?? "") - \(fromAccount?.accountNumber ?? "")"
                     )
                     
+//                    BillDetailRow(
+//                        //title: "Pay to",
+//                        title: NSLocalizedString("pay_to", comment: "Label for transfer amount"),
+//                        value: toContact?.name ?? ""
+//                    )
                     BillDetailRow(
-                        title: "Pay to",
-                        value: toContact?.name ?? ""
+                        title: NSLocalizedString("pay_to", comment: "Label for transfer amount"),
+                        value: selectedPayees.map { $0.name }.joined(separator: ", ")
                     )
+
                     
                     BillDetailRow(
-                        title: "Amount",
+                        //title: "Amount",
+                        title: NSLocalizedString("amount", comment: "Label for transfer amount"),
                         value: "\(amount)"
                     )
                     
                     BillDetailRow(
-                        title: isRecurring ? "First Payment Date" : "Date",
+//                        title: isRecurring ? "First Payment Date" : "Date",
+                        title: NSLocalizedString("date", comment: "Label for transfer amount"),
                         value: date
                     )
                 }
@@ -891,15 +1150,18 @@ struct BillConfirmationSheet: View {
                 if isRecurring {
                     Group {
                         BillDetailRow(
-                            title: "Frequency",
+                            //title: "Frequency",
+                            title: NSLocalizedString("frequency", comment: "Label for transfer amount"),
                             value: frequency?.capitalized ?? "-"
                         )
                         BillDetailRow(
-                            title: "Start Date",
+                            //title: "Start Date",
+                            title: NSLocalizedString("start_date", comment: "Label for transfer amount"),
                             value: startDate ?? "-"
                         )
                         BillDetailRow(
-                            title: "End Date",
+                            //title: "End Date",
+                            title: NSLocalizedString("end_date", comment: "Label for transfer amount"),
                             value: endDate ?? "-"
                         )
                     }
@@ -914,7 +1176,9 @@ struct BillConfirmationSheet: View {
                 navigateToSummary = true // Show summary screen
 
             }) {
-                Text("Pay now")
+                //Text("Pay now")
+                Text(NSLocalizedString("pay_now", comment: ""))
+
                     .frame(maxWidth: .infinity)
                     .padding()
                     .background(Color.black)
@@ -944,6 +1208,7 @@ struct BillSendSheet: View {
     var toContact: Contact?
     var amount: String
     var date: String
+    //var selectedPayees: [Payee] = [] // <-- Add this line
 
     // New for recurring
     var isRecurring: Bool = false
@@ -984,22 +1249,27 @@ struct BillSendSheet: View {
 //25 march
                 Group {
                     BillDetailRow(
-                        title: "Pay from",
+                        //title: "Pay from",
+                        title: NSLocalizedString("pay_from", comment: "Label for transfer amount"),
                         value: "\(fromAccount?.accountName ?? "") - \(fromAccount?.accountNumber ?? "")"
                     )
                     
                     BillDetailRow(
-                        title: "Pay to",
-                        value: toContact?.name ?? ""
-                    )
+                                            //title: "Pay to",
+                                            title: NSLocalizedString("pay_to", comment: "Label for transfer amount"),
+                                            value: toContact?.name ?? ""
+                                        )
+
                     
                     BillDetailRow(
-                        title: "Amount",
+                        //title: "Amount",
+                        title: NSLocalizedString("amount", comment: "Label for transfer amount"),
                         value: "\(amount)"
                     )
                     
                     BillDetailRow(
-                        title: isRecurring ? "First Payment Date" : "Date",
+//                        title: isRecurring ? "First Payment Date" : "Date",
+                        title: NSLocalizedString("date", comment: "Label for transfer amount"),
                         value: date
                     )
                 }
@@ -1008,15 +1278,18 @@ struct BillSendSheet: View {
                 if isRecurring {
                     Group {
                         BillDetailRow(
-                            title: "Frequency",
+                            //title: "Frequency",
+                            title: NSLocalizedString("frequency", comment: "Label for transfer amount"),
                             value: frequency?.capitalized ?? "-"
                         )
                         BillDetailRow(
-                            title: "Start Date",
+                            //title: "Start Date",
+                            title: NSLocalizedString("start_date", comment: "Label for transfer amount"),
                             value: startDate ?? "-"
                         )
                         BillDetailRow(
-                            title: "End Date",
+                            //title: "End Date",
+                            title: NSLocalizedString("end_date", comment: "Label for transfer amount"),
                             value: endDate ?? "-"
                         )
                     }

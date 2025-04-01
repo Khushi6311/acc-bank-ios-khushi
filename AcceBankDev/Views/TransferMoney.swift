@@ -164,7 +164,7 @@ struct TransferMoneyScreen: View {
                 .background(Color(.systemGray5)) // this brings back the soft gray pill background
                 .clipShape(RoundedRectangle(cornerRadius: 30))
                 .padding(.horizontal)
-                Spacer().frame(height: 30)
+                Spacer().frame(height: 20)//space bet button and form
 
                 // **Dynamic Form Based on Selected Payment Type**
                 ScrollView{//scrrolview and vstack add to remove button scroll 
@@ -288,7 +288,10 @@ struct MyAccountsTransferForm: View {
                         ErrorMessageView(text: NSLocalizedString("error_transaction_limit", comment: "Shown when transfer amount exceeds allowed limit"))
                         
                     }
-                    
+                    Text(NSLocalizedString("transfer_from", comment: ""))
+                        .font(.subheadline)
+                        .foregroundColor(.gray)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     // **Transfer From Account Selection**
                     //            AccountSelectionButton(title: "Transfer From", account: $selectedFromAccount)
                     AccountSelectionButton(title: NSLocalizedString("transfer_from", comment: ""), account: $selectedFromAccount){
@@ -312,7 +315,10 @@ struct MyAccountsTransferForm: View {
                         ErrorMessage(text: NSLocalizedString("error_required_field", comment: "Validation error for empty field"))
                         
                     }
-                    
+                    Text(NSLocalizedString("transfer_to", comment: ""))
+                        .font(.subheadline)
+                        .foregroundColor(.gray)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     // **Transfer To Account Selection**
                     //            AccountSelectionButton(title: "Transfer To", account: $selectedToAccount)
                     AccountSelectionButton(title: NSLocalizedString("transfer_to", comment: ""), account: $selectedToAccount)
@@ -891,6 +897,10 @@ struct AnotherMemberTransferForm: View {
 //            AccountSelectionButton(title: "Transfer From", account: $selectedFromAccount) {
 //                isTransferFromSheetPresented.toggle()
 //            }
+            Text(NSLocalizedString("transfer_from", comment: ""))
+                .font(.subheadline)
+                .foregroundColor(.gray)
+                .frame(maxWidth: .infinity, alignment: .leading)
             AccountSelectionButton(
                 title: NSLocalizedString("transfer_from", comment: "Label for selecting the source account"),
                 account: $selectedFromAccount
@@ -913,6 +923,10 @@ struct AnotherMemberTransferForm: View {
                 ErrorMessage(text: NSLocalizedString("error_required_field", comment: "Validation error for empty field"))
                 
             }
+            Text(NSLocalizedString("select_contact", comment: ""))
+                .font(.subheadline)
+                .foregroundColor(.gray)
+                .frame(maxWidth: .infinity, alignment: .leading)
             // **Transfer To Contact Selection**
 //            ContactSelectionButton(title: "Select Contact", contact: selectedContact)
             ContactSelectionButton(

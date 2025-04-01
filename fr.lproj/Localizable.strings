@@ -234,6 +234,7 @@
 "payee"="Bénéficiaire";
 "add_payee"="Ajouter un bénéficiaire";
 "date"="Date";
+"pay_now"="Payez maintenant";
 
 "send_by_email"="email";
 "send_by_mobile"="Mobile";

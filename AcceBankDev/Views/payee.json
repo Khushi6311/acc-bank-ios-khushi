@@ -1,0 +1,15 @@
+[
+  {
+    "id": "1",
+    "name": "John Smith",
+    "accountNumber": "123456789",
+    "bank": "Swift Bank"
+  },
+  {
+    "id": "2",
+    "name": "Jane Doe",
+    "accountNumber": "987654321",
+    "bank": "iOS Credit Union"
+  }
+]
+

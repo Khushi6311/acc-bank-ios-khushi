@@ -613,8 +613,12 @@ struct MoveMoneyView: View {
                 
                 Spacer()
             }
+            .frame(maxWidth: .infinity) // Make the row stretch fully
+
             .padding(.vertical, 12)
             .padding(.horizontal, 0)
+            .contentShape(Rectangle()) //  for click on spacing also entire area tappable
+
         }
     }
 }

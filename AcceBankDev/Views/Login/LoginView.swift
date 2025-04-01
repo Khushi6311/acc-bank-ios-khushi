@@ -287,71 +287,97 @@ struct LoginView: View {
                 }
             }
     
-    //    private func verifyLogin() {
-    //        if username.isEmpty || password.isEmpty {
-    //            errorMessage = "Username and Password are required."
-    //            return
-    //        }
-    //
-    //        if password == correctPassword {
-    //            saveUsernameIfNew()
-    //            errorMessage = nil
-    //            if !UserDefaults.standard.bool(forKey: "FaceIDEnabled") {
-    //                showFaceIDPrompt = true // Ask to enable Face ID on first login
-    //            } else {
-    //                navigateToWelcome = true
-    //            }
-    //        } else {
-    //            errorMessage = "Incorrect password. Please try again."
-    //        }
-    //    }
-    //
+    
 //    private func verifyLogin() {
-//           if username.isEmpty || password.isEmpty {
-//               errorMessage = "Username and Password are required."
-//               return
-//           }
+//        if username.isEmpty || password.isEmpty {
+//            errorMessage = "Username and Password are required."
+//            return
+//        }
 //
-//           let users = UserDataManager.loadUsers()
-//           if let user = users.first(where: { $0.username == username && $0.password == password }) {
-//               errorMessage = nil
-//               print(" Login successful for: \(user.username)")
-//           } else {
-//               errorMessage = "Incorrect username or password."
-//           }
-//       }
+//        let users = UserDataManager.loadUsers()
+//        
+//        if let user = users.first(where: { $0.username == username && $0.password == password }) {
+//            //  Successful login
+//            print("Login successful for: \(user.username)")
+//
+//            //  Save username for future logins
+//            saveUsernameIfNew()
+//
+//            //  Check if Face ID has been set up before
+//            if !UserDefaults.standard.bool(forKey: "FaceIDEnabled") {
+//                //  First-time login: Ask if user wants to enable Face ID
+//                DispatchQueue.main.async {
+//                    showFaceIDPrompt = true
+//                }
+//            } else {
+//                //  Face ID already enabled: Navigate to MainView
+//                DispatchQueue.main.async {
+//                    navigateToWelcome = true
+//                }
+//            }
+//        } else {
+//            errorMessage = "Incorrect username or password."
+//        }
+//    }
     private func verifyLogin() {
-        if username.isEmpty || password.isEmpty {
-            errorMessage = "Username and Password are required."
-            return
-        }
-
-        let users = UserDataManager.loadUsers()
-        
-        if let user = users.first(where: { $0.username == username && $0.password == password }) {
-            //  Successful login
-            print("Login successful for: \(user.username)")
-
-            //  Save username for future logins
-            saveUsernameIfNew()
-
-            //  Check if Face ID has been set up before
-            if !UserDefaults.standard.bool(forKey: "FaceIDEnabled") {
-                //  First-time login: Ask if user wants to enable Face ID
-                DispatchQueue.main.async {
-                    showFaceIDPrompt = true
-                }
-            } else {
-                //  Face ID already enabled: Navigate to MainView
-                DispatchQueue.main.async {
-                    navigateToWelcome = true
-                }
+            guard !username.isEmpty, !password.isEmpty else {
+                errorMessage = "Username and Password are required."
+                return
             }
-        } else {
-            errorMessage = "Incorrect username or password."
-        }
-    }
 
+            guard let url = URL(string: "https://acceinfoapi-cga0hmcdazb5hjbs.eastus2-01.azurewebsites.net/api/auth/login") else {
+                errorMessage = "Invalid API URL."
+                return
+            }
+
+        var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+            let requestBody: [String: Any] = [
+                "username": username,
+                "password": password,
+                "type": "employee"
+            ]
+            request.httpBody = try? JSONSerialization.data(withJSONObject: requestBody)
+
+            URLSession.shared.dataTask(with: request) { data, response, error in
+                DispatchQueue.main.async {
+                    if let error = error {
+                        errorMessage = "Network error: \(error.localizedDescription)"
+                        return
+                    }
+
+                    guard let data = data else {
+                        errorMessage = "No data received from server."
+                        return
+                    }
+
+                    if let rawJson = String(data: data, encoding: .utf8) {
+                        print("Raw API Response: \(rawJson)")
+                    }
+
+                    do {
+                        let decodedResponse = try JSONDecoder().decode(LoginResponse.self, from: data)
+
+                        if decodedResponse.message.lowercased() == "success" {
+                            saveUsernameIfNew()
+                            errorMessage = nil
+
+                            if !UserDefaults.standard.bool(forKey: "FaceIDEnabled") {
+                                showFaceIDPrompt = true
+                            } else {
+                                navigateToWelcome = true
+                            }
+                        } else {
+                            errorMessage = "Login failed: \(decodedResponse.message)"
+                        }
+                    } catch {
+                        errorMessage = "Failed to decode response: \(error.localizedDescription)"
+                    }
+                }
+            }.resume()
+        }
 
     private func saveUsernameIfNew() {
         UserDefaults.standard.set(username, forKey: "SavedUsername")
@@ -452,6 +478,10 @@ private func changeLanguage(to language: String) {
             exit(0)
         }
     }
+
+struct LoginResponse: Decodable {
+    let message: String
+}
 // Preview
 struct LoginView_Previews: PreviewProvider {
     static var previews: some View {

@@ -221,7 +221,7 @@
 "payee"="Payee";
 "add_payee"="Add payee";
 "date"="Date";
-
+"pay_now"="Pay Now";
 //########
 "send_by_email"="Email";
 "send_by_mobile"="Mobile";
@@ -271,3 +271,5 @@
 "my_accounts"="My accounts";
 "another_member"="Another member";
 "payment_sent"="Payment Sent";
+
+
