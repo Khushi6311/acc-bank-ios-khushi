@@ -287,7 +287,7 @@ struct LoginView: View {
                 }
             }
     
-    
+//    
 //    private func verifyLogin() {
 //        if username.isEmpty || password.isEmpty {
 //            errorMessage = "Username and Password are required."
@@ -319,6 +319,8 @@ struct LoginView: View {
 //            errorMessage = "Incorrect username or password."
 //        }
 //    }
+    
+    //for API
     private func verifyLogin() {
             guard !username.isEmpty, !password.isEmpty else {
                 errorMessage = "Username and Password are required."

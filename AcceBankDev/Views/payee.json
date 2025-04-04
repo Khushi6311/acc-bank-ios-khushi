@@ -1,13 +1,19 @@
 [
   {
     "id": "1",
-    "name": "John Smith",
+    "name": "CRA GST RC 159/RC 160 Remittance",
     "accountNumber": "123456789",
     "bank": "Swift Bank"
   },
   {
     "id": "2",
-    "name": "Jane Doe",
+    "name": "Medicine Hat-Utillities",
+    "accountNumber": "987654321",
+    "bank": "iOS Credit Union"
+  },
+  {
+    "id": "3",
+    "name": "Evergreen Energy-Gas & Power",
     "accountNumber": "987654321",
     "bank": "iOS Credit Union"
   }

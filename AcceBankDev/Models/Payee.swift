@@ -1,7 +1,7 @@
 import SwiftUI
 import Foundation
 
-struct Payee: Identifiable, Codable {
+struct Payee: Identifiable, Codable ,Equatable{
     let id: String
     let name: String
     let accountNumber: String

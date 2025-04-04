@@ -26,136 +26,139 @@ struct HomePageView: View {
                         .zIndex(1) // Brings it forward
                         .frame(height: 25)
                         .background(Color.white) // Ensures visibility
-
+                    
                     Spacer().frame(height: 60)
-//                    HeaderView()
-//                        .padding(.top, -42)
-                     //Header Section
-                  //  VStack(spacing: 0) {
-//                        HeaderView()
-//                            .padding(.bottom, 20)
-
-//                        ZStack {
-//                            Color.white
-//                                .frame(height: geometry.size.height * 0.12) // Adjust header height dynamically
-//                                .frame(maxWidth: .infinity)
-//                                .ignoresSafeArea(edges: .top)
-//
-//                            // Logo placed centrally below the notch
-//                            Image("AppLogo")
-//                                .resizable()
-//                                .scaledToFit()
-//                                .frame(width: geometry.size.width * 0.4, height: geometry.size.height * 0.05) // Adjust logo size dynamically
-////                                .padding(.top, geometry.safeAreaInsets.top * 0.3) // Adds some space below the notch
-//                                .padding(.top, geometry.safeAreaInsets.top * -0.9) // Adds some space below the notch, while keeping logo inside white box
-//                            
-//                        }
+                    //                    HeaderView()
+                    //                        .padding(.top, -42)
+                    //Header Section
+                    //  VStack(spacing: 0) {
+                    //                        HeaderView()
+                    //                            .padding(.bottom, 20)
+                    
+                    //                        ZStack {
+                    //                            Color.white
+                    //                                .frame(height: geometry.size.height * 0.12) // Adjust header height dynamically
+                    //                                .frame(maxWidth: .infinity)
+                    //                                .ignoresSafeArea(edges: .top)
+                    //
+                    //                            // Logo placed centrally below the notch
+                    //                            Image("AppLogo")
+                    //                                .resizable()
+                    //                                .scaledToFit()
+                    //                                .frame(width: geometry.size.width * 0.4, height: geometry.size.height * 0.05) // Adjust logo size dynamically
+                    ////                                .padding(.top, geometry.safeAreaInsets.top * 0.3) // Adds some space below the notch
+                    //                                .padding(.top, geometry.safeAreaInsets.top * -0.9) // Adds some space below the notch, while keeping logo inside white box
+                    //
+                    //                        }
                     //.padding(.bottom, 30)
- // }
-
+                    // }
+                    
                     // Profile Image
                     Image("profilePic")
                         .resizable()
                         .frame(width: geometry.size.width * 0.18, height: geometry.size.width * 0.18) // Dynamically scale the profile pic
                         .clipShape(Circle())
                         .padding(.top, -geometry.size.height * 0.05) // Adjust top padding dynamically
-
+                    
                     // Welcome Text Section
                     VStack(spacing: 1) {
                         Text(String(format: NSLocalizedString("welcome_text", comment: ""), username))
                             .font(.system(size: 18, weight: .bold))
                             .foregroundColor(.white)
-
+                        
                         Text(NSLocalizedString("bank_name", comment: ""))
                             .font(.system(size: 22, weight: .bold))
                             .foregroundColor(.white)
-
+                        
                         Text(getGreeting())
                             .font(.system(size: 22, weight: .bold))
                             .foregroundColor(.white)
                     }
-
+                    .padding(.top,20)
                     // Account Summary Section
-                    RoundedRectangle(cornerRadius: 20)
-                        .fill(Color.white)
-                        .frame(width: geometry.size.width * 0.95, height: geometry.size.height * 0.55) // Make the account summary section dynamic
-                        .overlay(
-                            VStack(spacing: 15) {
-                                ScrollView(.horizontal, showsIndicators: false) {
-                                    HStack(spacing: 12) {
-                                        AccountView(icon: "dollarsign.circle.fill",title:  NSLocalizedString("balance", comment: ""), number: "(6982)", amount: "$ 9006.23", isSelected: selectedAccount == "Balance")
-                                            .onTapGesture {
-                                                withAnimation { selectedAccount = "Balance" }
-                                            }
-                                        Divider()
-                                            .frame(width: 1, height: 40)
-                                            .background(Color.black.opacity(0.5))
-
-                                        AccountView(icon: "banknote.fill", title: NSLocalizedString("savings", comment: ""), number: "(1234)", amount: "$ 1245.45", isSelected: selectedAccount == "Savings")
-                                            .onTapGesture {
-                                                withAnimation { selectedAccount = "Savings" }
-                                            }
-
-                                        Divider()
-                                            .frame(width: 1, height: 40)
-                                            .background(Color.black.opacity(0.5))
-
-                                        AccountView(icon: "wallet.pass", title: NSLocalizedString("chequing", comment: ""), number: "(3456)", amount: "$ 2000.45", isSelected: selectedAccount == "Chequing")
-                                            .onTapGesture {
-                                                withAnimation { selectedAccount = "Chequing" }
-                                            }
-
-                                        Divider()
-                                            .frame(width: 1, height: 40)
-                                            .background(Color.black.opacity(0.5))
-
-                                        AccountView(icon: "dollarsign.circle.fill", title: NSLocalizedString("loan", comment: ""), number: "(9999)", amount: "$ 5555.45", isSelected: selectedAccount == "Loan")
-                                            .onTapGesture {
-                                                withAnimation { selectedAccount = "Loan" }
-                                            }
-                                    }
-                                    .padding(.horizontal, 20)
-                                    .frame(minWidth: 700)
-                                }
-                                .frame(height: geometry.size.height * 0.12) // Adjust height based on screen size
-                                .frame(maxWidth: .infinity)
-                                .padding(.top, -50)
-
-                                // Show cards if Chequing is selected
-                                if selectedAccount == "Chequing" {
+                    HStack{
+                        RoundedRectangle(cornerRadius: 20)
+                            .fill(Color.white)
+                            .frame(width: geometry.size.width * 0.95, height: geometry.size.height * 0.55) // Make the account summary section dynamic
+                            .overlay(
+                                VStack(spacing: 15) {
                                     ScrollView(.horizontal, showsIndicators: false) {
-                                        HStack(spacing: 15) {
-//                                            ForEach(cardImages, id: \.self) { card in
-//                                                CreditCardView(imageName: card)
-//                                            }
-                                            ForEach(Array(cardImages.enumerated()), id: \.offset) { index, card in
-                                                CreditCardView(imageName: card)
-                                            }
-
-                                        }
-                                        .padding(.horizontal)
-                                    }
-                                    .frame(height: 190)
-                                    .transition(.opacity)
-                                    .padding(.bottom, 20)
-                                }
-                                else if selectedAccount == "Savings" {
-                                    HStack {
-                                        if cardImages.indices.contains(1) {
-                                                    CreditCardView(imageName: cardImages[1]) // Use second image
+                                        HStack(spacing: 12) {
+                                            AccountView(icon: "dollarsign.circle.fill",title:  NSLocalizedString("balance", comment: ""), number: "(6982)", amount: "$ 9006.23", isSelected: selectedAccount == "Balance")
+                                                .onTapGesture {
+                                                    withAnimation { selectedAccount = "Balance" }
                                                 }
+                                            Divider()
+                                                .frame(width: 1, height: 40)
+                                                .background(Color.black.opacity(0.5))
+                                            
+                                            AccountView(icon: "banknote.fill", title: NSLocalizedString("savings", comment: ""), number: "(1234)", amount: "$ 1245.45", isSelected: selectedAccount == "Savings")
+                                                .onTapGesture {
+                                                    withAnimation { selectedAccount = "Savings" }
+                                                }
+                                            
+                                            Divider()
+                                                .frame(width: 1, height: 40)
+                                                .background(Color.black.opacity(0.5))
+                                            
+                                            AccountView(icon: "wallet.pass", title: NSLocalizedString("chequing", comment: ""), number: "(3456)", amount: "$ 2000.45", isSelected: selectedAccount == "Chequing")
+                                                .onTapGesture {
+                                                    withAnimation { selectedAccount = "Chequing" }
+                                                }
+                                            
+                                            Divider()
+                                                .frame(width: 1, height: 40)
+                                                .background(Color.black.opacity(0.5))
+                                            
+                                            AccountView(icon: "dollarsign.circle.fill", title: NSLocalizedString("loan", comment: ""), number: "(9999)", amount: "$ 5555.45", isSelected: selectedAccount == "Loan")
+                                                .onTapGesture {
+                                                    withAnimation { selectedAccount = "Loan" }
+                                                }
+                                        }
+                                        .padding(.horizontal, 20)
+                                        .frame(minWidth: 700)
                                     }
-                                    .frame(height: 190)
-                                    .padding(.horizontal)
-                                    .transition(.opacity)
-                                    .padding(.bottom, 20)
-                                }else {
-                                    Spacer()
-                                        .frame(height: 190) // Keeps space for consistency
+                                    .frame(height: geometry.size.height * 0.12) // Adjust height based on screen size
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.top, -50)
+                                    
+                                    // Show cards if Chequing is selected
+                                    if selectedAccount == "Chequing" {
+                                        ScrollView(.horizontal, showsIndicators: false) {
+                                            HStack(spacing: 15) {
+                                                //                                            ForEach(cardImages, id: \.self) { card in
+                                                //                                                CreditCardView(imageName: card)
+                                                //                                            }
+                                                ForEach(Array(cardImages.enumerated()), id: \.offset) { index, card in
+                                                    CreditCardView(imageName: card)
+                                                }
+                                                
+                                            }
+                                            .padding(.horizontal)
+                                        }
+                                        .frame(height: 190)
+                                        .transition(.opacity)
                                         .padding(.bottom, 20)
+                                    }
+                                    else if selectedAccount == "Savings" {
+                                        HStack {
+                                            if cardImages.indices.contains(1) {
+                                                CreditCardView(imageName: cardImages[1]) // Use second image
+                                            }
+                                        }
+                                        .frame(height: 190)
+                                        .padding(.horizontal)
+                                        .transition(.opacity)
+                                        .padding(.bottom, 20)
+                                    }else {
+                                        Spacer()
+                                            .frame(height: 190) // Keeps space for consistency
+                                            .padding(.bottom, 20)
+                                    }
                                 }
-                            }
-                        )
+                            )
+                    }
+                    .padding(.top,20)//
                         .animation(.easeInOut(duration: 0.3), value: selectedAccount)
 
                     Spacer()
