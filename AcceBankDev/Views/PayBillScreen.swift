@@ -32,9 +32,11 @@ struct PayeeRecurringDetails: Identifiable {
 struct PayBillScreen: View {
     @State private var selectedDate = Date() // Date for the DatePicker
         @State private var showDatePicker = false // Toggle for DatePicker visibility
+ 
 
-    @Environment(\.presentationMode) var presentationMode // To dismiss the modal
+    //@Environment(\.presentationMode) var presentationMode // To dismiss the modal
     @StateObject private var accountManager = AccountManager()
+    //@ObservedObject var accountManager: AccountManager
 
     @State private var selectedPaymentType: String? = "One-time Payment" //Track selected payment type
     @State private var showAccountSheet = false // Toggle for full-screen modal
@@ -76,14 +78,18 @@ struct PayBillScreen: View {
     @State private var payeeRecurringDetails: [PayeeRecurringDetails] = []
 
     
-
+    @Environment(\.dismiss)  var dismiss
 
     var body: some View {
         //ScrollView {
             VStack (spacing: 0){
                 // Top Bar with Back Button
                 HStack {
-                    Button(action: { presentationMode.wrappedValue.dismiss() }) {
+                    Button(action: {
+                        //presentationMode.wrappedValue.dismiss()
+                        dismiss()
+
+                    }) {
                         Image(systemName: "arrow.left")
                             .font(.title2)
                             .foregroundColor(.black)
@@ -166,7 +172,9 @@ struct PayBillScreen: View {
                     VStack{
                         if selectedPaymentType == "One-time Payment" {
                             
-                            OneTimePaymentForm(accountManager: accountManager, selectedContact: $selectedContact,
+                            OneTimePaymentForm(
+                                accountManager: accountManager,
+                                selectedContact: $selectedContact,
                                                
                                                
                                                showAccountSheet: $showAccountSheet,
@@ -188,7 +196,7 @@ struct PayBillScreen: View {
                                                selectedPayees: $selectedPayees,           // Pass selected payee
                                                showPayeeSheet: $showPayeeSheet,
                                                payeePaymentDetails: $payeePaymentDetails
-
+                              
                                                
                                                
                             )
@@ -253,12 +261,18 @@ struct OneTimePaymentForm: View {
     @Binding var showDateError:Bool
     @ObservedObject var viewModel: PayeeViewModel
     @Binding var selectedPayees: [Payee]
-        @Binding var showPayeeSheet: Bool
+    @Binding var showPayeeSheet: Bool
     @Binding var payeePaymentDetails: [PayeePaymentDetails]
 
-    
+    @State private var bannerErrorMessage: String?
+
     var body: some View {
         VStack(spacing: 15) {
+            if let message = bannerErrorMessage {
+                OnetimeErrorMessageView(text: message)
+                    .transition(.opacity)
+            }
+
             // Pay From
             Text(NSLocalizedString("pay_from", comment: ""))
                 .font(.subheadline)
@@ -296,7 +310,7 @@ struct OneTimePaymentForm: View {
             
 
                 .sheet(isPresented: $isTransferFromSheetPresented) {
-                    AccountSelectionSheet(
+                    BillAccountSelectionSheet(
                         accountManager: accountManager,  // Add this
                         //selectedAccount_from: $selectedFromAccount,
                         isPresented: $isTransferFromSheetPresented, selectedFromAccount: $selectedFromAccount  // Add this
@@ -310,7 +324,9 @@ struct OneTimePaymentForm: View {
                 .font(.subheadline)
                 .foregroundColor(.gray)
                 .frame(maxWidth: .infinity, alignment: .leading)
-            Button(action: { showPayeeSheet = true }) {
+            Button(action: {
+                showPayeeSheet = true
+                showContactError = false}) {
                 HStack {
                     //Text(NSLocalizedString("payee", comment: ""))
                     //for payee
@@ -343,6 +359,8 @@ struct OneTimePaymentForm: View {
 selectedPayees: $selectedPayees, showPayeeSheet: $showPayeeSheet)
 
             }
+            FieldErrorView(message: NSLocalizedString("error_required_field", comment: "Payee is required"), show: $showContactError)
+
 
 //            FieldErrorView(message: NSLocalizedString("error_required_field", comment: "Amount is required"), show: $showContactError)
             // Add Contact
@@ -369,7 +387,9 @@ selectedPayees: $selectedPayees, showPayeeSheet: $showPayeeSheet)
             else {
                 // Fallback for one payee — original single amount/date fields
                 TextField(NSLocalizedString("enter_transfer_amount", comment: ""), text: $amount)
-                    .keyboardType(.decimalPad)
+                    //.keyboardType(.decimalPad)
+                    .keyboardType(.numbersAndPunctuation)
+                      .submitLabel(.done)
                     .padding()
                     .background(RoundedRectangle(cornerRadius: 10).stroke(Color.gray, lineWidth: 1))
                     .onChange(of: amount) { oldValue,newValue in
@@ -401,6 +421,7 @@ selectedPayees: $selectedPayees, showPayeeSheet: $showPayeeSheet)
                             formatter.dateStyle = .medium
                             formattedDate = formatter.string(from: newValue)
                             showDatePicker = false
+                            showDateError=false
                         }
                 }
             }
@@ -409,6 +430,9 @@ selectedPayees: $selectedPayees, showPayeeSheet: $showPayeeSheet)
 
                         Spacer()
                     }
+//        .onTapGesture {
+//                UIApplication.shared.endEditing()
+//            }
                     .padding()
 
                     .onChange(of: selectedPayees) { oldValue, newValue in
@@ -417,7 +441,7 @@ selectedPayees: $selectedPayees, showPayeeSheet: $showPayeeSheet)
                         for payee in newValue where !currentIDs.contains(payee.id) {
                             payeePaymentDetails.append(PayeePaymentDetails(payee: payee, amount: "", date: nil))
                         }
-
+                            
                         payeePaymentDetails.removeAll { detail in
                             !newValue.contains(where: { $0.id == detail.payee.id })
                         }
@@ -431,68 +455,66 @@ selectedPayees: $selectedPayees, showPayeeSheet: $showPayeeSheet)
 
 
         Button(action: {
-               if selectedPayees.isEmpty {
-                   showAmountError = true
-                   showDateError = true
-                   print("No payee selected")
-                   return
-               }
+            if selectedPayees.isEmpty {
+                showContactError = true
+                showAmountError = false
+                showDateError = false
+                showAccountError = false
+                return
+            }
 
             if selectedPayees.count == 1 {
-                // Single payee validation
-                let result = OneTimePaymentFormValidator.validate(
+                let result = OneTimePaymentFormValidator.validateSinglePayee(
                     selectedFromAccount: accountManager.selectedAccount,
                     amount: amount,
-                    formattedDate: formattedDate
+                    formattedDate: formattedDate,
+                    selectedDate: selectedDate,
+                    selectedPayees: selectedPayees
                 )
 
                 showAccountError = result.showAccountError
                 showAmountError = result.showAmountError
                 showDateError = result.showDateError
+                showContactError = result.showContactError
+
+                if result.balanceExceededError {
+                    bannerErrorMessage = "Payment failed. This transfer amount exceeds your account balance."
+                    return
+                }
 
                 if result.isFormValid {
-                    // Sync payeePaymentDetails for single payee
-                    if let firstPayee = selectedPayees.first {
-                        payeePaymentDetails = [
-                            PayeePaymentDetails(payee: firstPayee, amount: amount, date: selectedDate)
-                        ]
-                    }
-
+                    bannerErrorMessage = nil
+                    payeePaymentDetails = result.syncedSinglePayeeDetails
                     DispatchQueue.main.async {
                         showBillConfirmationSheet = true
                     }
                 }
 
             } else {
-                // Multiple payees — validate each payee's amount and date
-                var isValid = true
+                let result = OneTimePaymentFormValidator.validateMultiplePayees(
+                    selectedFromAccount: selectedFromAccount,
+                    payeeDetails: payeePaymentDetails
+                )
 
-                    for i in payeePaymentDetails.indices {
-                        let amount = payeePaymentDetails[i].amount.trimmingCharacters(in: .whitespaces)
-                        let date = payeePaymentDetails[i].date
+                showAccountError = result.showAccountError
+                payeePaymentDetails = result.updatedDetails
 
-                        // Set flags to trigger red error messages in UI
-                        payeePaymentDetails[i].showAmountError = amount.isEmpty
-                        payeePaymentDetails[i].showDateError = (date == nil)
-
-                        // Prevent continue if anything is empty
-                        if amount.isEmpty || date == nil {
-                            isValid = false
-                        }
-                    }
-
-                    if selectedFromAccount == nil {
-                        showAccountError = true
-                        isValid = false
-                    }
-                    
-                    if isValid {
-                        DispatchQueue.main.async {
-                            showBillConfirmationSheet = true
-                        }                } else {
-                    print("Validation failed for multi-payee form")
+                if result.balanceExceededError {
+                    bannerErrorMessage = "Payment failed. The total payment amount exceeds your account balance."
+                    return
                 }
+
+                if result.isFormValid {
+                    bannerErrorMessage = nil
+                    DispatchQueue.main.async {
+                        showBillConfirmationSheet = true
+                    }
+                }
+//                else {
+//                    bannerErrorMessage = "Please complete all required fields for each payee."
+//                }
             }
+
         })
         {
                 //Text("Continue")
@@ -524,42 +546,169 @@ selectedPayees: $selectedPayees, showPayeeSheet: $showPayeeSheet)
         }
        
     }
+
+
+
 //}
 //}
 
 
 
 //validation of one time
+//struct OneTimePaymentFormValidator {
+//        static func validate(
+//            selectedFromAccount: BankAccount?,
+//            //selectedContact: Contact?,
+//            amount: String,
+//            formattedDate: String?
+//        ) -> (
+//           showAccountError: Bool,
+//           //showContactError: Bool,
+//            showAmountError: Bool,
+//            showDateError: Bool,
+//            isFormValid: Bool
+//        ) {
+//            let showAccountError = selectedFromAccount == nil
+//           //let showContactError = selectedContact == nil
+//            let showAmountError = amount.trimmingCharacters(in: .whitespaces).isEmpty
+//            let showDateError = formattedDate?.trimmingCharacters(in: .whitespaces).isEmpty ?? true
+//
+//           //let isFormValid = !showAccountError && !showContactError && !showAmountError && !showDateError
+//            let isFormValid = !showAccountError &&  !showAmountError && !showDateError
+//            return (
+//                showAccountError,
+//                //showContactError,
+//                showAmountError,
+//                showDateError,
+//                isFormValid
+//            )
+//        }
+//    }
+//8 april
 struct OneTimePaymentFormValidator {
-        static func validate(
-            selectedFromAccount: BankAccount?,
-            //selectedContact: Contact?,
-            amount: String,
-            formattedDate: String?
-        ) -> (
-           showAccountError: Bool,
-           //showContactError: Bool,
-            showAmountError: Bool,
-            showDateError: Bool,
-            isFormValid: Bool
-        ) {
-            let showAccountError = selectedFromAccount == nil
-           //let showContactError = selectedContact == nil
-            let showAmountError = amount.trimmingCharacters(in: .whitespaces).isEmpty
-            let showDateError = formattedDate?.trimmingCharacters(in: .whitespaces).isEmpty ?? true
+    static func validateSinglePayee(
+        selectedFromAccount: BankAccount?,
+        amount: String,
+        formattedDate: String?,
+        selectedDate: Date,
+        selectedPayees: [Payee]
+    ) -> (
+        showAccountError: Bool,
+        showAmountError: Bool,
+        showDateError: Bool,
+        showContactError: Bool,
+        balanceExceededError: Bool,
+        isFormValid: Bool,
+        syncedSinglePayeeDetails: [PayeePaymentDetails]
+    ) {
+        let showAccountError = selectedFromAccount == nil
+        let showContactError = selectedPayees.isEmpty
+        let showAmountError = amount.trimmingCharacters(in: .whitespaces).isEmpty
+        let showDateError = formattedDate?.trimmingCharacters(in: .whitespaces).isEmpty ?? true
 
-           //let isFormValid = !showAccountError && !showContactError && !showAmountError && !showDateError
-            let isFormValid = !showAccountError &&  !showAmountError && !showDateError
-            return (
-                showAccountError,
-                //showContactError,
-                showAmountError,
-                showDateError,
-                isFormValid
-            )
+        var balanceExceededError = false
+        var syncedDetails: [PayeePaymentDetails] = []
+
+        if let account = selectedFromAccount,
+           let balance = Double(account.balance.replacingOccurrences(of: "$", with: "").replacingOccurrences(of: ",", with: "")),
+           let enteredAmount = Double(amount.replacingOccurrences(of: "$", with: "").replacingOccurrences(of: ",", with: "")),
+           !showAmountError {
+            balanceExceededError = enteredAmount > balance
         }
+
+        if let payee = selectedPayees.first {
+            syncedDetails = [PayeePaymentDetails(payee: payee, amount: amount, date: selectedDate)]
+        }
+
+        let isFormValid = !showAccountError && !showAmountError && !showDateError && !showContactError && !balanceExceededError
+
+        return (
+            showAccountError,
+            showAmountError,
+            showDateError,
+            showContactError,
+            balanceExceededError,
+            isFormValid,
+            syncedDetails
+        )
     }
 
+
+    static func validateMultiplePayees(
+        selectedFromAccount: BankAccount?,
+        payeeDetails: [PayeePaymentDetails]
+    ) -> (
+        showAccountError: Bool,
+        balanceExceededError: Bool,
+        isFormValid: Bool,
+        updatedDetails: [PayeePaymentDetails]
+    ) {
+        var isValid = true
+        var totalAmount: Double = 0.0
+        var updatedDetails: [PayeePaymentDetails] = []
+
+        for var detail in payeeDetails {
+            let amountStr = detail.amount.trimmingCharacters(in: .whitespaces)
+            let date = detail.date
+
+            detail.showAmountError = amountStr.isEmpty
+            detail.showDateError = (date == nil)
+
+            if amountStr.isEmpty || date == nil {
+                isValid = false
+            }
+
+            if let value = Double(amountStr.replacingOccurrences(of: "$", with: "").replacingOccurrences(of: ",", with: "")) {
+                totalAmount += value
+            }
+
+            updatedDetails.append(detail)
+        }
+
+        var balanceExceededError = false
+        let showAccountError = selectedFromAccount == nil
+
+        if let account = selectedFromAccount,
+           let balance = Double(account.balance.replacingOccurrences(of: "$", with: "").replacingOccurrences(of: ",", with: "")) {
+            balanceExceededError = totalAmount > balance
+        }
+
+        isValid = isValid && !showAccountError && !balanceExceededError
+
+        return (
+            showAccountError,
+            balanceExceededError,
+            isValid,
+            updatedDetails
+        )
+    }
+}
+
+//error message code
+struct OnetimeErrorMessageView: View {
+    let text: String
+
+    var body: some View {
+        HStack {
+            Image(systemName: "exclamationmark.triangle.fill") //Alert icon
+                .foregroundColor(.white)
+                .padding(.leading, 10)
+
+            Text(text)
+                .font(.body)
+                .foregroundColor(.white)
+                .multilineTextAlignment(.leading)
+                .padding(.trailing, 10)
+
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding()
+        .background(Color.red) // Red background for error
+        .cornerRadius(8)
+        .padding(.horizontal)
+    }
+}
 
 // if multiple payye are selcted in one time form then show using this
 struct MultiPayeeDetailView: View {
@@ -572,7 +721,9 @@ struct MultiPayeeDetailView: View {
                 .font(.headline)
 
             TextField("Amount", text: $detail.amount)
-                .keyboardType(.decimalPad)
+                //.keyboardType(.decimalPad)
+                .keyboardType(.numbersAndPunctuation)
+                  .submitLabel(.done)
                 .padding()
                 .background(RoundedRectangle(cornerRadius: 10).stroke(Color.gray))
                 .onChange(of: detail.amount) { oldValue,newValue in
@@ -598,18 +749,25 @@ struct MultiPayeeDetailView: View {
                     }
                 )
 
-                DatePicker("Select Date", selection: dateBinding, displayedComponents: .date)
+                DatePicker("Select Date", selection: dateBinding,
+                           in: Date.distantPast...Date.distantFuture,displayedComponents: .date)
                     .datePickerStyle(GraphicalDatePickerStyle())
                     .padding()
                     .background(RoundedRectangle(cornerRadius: 10).stroke(Color.gray))
                 
             } else {
                 Button {
+                    if detail.date == nil {
+                                detail.date = Date() // Ensure today is set before opening calendar
+                            }
                     detail.showCalendar = true
                 } label: {
                     HStack {
+//                        Text(detail.date != nil ? formattedDate(detail.date!) : "Select date")
+//                            .foregroundColor(.gray)
                         Text(detail.date != nil ? formattedDate(detail.date!) : "Select date")
-                            .foregroundColor(.gray)
+                                       .foregroundColor(detail.date != nil ? .primary : .gray)
+
                        
                         Spacer()
                         
@@ -764,9 +922,15 @@ struct RecurringPaymentForm: View {
     @Binding var selectedPayees: [Payee]
     @Binding var payeeRecurringDetails: [PayeeRecurringDetails]
     @FocusState private var focusedField: FieldFocus?
+    @State private var bannerErrorMessage: String?
 
     var body: some View {
         VStack(spacing: 15) {
+            if let message = bannerErrorMessage {
+                OnetimeErrorMessageView(text: message)
+                    .transition(.opacity)
+            }
+
             Text("Pay from")
                 .font(.subheadline)
                 .foregroundColor(.gray)
@@ -799,7 +963,7 @@ struct RecurringPaymentForm: View {
                 .cornerRadius(10)
             }
             .sheet(isPresented: $isTransferFromSheetPresented) {
-                AccountSelectionSheet(accountManager: accountManager, isPresented: $isTransferFromSheetPresented, selectedFromAccount: $selectedFromAccount)
+                BillAccountSelectionSheet(accountManager: accountManager, isPresented: $isTransferFromSheetPresented, selectedFromAccount: $selectedFromAccount)
             }
 
             Button(action: { showPayeeSheet = true }) {
@@ -824,7 +988,8 @@ struct RecurringPaymentForm: View {
                 PayeeListView(viewModel: PayeeViewModel(), selectedPayees: $selectedPayees, showPayeeSheet: $showPayeeSheet)
             }
 
-            Button(action: { showAddContactSheet = true }) {
+            Button(action: { showAddContactSheet = true
+            }) {
                 HStack {
                     Image(systemName: "plus")
                         .foregroundColor(.white)
@@ -845,7 +1010,9 @@ struct RecurringPaymentForm: View {
             } else {
                 
                 TextField("Enter amount", text: $amount)
-                    .keyboardType(.decimalPad)
+                    //.keyboardType(.decimalPad)
+                    .keyboardType(.numbersAndPunctuation)
+                      .submitLabel(.done)
                     .padding()
                     .background(RoundedRectangle(cornerRadius: 10).stroke(Color.gray, lineWidth: 1))
                     .onChange(of: amount) { oldValue, newValue in
@@ -858,7 +1025,7 @@ struct RecurringPaymentForm: View {
                     .onTapGesture {
                         focusedField = nil
                     }
-                FieldErrorView(message: "Amount is required", show: $showAmountError)
+                FieldErrorView(message: NSLocalizedString("error_required_field", comment: "Amount is required"), show: $showAmountError)
 
                 Text("Select frequency")
                     .font(.subheadline)
@@ -877,14 +1044,13 @@ struct RecurringPaymentForm: View {
                     
                     showDatePicker.toggle()
                 }
-                
-                FieldErrorView(message: "Start date is required", show: $showStartDateError)
+                FieldErrorView(message: NSLocalizedString("error_required_field", comment: "Amount is required"), show: $showStartDateError)
 
                 DateField(title: "End Date", dateText: $formattedEndDate) {
                     isSelectingStartDate = false
                     showDatePicker.toggle()
                 }
-                FieldErrorView(message: "End date is required", show: $showEndDateError)
+                FieldErrorView(message: NSLocalizedString("error_required_field", comment: "Amount is required"), show: $showEndDateError)
             }
 
             if showDatePicker {
@@ -897,52 +1063,66 @@ struct RecurringPaymentForm: View {
                         formatter.dateStyle = .medium
                         if isSelectingStartDate {
                             formattedStartDate = formatter.string(from: newValue)
+                            showStartDateError=false
                             
                         } else {
                             formattedEndDate = formatter.string(from: newValue)
+                            showEndDateError=false
                         }
+                        withAnimation {
+                                        showDatePicker = false
+                                    }
                     }
             }
 
             Button(action: {
                 if selectedPayees.count > 1 {
-                    var isValid = true
-                    for i in payeeRecurringDetails.indices {
-                        let amount = payeeRecurringDetails[i].amount.trimmingCharacters(in: .whitespaces)
-                        let start = payeeRecurringDetails[i].startDate
-                        let end = payeeRecurringDetails[i].endDate
+                    let result = RecurringPaymentFormValidator.validateMultiplePayees(
+                        selectedFromAccount: selectedFromAccount,
+                        payeeDetails: payeeRecurringDetails
+                    )
 
-                        payeeRecurringDetails[i].showAmountError = amount.isEmpty
-                        payeeRecurringDetails[i].showStartDateError = start == nil
-                        payeeRecurringDetails[i].showEndDateError = end == nil
+                    showAccountError = result.showAccountError
+                    payeeRecurringDetails = result.updatedDetails
 
-                        if amount.isEmpty || start == nil || end == nil {
-                            isValid = false
-                        }
+                    if result.balanceExceededError {
+                        bannerErrorMessage = "Payment failed. The total amount exceeds your account balance."
+                        return
                     }
-                    if selectedFromAccount == nil {
-                        showAccountError = true
-                        isValid = false
-                    }
-                    if isValid {
+
+                    if result.isFormValid {
+                        bannerErrorMessage = nil
                         showBillConfirmationSheet = true
                     }
                 } else {
-                    let result = RecurringPaymentFormValidator.validate(
+                    let result = RecurringPaymentFormValidator.validateSinglePayee(
                         selectedFromAccount: selectedFromAccount,
-                        selectedContact: selectedContact,
                         amount: amount,
                         startDate: formattedStartDate,
-                        endDate: formattedEndDate
+                        endDate: formattedEndDate,
+                        selectedPayees: selectedPayees,
+                        selectedStartDate: selectedStartDate,
+                        selectedEndDate: selectedEndDate,
+                        frequency: selectedFrequency
                     )
+
+                    showAccountError = result.showAccountError
+                    showContactError = result.showContactError
                     showAmountError = result.showAmountError
                     showStartDateError = result.showStartDateError
                     showEndDateError = result.showEndDateError
 
+                    if result.balanceExceededError {
+                        bannerErrorMessage = "Payment failed. This transfer amount exceeds your account balance."
+                        return
+                    }
+
                     if result.isFormValid {
+                        bannerErrorMessage = nil
                         showBillConfirmationSheet = true
                     }
                 }
+
             }) {
                 Text("Continue")
                     .font(.headline)
@@ -953,7 +1133,7 @@ struct RecurringPaymentForm: View {
                     .cornerRadius(10)
             }
             .padding(.top, 20)
-            .padding(.horizontal, 20)
+            .padding(.horizontal, 5)
 //            .sheet(isPresented: $showBillConfirmationSheet) {
 //                BillConfirmationSheet(
 //                    fromAccount: selectedFromAccount,
@@ -1045,7 +1225,9 @@ struct MultiRecurringPayeeDetailView: View {
 
             // Amount field
             TextField("Enter amount", text: $detail.amount)
-                .keyboardType(.decimalPad)
+                //.keyboardType(.decimalPad)
+                .keyboardType(.numbersAndPunctuation)
+                  .submitLabel(.done)
                 .padding()
                 .background(RoundedRectangle(cornerRadius: 10).stroke(Color.gray, lineWidth: 1))
                 .onChange(of: detail.amount) { oldValue, newValue in
@@ -1054,8 +1236,7 @@ struct MultiRecurringPayeeDetailView: View {
                         detail.showAmountError = false
                     }
                 }
-
-            FieldErrorView(message: "Amount is required", show: $detail.showAmountError)
+            FieldErrorView(message: NSLocalizedString("error_required_field", comment: "Amount is required"), show: $detail.showAmountError)
             Text("Select frequency")
                 .font(.subheadline)
                 .foregroundColor(.gray)
@@ -1089,12 +1270,18 @@ struct MultiRecurringPayeeDetailView: View {
                     set: { newVal in
                         detail.startDate = newVal
                         detail.showStartDateError = false
-                        showStartPicker = false
+                        withAnimation {
+                            showStartPicker = false
+                               }
+                        //showStartPicker = false
                     }), displayedComponents: .date)
                     .datePickerStyle(GraphicalDatePickerStyle())
+                
+                
             }
+           
 
-            FieldErrorView(message: "Start date is required", show: $detail.showStartDateError)
+            FieldErrorView(message: NSLocalizedString("error_required_field", comment: "Amount is required"), show: $detail.showStartDateError)
 
             // End Date
             DateField(title: "End Date", dateText: Binding(
@@ -1117,12 +1304,14 @@ struct MultiRecurringPayeeDetailView: View {
                     set: { newVal in
                         detail.endDate = newVal
                         detail.showEndDateError = false
-                        showEndPicker = false
+                        withAnimation {
+                            showEndPicker = false
+                               }
+                        //showEndPicker = false
                     }), displayedComponents: .date)
                     .datePickerStyle(GraphicalDatePickerStyle())
             }
-
-            FieldErrorView(message: "End date is required", show: $detail.showEndDateError)
+            FieldErrorView(message: NSLocalizedString("error_required_field", comment: "Amount is required"), show: $detail.showEndDateError)
 
             Divider()
         }
@@ -1132,52 +1321,211 @@ struct MultiRecurringPayeeDetailView: View {
 
 
 //required feild validation of recurring form
+//struct RecurringPaymentFormValidator {
+//    static func validate(
+//        selectedFromAccount: BankAccount?,
+//        selectedContact: Contact?,
+//        amount: String,
+//        startDate: String?,
+//        endDate: String?
+//    ) -> (
+//        //showAccountError: Bool,
+//        //showContactError: Bool,
+//        showAmountError: Bool,
+//        showStartDateError: Bool,
+//        showEndDateError: Bool,
+//        isFormValid: Bool
+//    ) {
+//        // Validate From Account and Payee
+//        //let showAccountError = selectedFromAccount == nil
+//        //let showContactError = selectedContact == nil
+//
+//        // Validate Amount
+//        let showAmountError = amount.trimmingCharacters(in: .whitespaces).isEmpty
+//
+//        // Validate Start and End Dates
+//        let showStartDateError = startDate?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true
+//        let showEndDateError = endDate?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true
+//
+//        // Overall form validity
+//        let isFormValid = //!showAccountError &&
+//                          //!showContactError &&
+//                          !showAmountError &&
+//                          !showStartDateError &&
+//        !showEndDateError
+//
+//        return (
+//            //showAccountError,
+//            //showContactError,
+//            showAmountError,
+//            showStartDateError,
+//            showEndDateError,
+//            isFormValid
+//        )
+//    }
+//}
+
+
+//8 april
+//struct RecurringPaymentFormValidator {
+//    static func validate(
+//        selectedFromAccount: BankAccount?,
+//        selectedContact: Contact?,
+//        amount: String,
+//        startDate: String?,
+//        endDate: String?
+//    ) -> (
+//        showAmountError: Bool,
+//        showStartDateError: Bool,
+//        showEndDateError: Bool,
+//        balanceExceededError: Bool,
+//        isFormValid: Bool
+//    ) {
+//        let showAmountError = amount.trimmingCharacters(in: .whitespaces).isEmpty
+//        let showStartDateError = startDate?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true
+//        let showEndDateError = endDate?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true
+//        
+//        var balanceExceededError = false
+//
+//        if let account = selectedFromAccount,
+//           let balance = Double(account.balance.replacingOccurrences(of: "$", with: "").replacingOccurrences(of: ",", with: "")),
+//           let enteredAmount = Double(amount.replacingOccurrences(of: "$", with: "").replacingOccurrences(of: ",", with: "")),
+//           !showAmountError {
+//            balanceExceededError = enteredAmount > balance
+//        }
+//
+//        let isFormValid = !showAmountError && !showStartDateError && !showEndDateError && !balanceExceededError
+//
+//        return (
+//            showAmountError,
+//            showStartDateError,
+//            showEndDateError,
+//            balanceExceededError,
+//            isFormValid
+//        )
+//    }
+//}
+
+//8 april 2 code
 struct RecurringPaymentFormValidator {
-    static func validate(
+    
+    static func validateSinglePayee(
         selectedFromAccount: BankAccount?,
-        selectedContact: Contact?,
         amount: String,
         startDate: String?,
-        endDate: String?
+        endDate: String?,
+        selectedPayees: [Payee],
+        selectedStartDate: Date,
+        selectedEndDate: Date,
+        frequency: String
     ) -> (
-        //showAccountError: Bool,
-        //showContactError: Bool,
+        showAccountError: Bool,
+        showContactError: Bool,
         showAmountError: Bool,
         showStartDateError: Bool,
         showEndDateError: Bool,
-        isFormValid: Bool
+        balanceExceededError: Bool,
+        isFormValid: Bool,
+        syncedDetails: [PayeePaymentDetails]
     ) {
-        // Validate From Account and Payee
-        //let showAccountError = selectedFromAccount == nil
-        //let showContactError = selectedContact == nil
-
-        // Validate Amount
+        let showAccountError = selectedFromAccount == nil
+        let showContactError = selectedPayees.isEmpty
         let showAmountError = amount.trimmingCharacters(in: .whitespaces).isEmpty
-
-        // Validate Start and End Dates
         let showStartDateError = startDate?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true
         let showEndDateError = endDate?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true
 
-        // Overall form validity
-        let isFormValid = //!showAccountError &&
-                          //!showContactError &&
-                          !showAmountError &&
-                          !showStartDateError &&
-                          !showEndDateError
+        var balanceExceededError = false
+        var synced: [PayeePaymentDetails] = []
+
+        if let account = selectedFromAccount,
+           let balance = Double(account.balance.replacingOccurrences(of: "$", with: "").replacingOccurrences(of: ",", with: "")),
+           let enteredAmount = Double(amount.replacingOccurrences(of: "$", with: "").replacingOccurrences(of: ",", with: "")),
+           !showAmountError {
+            balanceExceededError = enteredAmount > balance
+        }
+
+        if let payee = selectedPayees.first {
+            synced = [
+                PayeePaymentDetails(
+                    payee: payee,
+                    amount: amount,
+                    date: selectedStartDate,
+                    startDate: selectedStartDate,
+                    endDate: selectedEndDate,
+                    frequency: frequency
+                )
+            ]
+        }
+
+        let isFormValid = !showAccountError && !showContactError && !showAmountError && !showStartDateError && !showEndDateError && !balanceExceededError
 
         return (
-            //showAccountError,
-            //showContactError,
+            showAccountError,
+            showContactError,
             showAmountError,
             showStartDateError,
             showEndDateError,
+            balanceExceededError,
+            isFormValid,
+            synced
+        )
+    }
+
+    static func validateMultiplePayees(
+        selectedFromAccount: BankAccount?,
+        payeeDetails: [PayeeRecurringDetails]
+    ) -> (
+        showAccountError: Bool,
+        balanceExceededError: Bool,
+        updatedDetails: [PayeeRecurringDetails],
+        isFormValid: Bool
+    ) {
+        var isValid = true
+        var totalAmount: Double = 0.0
+        var updatedDetails: [PayeeRecurringDetails] = []
+
+        for var detail in payeeDetails {
+            let amountStr = detail.amount.trimmingCharacters(in: .whitespaces)
+            let start = detail.startDate
+            let end = detail.endDate
+
+            detail.showAmountError = amountStr.isEmpty
+            detail.showStartDateError = start == nil
+            detail.showEndDateError = end == nil
+
+            if detail.showAmountError || detail.showStartDateError || detail.showEndDateError {
+                isValid = false
+            }
+
+            if let value = Double(amountStr.replacingOccurrences(of: "$", with: "").replacingOccurrences(of: ",", with: "")) {
+                totalAmount += value
+            }
+
+            updatedDetails.append(detail)
+        }
+
+        var balanceExceededError = false
+        let showAccountError = selectedFromAccount == nil
+
+        if let account = selectedFromAccount,
+           let balance = Double(account.balance.replacingOccurrences(of: "$", with: "").replacingOccurrences(of: ",", with: "")) {
+            balanceExceededError = totalAmount > balance
+        }
+
+        let isFormValid = isValid && !showAccountError && !balanceExceededError
+
+        return (
+            showAccountError,
+            balanceExceededError,
+            updatedDetails,
             isFormValid
         )
     }
 }
 
+
 //select account sheet common for both the sheet
-struct AccountSelectionSheet: View {
+struct BillAccountSelectionSheet: View {
     @ObservedObject var accountManager: AccountManager
     @Binding var isPresented: Bool
     @Binding var selectedFromAccount: BankAccount?
@@ -1740,5 +2088,7 @@ struct BillDetailRow: View {
 struct PayBillScreen_Previews: PreviewProvider {
     static var previews: some View {
         PayBillScreen()
+       // PayBillScreen(accountManager: AccountManager())
+
     }
 }

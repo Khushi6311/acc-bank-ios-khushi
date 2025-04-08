@@ -513,6 +513,8 @@ struct MoveMoneyView: View {
             }
             .fullScreenCover(isPresented: $isShowingPayBills) {
                 PayBillScreen() // Replace with your Pay Bills screen
+                //PayBillScreen(accountManager: AccountManager())
+
             }
 
         }
