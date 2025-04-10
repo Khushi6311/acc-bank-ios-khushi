@@ -1,8 +1,16 @@
+////
+////  AppDelegate.swift
+////  AcceBankDev
+////
+////  Created by MCT on 09/04/25.
+////
 //
-//  AppDelegate.swift
-//  AcceBankDev
+//import UIKit
 //
-//  Created by MCT on 09/04/25.
+//class AppDelegate: NSObject, UIApplicationDelegate {
+//    var orientationLock = UIInterfaceOrientationMask.all
 //
-
-import Foundation
+//    func application(_ application: UIApplication, supportedInterfaceOrientationsFor window: UIWindow?) -> UIInterfaceOrientationMask {
+//        return orientationLock
+//    }
+//}

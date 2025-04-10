@@ -7,7 +7,7 @@ struct PayeePaymentDetails: Identifiable {
     var date: Date? = nil
     var id: String { payee.id }
     var startDate: Date? = nil    // for recurring
-        var endDate: Date? = nil
+    var endDate: Date? = nil
     var frequency: String = "monthly"
     var showAmountError: Bool = false
      var showDateError: Bool = false
@@ -102,29 +102,23 @@ struct PayBillScreen: View {
                 }
                 .padding()
                 HStack(spacing: 0)  {
-//                    ZStack {
-//                        LinearGradient(
-//                            gradient: Gradient(colors: [Color.gray.opacity(0.1), Color.gray.opacity(0.3)]),
-//                            startPoint: .leading,
-//                            endPoint: .trailing
-//                        )
-//                        .cornerRadius(30)
 
                     HStack(spacing: 0) {
                             Button(action: { selectedPaymentType = "One-time Payment"
+                                
                                
 }) {
                                 //Text("One-time ")
-    Text(NSLocalizedString("one_time_payment", comment: "Title for one_time_payment tab"))
+                    Text(NSLocalizedString("one_time_payment", comment: "Title for one_time_payment tab"))
 
-        //.font(.headline)
-        .font(.system(size: 14)) //  Set a smaller font size
+                        //.font(.headline)
+                            .font(.system(size: 14)) //  Set a smaller font size
 
-                                    .padding()
-                                    .frame(maxWidth: .infinity)
+                            .padding()
+                            .frame(maxWidth: .infinity)
 //                                    .background(selectedPaymentType == "My accounts" ? Constants.backgroundGradient : Color.clear)
-                                    .background(
-                                        selectedPaymentType == "One-time Payment"
+                            .background(
+                                selectedPaymentType == "One-time Payment"
                                             ? AnyView(Constants.backgroundGradient)
                                             : AnyView(Color.clear)
                                     )
@@ -238,6 +232,29 @@ struct PayBillScreen: View {
                         
                     }
             }
+                .onChange(of: selectedPaymentType) {
+                    // Reset all form states when switching tabs
+                    amount = ""
+                    formattedDate = nil
+                    showDatePicker = false
+                    showAccountError = false
+                    showContactError = false
+                    showAmountError = false
+                    showDateError = false
+                    showStartDateError = false
+                    showEndDateError = false
+                    showBillConfirmationSheet = false
+                    selectedPayees.removeAll()
+                    payeePaymentDetails.removeAll()
+                    payeeRecurringDetails.removeAll()
+                    formattedStartDate = nil
+                    formattedEndDate = nil
+                    selectedStartDate = Date()
+                    selectedEndDate = Date()
+                    selectedFrequency = "Weekly"
+                }
+
+
        }
     }
 }
@@ -455,67 +472,55 @@ selectedPayees: $selectedPayees, showPayeeSheet: $showPayeeSheet)
 
 
         Button(action: {
-            if selectedPayees.isEmpty {
-                showContactError = true
-                showAmountError = false
-                showDateError = false
-                showAccountError = false
-                return
-            }
+            if selectedPayees.count > 1 {
+                    let result = OneTimePaymentFormValidator.validateMultiplePayees(
+                        selectedFromAccount: selectedFromAccount,
+                        payeeDetails: payeePaymentDetails
+                    )
 
-            if selectedPayees.count == 1 {
-                let result = OneTimePaymentFormValidator.validateSinglePayee(
-                    selectedFromAccount: accountManager.selectedAccount,
-                    amount: amount,
-                    formattedDate: formattedDate,
-                    selectedDate: selectedDate,
-                    selectedPayees: selectedPayees
-                )
+                    showAccountError = result.showAccountError
+                    payeePaymentDetails = result.updatedDetails
 
-                showAccountError = result.showAccountError
-                showAmountError = result.showAmountError
-                showDateError = result.showDateError
-                showContactError = result.showContactError
+                    if result.balanceExceededError {
+                        bannerErrorMessage = "Payment failed. The total payment amount exceeds your account balance."
+                        return
+                    }
 
-                if result.balanceExceededError {
-                    bannerErrorMessage = "Payment failed. This transfer amount exceeds your account balance."
-                    return
-                }
+                    if result.isFormValid {
+                        bannerErrorMessage = nil
+                        DispatchQueue.main.async {
+                            showBillConfirmationSheet = true
+                        }
+                    }
 
-                if result.isFormValid {
-                    bannerErrorMessage = nil
-                    payeePaymentDetails = result.syncedSinglePayeeDetails
-                    DispatchQueue.main.async {
-                        showBillConfirmationSheet = true
+                } else {
+                    let result = OneTimePaymentFormValidator.validateSinglePayee(
+                        selectedFromAccount: accountManager.selectedAccount,
+                        amount: amount,
+                        formattedDate: formattedDate,
+                        selectedDate: selectedDate,
+                        selectedPayees: selectedPayees
+                    )
+
+                    showAccountError = result.showAccountError
+                    showAmountError = result.showAmountError
+                    showDateError = result.showDateError
+                    showContactError = result.showContactError
+
+                    if result.balanceExceededError {
+                        bannerErrorMessage = "Payment failed. This transfer amount exceeds your account balance."
+                        return
+                    }
+
+                    if result.isFormValid {
+                        bannerErrorMessage = nil
+                        payeePaymentDetails = result.syncedSinglePayeeDetails
+                        DispatchQueue.main.async {
+                            showBillConfirmationSheet = true
+                        }
                     }
                 }
-
-            } else {
-                let result = OneTimePaymentFormValidator.validateMultiplePayees(
-                    selectedFromAccount: selectedFromAccount,
-                    payeeDetails: payeePaymentDetails
-                )
-
-                showAccountError = result.showAccountError
-                payeePaymentDetails = result.updatedDetails
-
-                if result.balanceExceededError {
-                    bannerErrorMessage = "Payment failed. The total payment amount exceeds your account balance."
-                    return
-                }
-
-                if result.isFormValid {
-                    bannerErrorMessage = nil
-                    DispatchQueue.main.async {
-                        showBillConfirmationSheet = true
-                    }
-                }
-//                else {
-//                    bannerErrorMessage = "Please complete all required fields for each payee."
-//                }
-            }
-
-        })
+            })
         {
                 //Text("Continue")
                 Text(NSLocalizedString("continue",comment: ""))
@@ -545,7 +550,7 @@ selectedPayees: $selectedPayees, showPayeeSheet: $showPayeeSheet)
             
         }
        
-    }
+}
 
 
 
@@ -554,36 +559,7 @@ selectedPayees: $selectedPayees, showPayeeSheet: $showPayeeSheet)
 
 
 
-//validation of one time
-//struct OneTimePaymentFormValidator {
-//        static func validate(
-//            selectedFromAccount: BankAccount?,
-//            //selectedContact: Contact?,
-//            amount: String,
-//            formattedDate: String?
-//        ) -> (
-//           showAccountError: Bool,
-//           //showContactError: Bool,
-//            showAmountError: Bool,
-//            showDateError: Bool,
-//            isFormValid: Bool
-//        ) {
-//            let showAccountError = selectedFromAccount == nil
-//           //let showContactError = selectedContact == nil
-//            let showAmountError = amount.trimmingCharacters(in: .whitespaces).isEmpty
-//            let showDateError = formattedDate?.trimmingCharacters(in: .whitespaces).isEmpty ?? true
-//
-//           //let isFormValid = !showAccountError && !showContactError && !showAmountError && !showDateError
-//            let isFormValid = !showAccountError &&  !showAmountError && !showDateError
-//            return (
-//                showAccountError,
-//                //showContactError,
-//                showAmountError,
-//                showDateError,
-//                isFormValid
-//            )
-//        }
-//    }
+
 //8 april
 struct OneTimePaymentFormValidator {
     static func validateSinglePayee(
@@ -740,26 +716,48 @@ struct MultiPayeeDetailView: View {
             .onTapGesture {
                 focusedField = nil
             }
+//            if detail.showCalendar {
+//                let dateBinding = Binding<Date>(
+//                    get: { detail.date ?? Date() },
+//                    set: {
+//                        detail.date = $0
+//                        detail.showCalendar = false
+//                    }
+//                )
+//
+//                DatePicker("Select Date", selection: dateBinding,
+//                           in: Date.distantPast...Date.distantFuture,displayedComponents: .date)
+//                    .datePickerStyle(GraphicalDatePickerStyle())
+//                    .padding()
+//                    .background(RoundedRectangle(cornerRadius: 10).stroke(Color.gray))
             if detail.showCalendar {
                 let dateBinding = Binding<Date>(
-                    get: { detail.date ?? Date() },
-                    set: {
-                        detail.date = $0
+                    get: {
+                        // Just return a fallback for DatePicker, don't set detail.date here
+                        detail.date ?? Date()
+                    },
+                    set: { newDate in
+                        // Set detail.date only when user actually picks a date
+                        detail.date = newDate
                         detail.showCalendar = false
+                        detail.showDateError = false
+                        print("Selected Date for \(detail.payee.name): \(newDate)")
                     }
                 )
+                    
 
-                DatePicker("Select Date", selection: dateBinding,
-                           in: Date.distantPast...Date.distantFuture,displayedComponents: .date)
+                DatePicker("Select Date", selection: dateBinding, in: Date.distantPast...Date.distantFuture, displayedComponents: .date)
                     .datePickerStyle(GraphicalDatePickerStyle())
                     .padding()
                     .background(RoundedRectangle(cornerRadius: 10).stroke(Color.gray))
+            
+
                 
             } else {
                 Button {
-                    if detail.date == nil {
-                                detail.date = Date() // Ensure today is set before opening calendar
-                            }
+//                    if detail.date == nil {
+//                                detail.date = Date() // Ensure today is set before opening calendar
+//                            }
                     detail.showCalendar = true
                 } label: {
                     HStack {
@@ -987,6 +985,8 @@ struct RecurringPaymentForm: View {
             .sheet(isPresented: $showPayeeSheet) {
                 PayeeListView(viewModel: PayeeViewModel(), selectedPayees: $selectedPayees, showPayeeSheet: $showPayeeSheet)
             }
+            //9
+            FieldErrorView(message: NSLocalizedString("error_required_field", comment: "Payee is required"), show: $showContactError)
 
             Button(action: { showAddContactSheet = true
             }) {
@@ -1076,6 +1076,7 @@ struct RecurringPaymentForm: View {
             }
 
             Button(action: {
+                
                 if selectedPayees.count > 1 {
                     let result = RecurringPaymentFormValidator.validateMultiplePayees(
                         selectedFromAccount: selectedFromAccount,
@@ -1134,40 +1135,7 @@ struct RecurringPaymentForm: View {
             }
             .padding(.top, 20)
             .padding(.horizontal, 5)
-//            .sheet(isPresented: $showBillConfirmationSheet) {
-//                BillConfirmationSheet(
-//                    fromAccount: selectedFromAccount,
-//                    toContact: selectedContact,
-//                    amount: amount,
-//                    date: formattedStartDate ?? "",
-//                    selectedPayees: selectedPayees,
-//                    payeeDetails: payeeRecurringDetails.map {
-//                        PayeePaymentDetails(payee: $0.payee, amount: $0.amount, date: $0.startDate)
-//                    },
-//                    isRecurring: true,
-//                    frequency: selectedFrequency,
-//                    startDate: formattedStartDate,
-//                    endDate: formattedEndDate
-//                )
-//            }
-            //4 april
-//            .sheet(isPresented: $showBillConfirmationSheet) {
-//                RecurringBillConfirmationSheet(
-//                    fromAccount: selectedFromAccount,
-//                    selectedPayees: selectedPayees,
-//                    payeeDetails: payeeRecurringDetails.map {
-//                        PayeePaymentDetails(
-//                            payee: $0.payee,
-//                            amount: $0.amount,
-//                            date: $0.startDate, // used just for display
-//                            startDate: $0.startDate,
-//                            endDate: $0.endDate,
-//                            frequency: $0.frequency
-//                                
-//                        )
-//                    }
-//                )
-//            }
+
             .sheet(isPresented: $showBillConfirmationSheet) {
                 RecurringBillConfirmationSheet(
                     fromAccount: selectedFromAccount,
@@ -1320,91 +1288,7 @@ struct MultiRecurringPayeeDetailView: View {
 }
 
 
-//required feild validation of recurring form
-//struct RecurringPaymentFormValidator {
-//    static func validate(
-//        selectedFromAccount: BankAccount?,
-//        selectedContact: Contact?,
-//        amount: String,
-//        startDate: String?,
-//        endDate: String?
-//    ) -> (
-//        //showAccountError: Bool,
-//        //showContactError: Bool,
-//        showAmountError: Bool,
-//        showStartDateError: Bool,
-//        showEndDateError: Bool,
-//        isFormValid: Bool
-//    ) {
-//        // Validate From Account and Payee
-//        //let showAccountError = selectedFromAccount == nil
-//        //let showContactError = selectedContact == nil
-//
-//        // Validate Amount
-//        let showAmountError = amount.trimmingCharacters(in: .whitespaces).isEmpty
-//
-//        // Validate Start and End Dates
-//        let showStartDateError = startDate?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true
-//        let showEndDateError = endDate?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true
-//
-//        // Overall form validity
-//        let isFormValid = //!showAccountError &&
-//                          //!showContactError &&
-//                          !showAmountError &&
-//                          !showStartDateError &&
-//        !showEndDateError
-//
-//        return (
-//            //showAccountError,
-//            //showContactError,
-//            showAmountError,
-//            showStartDateError,
-//            showEndDateError,
-//            isFormValid
-//        )
-//    }
-//}
 
-
-//8 april
-//struct RecurringPaymentFormValidator {
-//    static func validate(
-//        selectedFromAccount: BankAccount?,
-//        selectedContact: Contact?,
-//        amount: String,
-//        startDate: String?,
-//        endDate: String?
-//    ) -> (
-//        showAmountError: Bool,
-//        showStartDateError: Bool,
-//        showEndDateError: Bool,
-//        balanceExceededError: Bool,
-//        isFormValid: Bool
-//    ) {
-//        let showAmountError = amount.trimmingCharacters(in: .whitespaces).isEmpty
-//        let showStartDateError = startDate?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true
-//        let showEndDateError = endDate?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true
-//        
-//        var balanceExceededError = false
-//
-//        if let account = selectedFromAccount,
-//           let balance = Double(account.balance.replacingOccurrences(of: "$", with: "").replacingOccurrences(of: ",", with: "")),
-//           let enteredAmount = Double(amount.replacingOccurrences(of: "$", with: "").replacingOccurrences(of: ",", with: "")),
-//           !showAmountError {
-//            balanceExceededError = enteredAmount > balance
-//        }
-//
-//        let isFormValid = !showAmountError && !showStartDateError && !showEndDateError && !balanceExceededError
-//
-//        return (
-//            showAmountError,
-//            showStartDateError,
-//            showEndDateError,
-//            balanceExceededError,
-//            isFormValid
-//        )
-//    }
-//}
 
 //8 april 2 code
 struct RecurringPaymentFormValidator {
@@ -1878,190 +1762,168 @@ struct BillDetailCard<Content: View>: View {
 }
 
 //final scrren summary
+
+
 struct BillSendSheet: View {
     var fromAccount: BankAccount?
     var toContact: Contact?
     var amount: String
     var date: String
     var selectedPayees: [Payee] = []
-    var payeeDetails: [PayeePaymentDetails] = [] // <-- Required
+    var payeeDetails: [PayeePaymentDetails] = []
 
     var isRecurring: Bool = false
-    var frequency: String? = nil
-    var startDate: String? = nil
-    var endDate: String? = nil
 
     @State private var navigateToMainView = false
     @Environment(\.presentationMode) var presentationMode
-    
+
     var body: some View {
-        ScrollView(){
-        VStack(spacing: 16) {
-            // Top green bar
-            HStack {
-                Image(systemName: "checkmark.circle.fill")
-                    .foregroundColor(.white)
-                    .font(.title3)
-                Text(NSLocalizedString("payment_sent", comment: ""))
-                    .font(.headline)
-                    .foregroundColor(.white)
-                Spacer()
-            }
-            .padding()
-            .frame(maxWidth: .infinity)
-            .background(Color.green)
-            .cornerRadius(10)
-            .padding()
-            
-            // Payment Summary
-            VStack {
-                Text(NSLocalizedString("payment_summary", comment: ""))
-                    .font(.title3)
-                    .bold()
-                    .frame(maxWidth: .infinity, alignment: .center)
-                
-                Divider()
-                
-                BillDetailRow(
-                    title: NSLocalizedString("pay_from", comment: ""),
-                    value: "\(fromAccount?.accountName ?? "") - \(fromAccount?.accountNumber ?? "")"
-                )
-                
-//                if selectedPayees.count == 1 {
-//                    BillDetailRow(title: NSLocalizedString("pay_to", comment: ""),
-//                                  value: selectedPayees.first?.name ?? toContact?.name ?? "-")
-//                    
-//                    BillDetailRow(title: NSLocalizedString("amount", comment: ""),
-//                                  value: amount)
-//                    
-//                    BillDetailRow(title: NSLocalizedString("date", comment: ""),
-//                                  value: date)
-//                }
-                if selectedPayees.count == 1, let detail = payeeDetails.first {
-                    BillDetailRow(title: NSLocalizedString("pay_to", comment: ""),
-                                  value: detail.payee.name)
+        ScrollView {
+            VStack(spacing: 16) {
 
-                    BillDetailRow(title: NSLocalizedString("amount", comment: ""),
-                                  value: detail.amount)
+                // Top green bar
+                HStack {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.white)
+                        .font(.title3)
+                    Text(NSLocalizedString("payment_sent", comment: ""))
+                        .font(.headline)
+                        .foregroundColor(.white)
+                    Spacer()
+                }
+                .padding()
+                .frame(maxWidth: .infinity)
+                .background(Color.green)
+                .cornerRadius(10)
+                .padding()
 
+                // Payment Summary
+                VStack {
+                    Text(NSLocalizedString("payment_summary", comment: ""))
+                        .font(.title3)
+                        .bold()
+                        .frame(maxWidth: .infinity, alignment: .center)
+
+                    Divider()
+
+                    BillDetailRow(
+                        title: NSLocalizedString("pay_from", comment: ""),
+                        value: "\(fromAccount?.accountName ?? "") - \(fromAccount?.accountNumber ?? "")"
+                    )
+
+                    // Modular: One-Time or Recurring summary block
                     if isRecurring {
-                        BillDetailRow(title: NSLocalizedString("start_date", comment: ""),
-                                      value: formattedDate(detail.startDate))
-                        BillDetailRow(title: NSLocalizedString("end_date", comment: ""),
-                                      value: formattedDate(detail.endDate))
-                        BillDetailRow(title: NSLocalizedString("frequency", comment: ""),
-                                      value: detail.frequency.capitalized)
+                        RecurringPayeeSummaryView(selectedPayees: selectedPayees, payeeDetails: payeeDetails)
                     } else {
-                        BillDetailRow(title: NSLocalizedString("date", comment: ""),
-                                      value: formattedDate(detail.date))
+                        OneTimePayeeSummaryView(selectedPayees: selectedPayees, amount: amount, date: date, payeeDetails: payeeDetails)
                     }
+
                 }
+                .padding()
+                .background(RoundedRectangle(cornerRadius: 10).fill(Color.white).shadow(radius: 5))
+                .padding()
 
-                else {
-                    ForEach(payeeDetails) { detail in
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text(NSLocalizedString("pay_to", comment: ""))
-                                .font(.caption)
-                                .foregroundColor(.gray)
-                            
-                            Text("\(detail.payee.name) - \(detail.payee.accountNumber)")
-                                .font(.body)
-                                .bold()
-                            
-                            Text(NSLocalizedString("amount", comment: ""))
-                                .font(.caption)
-                                .foregroundColor(.gray)
-                            Text(detail.amount)
-                                .font(.body)
-                            
-//                            Text(NSLocalizedString("date", comment: ""))
-//                                .font(.caption)
-//                                .foregroundColor(.gray)
-//                            
-//                            Text(formattedDate(detail.date))
-//                                .font(.body)
-                            if isRecurring {
-                                            Text(NSLocalizedString("start_date", comment: ""))
-                                                .font(.caption)
-                                                .foregroundColor(.gray)
-                                            Text(formattedDate(detail.startDate))
-                                                .font(.body)
+                Spacer()
 
-                                            Text(NSLocalizedString("end_date", comment: ""))
-                                                .font(.caption)
-                                                .foregroundColor(.gray)
-                                            Text(formattedDate(detail.endDate))
-                                                .font(.body)
-
-                                            Text(NSLocalizedString("frequency", comment: ""))
-                                                .font(.caption)
-                                                .foregroundColor(.gray)
-                                            Text(detail.frequency.capitalized)
-                                                .font(.body)
-                                        } else {
-                                            Text(NSLocalizedString("date", comment: ""))
-                                                .font(.caption)
-                                                .foregroundColor(.gray)
-                                            Text(formattedDate(detail.date))
-                                                .font(.body)
-                                        }
-                        }
+                // Done button
+                Button(action: {
+                    navigateToMainView = true
+                }) {
+                    Text(NSLocalizedString("done", comment: ""))
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
                         .padding()
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(Color.white)
-                                .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
-                        )
-                        .padding(.bottom, 8)
-                    }
+                        .background(Color.black)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
                 }
-                
-                // Recurring Info
-//                if isRecurring {
-//                    Group {
-//                        BillDetailRow(title: NSLocalizedString("frequency", comment: ""),
-//                                      value: frequency?.capitalized ?? "-")
-//                        BillDetailRow(title: NSLocalizedString("start_date", comment: ""),
-//                                      value: startDate ?? "-")
-//                        BillDetailRow(title: NSLocalizedString("end_date", comment: ""),
-//                                      value: endDate ?? "-")
-//                    }
-//                }
+                .fullScreenCover(isPresented: $navigateToMainView) {
+                    MainView()
+                }
+                .padding(.horizontal)
+                .padding(.bottom, 20)
             }
-            .padding()
-            .background(RoundedRectangle(cornerRadius: 10).fill(Color.white).shadow(radius: 5))
-            .padding()
-            
-            Spacer()
-            
-            Button(action: {
-                navigateToMainView = true
-            }) {
-                Text(NSLocalizedString("done", comment: ""))
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.black)
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
-            }
-            .fullScreenCover(isPresented: $navigateToMainView) {
-                MainView()
-            }
-            .padding(.horizontal)
-            .padding(.bottom, 20)
         }
-    }
         .padding()
     }
+}
+private struct RecurringPayeeSummaryView: View {
+    var selectedPayees: [Payee]
+    var payeeDetails: [PayeePaymentDetails]
 
-    private func formattedDate(_ date: Date?) -> String {
+    var body: some View {
+        if selectedPayees.count == 1, let detail = payeeDetails.first {
+            BillDetailRow(title: "Pay to", value: detail.payee.name, bold: true)
+            BillDetailRow(title: "Amount", value: detail.amount)
+            BillDetailRow(title: "Start Date", value: formatted(detail.startDate))
+            BillDetailRow(title: "End Date", value: formatted(detail.endDate))
+            BillDetailRow(title: "Frequency", value: detail.frequency.capitalized)
+        } else {
+            ForEach(payeeDetails) { detail in
+                VStack(alignment: .leading, spacing: 8) {
+                    BillDetailRow(title: "Pay to", value: "\(detail.payee.name) - \(detail.payee.accountNumber)", bold: true)
+                    BillDetailRow(title: "Amount", value: detail.amount)
+                    BillDetailRow(title: "Start Date", value: formatted(detail.startDate))
+                    BillDetailRow(title: "End Date", value: formatted(detail.endDate))
+                    BillDetailRow(title: "Frequency", value: detail.frequency.capitalized)
+                }
+                .padding()
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color.white)
+                        .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+                )
+                .padding(.bottom, 8)
+            }
+        }
+    }
+
+    private func formatted(_ date: Date?) -> String {
         guard let date = date else { return "-" }
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
         return formatter.string(from: date)
     }
 }
+
+private struct OneTimePayeeSummaryView: View {
+    var selectedPayees: [Payee]
+    var amount: String
+    var date: String
+    var payeeDetails: [PayeePaymentDetails]
+
+    var body: some View {
+        if selectedPayees.count == 1, let payee = selectedPayees.first {
+            BillDetailRow(title: "Pay to", value: payee.name, bold: true)
+            BillDetailRow(title: "Amount", value: amount)
+            BillDetailRow(title: "Date", value: date)
+        } else {
+            ForEach(payeeDetails) { detail in
+                VStack(alignment: .leading, spacing: 8) {
+                    BillDetailRow(title: "Pay to", value: "\(detail.payee.name) - \(detail.payee.accountNumber)", bold: true)
+                    BillDetailRow(title: "Amount", value: detail.amount)
+                    BillDetailRow(title: "Date", value: formatted(detail.date))
+                }
+                .padding()
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color.white)
+                        .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+                )
+                .padding(.bottom, 8)
+            }
+        }
+    }
+
+    private func formatted(_ date: Date?) -> String {
+        guard let date = date else { return "-" }
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        return formatter.string(from: date)
+    }
+}
+//end
+
 //for design purpose
 struct BillDetailRow: View {
     var title: String

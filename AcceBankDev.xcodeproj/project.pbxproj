@@ -431,6 +431,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "AcceInfo Bank";
+				INFOPLIST_KEY_NSCameraUsageDescription = "We need access to your camera to capture cheque photos.\nWe need access to your camera to capture cheque photos.\nWe need access to your camera to capture cheque photos.\nwe need access to your camera to capture cheque photos.";
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "I want to use this to do sign in";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -475,6 +476,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "AcceInfo Bank";
+				INFOPLIST_KEY_NSCameraUsageDescription = "We need access to your camera to capture cheque photos.\nWe need access to your camera to capture cheque photos.\nWe need access to your camera to capture cheque photos.\nwe need access to your camera to capture cheque photos.";
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "I want to use this to do sign in";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;

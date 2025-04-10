@@ -27,6 +27,8 @@ struct BankAccount: Identifiable, Codable, Equatable {
 class AccountManager: ObservableObject {
     @Published var accounts: [BankAccount] = []
     @Published var selectedAccount: BankAccount?
+    
+
 
     init() {
         loadJSONFile()
