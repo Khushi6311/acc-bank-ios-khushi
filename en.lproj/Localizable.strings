@@ -78,7 +78,10 @@
 "done" = "Done";
 "security_question" = "Security Question";
 "security_answer" = "Security Answer";
+"confirm_security_answer"="Confirm Security Answer";
+"security_info"="Security Info";
 "mobile_phone" = "Mobile Phone";
+"update"="Update";
 "name"="Name";
 "email" = "Email";
 "review_contact" = "Review Contact";
@@ -236,6 +239,8 @@
 //"transfer_from"="Transfer from";
 "onetime_payment"="Onetime";
 "recurring_payment"="Recurring";
+"select_recipient"="Select Recipient";
+"add_recipient"="Add Recipient";
 
 
 //transfer money screen

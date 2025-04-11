@@ -10,7 +10,7 @@ import SwiftUI
 struct AddContactFormView: View {
     @Binding var isPresented: Bool
     @ObservedObject var contactManager: ContactManager
-    
+    var onContactCreated: ((Contact) -> Void)? = nil // for when contact save form transfer money screen
     @State private var name = ""
     @State private var nickname = ""
     @State private var language = ""
@@ -37,6 +37,10 @@ struct AddContactFormView: View {
     @State private var securityAnswerError = false
     @State private var reEnterSecurityAnswerError = false
     @State private var previousMobilePhone = ""
+    
+    @State private var accountNumber = ""
+    @State private var accountNumberError = false
+
 
     // Country Code Options
     let countryCodes = [
@@ -86,6 +90,21 @@ struct AddContactFormView: View {
                         .background(Color(.systemGray6))
                         .cornerRadius(8)
                         .overlay(RoundedRectangle(cornerRadius: 8).stroke(nameError ? Color.red : Color.clear, lineWidth: 1))
+                    
+                    
+                    TextField(NSLocalizedString("account_number", comment: ""), text: $accountNumber)
+                        .keyboardType(.numberPad)
+                        .padding()
+                        .background(Color(.systemGray6))
+                        .cornerRadius(8)
+                        .overlay(RoundedRectangle(cornerRadius: 8).stroke(accountNumberError ? Color.red : Color.clear, lineWidth: 1))
+
+                    if accountNumberError {
+                        Text(NSLocalizedString("error_required_field", comment: ""))
+                            .font(.footnote)
+                            .foregroundColor(.red)
+                    }
+
                     TextField(NSLocalizedString("preffered_language", comment: ""), text: $language)
 
                         .padding()
@@ -244,9 +263,14 @@ struct AddContactFormView: View {
             sendByEmail: sendByEmail,
             sendByMobile: sendByMobile,
             nickname:nickname,
-            language:language
+            language:language,
             //securityQuestion: securityQuestion,
             //securityAnswer: securityAnswer
+            accountNumber: accountNumber,
+            onContactCreated: { contact in
+                    onContactCreated?(contact)  // Pass it back up
+                    isPresented = false         // Dismiss AddContactFormView
+                }
         )
     }
     }
@@ -256,10 +280,12 @@ struct AddContactFormView: View {
         nameError = name.isEmpty
         emailError = email.isEmpty || !isValidEmail(email)
         mobilePhoneError = mobilePhone.isEmpty || mobilePhone.count < 10
+        accountNumberError = accountNumber.isEmpty
+
         //securityAnswerError = securityAnswer.isEmpty
         //reEnterSecurityAnswerError = securityAnswer != reEnterSecurityAnswer
         
-        return !(nameError || emailError || mobilePhoneError || securityAnswerError || reEnterSecurityAnswerError)
+        return !(nameError || emailError || mobilePhoneError || securityAnswerError || reEnterSecurityAnswerError || accountNumberError)
     }
 //        func isValidEmail(_ email: String) -> Bool {
 //                let emailRegex = #"^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$"#
@@ -341,16 +367,18 @@ struct ContactConfirmationView: View {
     var sendByMobile: Bool
     var nickname:String
     var language:String
+    var accountNumber:String
     //var securityQuestion: String
     //var securityAnswer: String
 
     @State private var showSuccessScreen = false // State to show success screen
     @State private var navigateToSendMoney = false // State to go back to Send Money
     @Environment(\.presentationMode) var presentationMode // Access presentation mode
-
+    var onContactCreated: ((Contact) -> Void)? = nil
     var body: some View {
         NavigationStack {
             VStack {
+                
                 HStack {
                     //Text("Confirmation")
                     Text(NSLocalizedString("confirmation", comment: ""))
@@ -386,6 +414,7 @@ struct ContactConfirmationView: View {
                    // DetailRow(title: "Security answer", value: "*******") // Hide security answer
                     DetailRow(title: NSLocalizedString("name", comment: ""), value: name)
                     DetailRow(title: NSLocalizedString("email", comment: ""), value: email)
+                    DetailRow(title: NSLocalizedString("account_number", comment: ""), value: accountNumber)
                     DetailRow(title: NSLocalizedString("mobile_phone", comment: ""), value: mobilePhone)
 
                     DetailRow(
@@ -436,7 +465,7 @@ struct ContactConfirmationView: View {
 
     // Save contact function
     private func saveContact() {
-        //print("🔹 Security Answer Before Saving: \(securityAnswer)") // Debug
+        //print(" Security Answer Before Saving: \(securityAnswer)") // Debug
 
         let newContact = Contact(
             id: UUID(),
@@ -447,14 +476,16 @@ struct ContactConfirmationView: View {
             sendByEmail: sendByEmail,
             sendByMobile: sendByMobile,
             nickname: nickname,
-            language: language
+            language: language,
             //securityQuestion: securityQuestion,
-            //securityAnswer: securityAnswer
+            //securityAnswer: securityAnswer,
+            accountNumber: accountNumber
         )
         print("Saving Contact: \(newContact)") // Debug print before saving
 
         contactManager.addContact(newContact)
         contactManager.saveContacts()
+        onContactCreated?(newContact) //for transfer money screen
         showSuccessScreen = true // show success message
     }
 }
@@ -493,6 +524,7 @@ struct ContactSuccessView: View {
                 //navigateToSendMoney = true // Trigger navigation to "Send Money"
                 //presentationMode.wrappedValue.dismiss() // Close success screen
                 showSendMoneyScreen = true // Open full-screen Send Money
+                
 
             }) {
                 //Text("Done")

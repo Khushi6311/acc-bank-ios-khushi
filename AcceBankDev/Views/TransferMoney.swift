@@ -36,7 +36,7 @@ struct TransferMoneyScreen: View {
   @State private var isSelectingStartDate = true // Track which field is being edited
     @State private var isSelectingEndDate = true // Track which field is being edited
     @State private var startDate = Date()
-
+ 
    @State private var endDate = Date()
    @State private var startDateText: String? = nil
    @State private var endDateText: String? = nil
@@ -83,6 +83,7 @@ struct TransferMoneyScreen: View {
 
                         HStack(spacing: 0) {
                             Button(action: { selectedPaymentType = "My accounts"
+                                
                                 isAnotherMemberSelected = false
                                 selectedFromAccount = nil
                                  selectedToAccount = nil
@@ -100,6 +101,23 @@ struct TransferMoneyScreen: View {
                                 showRecurringDateError = false
                                 showInsufficientFundsError = false
                                 showTransferFromError=false
+                                
+                                
+//                                if !recurring && (dateText == nil || dateText?.isEmpty == true) {
+//                                    let today = Date()
+//
+//                                        startDate = today
+//                                        dateText = formatDate(today)
+//                                        print("One-time default date set to: \(dateText ?? "nil")")
+//                                    }
+//
+//                                    if recurring && (startDateText == nil || startDateText?.isEmpty == true) {
+//                                        let today = Date()
+//
+//                                        startDate = today
+//                                        startDateText = formatDate(today)
+//                                        print("Recurring start date default set to: \(startDateText ?? "nil")")
+//                                    }
 }) {
                                 //Text("My accounts")
     Text(NSLocalizedString("my_accounts", comment: "Title for 'My accounts' tab"))
@@ -136,6 +154,25 @@ struct TransferMoneyScreen: View {
                                 showRecurringDateError = false
                                 showInsufficientFundsError = false
                                 showTransferFromError=false
+                                
+                                
+//                                if !recurring && (dateText == nil || dateText?.isEmpty == true) {
+//                                    let today = Date()
+//
+//                                        startDate = today
+//                                        dateText = formatDate(today)
+//                                        print("One-time default date set to: \(dateText ?? "nil")")
+//                                    }
+//
+//                                    if recurring && (startDateText == nil || startDateText?.isEmpty == true) {
+//                                        let today = Date()
+//
+//                                        startDate = today
+//                                        startDateText = formatDate(today)
+//                                        print("Recurring start date default set to: \(startDateText ?? "nil")")
+//                                    }
+                                
+                                
 }) {
                                 //Text("Another member")
     Text(NSLocalizedString("another_member", comment: "Title for 'My accounts' tab"))
@@ -169,7 +206,8 @@ struct TransferMoneyScreen: View {
                 // **Dynamic Form Based on Selected Payment Type**
                 ScrollView{//scrrolview and vstack add to remove button scroll 
                     VStack{
-                    if selectedPaymentType == "My accounts" {
+                    if selectedPaymentType == "My accounts"
+                        {
                         
                         MyAccountsTransferForm(
                             selectedFromAccount: $selectedFromAccount,
@@ -198,6 +236,8 @@ struct TransferMoneyScreen: View {
                             isAnotherMemberSelected: $showConfirmationSheet, // new
                             selectedContact: $selectedContact,             // new
                             showConfirmationSheet: $isAnotherMemberSelected
+                            
+                            
                         )
                         
                         
@@ -244,6 +284,72 @@ struct TransferMoneyScreen: View {
 
 }
 
+let minimumDate: Date = {
+    var components = DateComponents()
+    components.year = 2025
+    components.month = 4
+    components.day = 11
+    return Calendar.current.date(from: components)!
+}()
+
+struct DateDefaults {
+    static let minimumDate: Date = {
+            var components = DateComponents()
+            components.year = 2025
+            components.month = 4
+            components.day = 11
+            return Calendar.current.date(from: components)!
+        }()
+    
+    static func endDateRange(from start: Date) -> ClosedRange<Date> {
+        let validStart = max(start, minimumDate)
+        let maxEnd = Calendar.current.date(byAdding: .year, value: 2, to: validStart)!
+        return validStart...maxEnd
+    }
+
+
+    static func startDateRange() -> ClosedRange<Date> {
+        return minimumDate...Date.distantFuture
+    }
+
+    static func initializeDefaultDates(
+        isRecurring: Bool,
+        dateText: inout String?,
+        startDateText: inout String?,
+        endDateText: inout String?,
+        startDate: inout Date,
+        endDate: inout Date
+    ) {
+        let today = Date()
+        
+        if !isRecurring {
+            if dateText == nil || dateText?.isEmpty == true {
+                startDate = today
+                dateText = formatDate(today)
+                print("One-time default date set to: \(dateText ?? "nil")")
+            }
+        } else {
+            if startDateText == nil || startDateText?.isEmpty == true {
+                startDate = today
+                startDateText = formatDate(today)
+                print("Recurring start date set to: \(startDateText ?? "nil")")
+            }
+
+//            if endDateText == nil || endDateText?.isEmpty == true {
+//                endDate = Calendar.current.date(byAdding: .month, value: 1, to: today) ?? today
+//                endDateText = formatDate(endDate)
+//                print("Recurring end date set to: \(endDateText ?? "nil")")
+//            }
+        }
+    }
+
+    static func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .none
+        return formatter.string(from: date)
+    }
+}
 
 
 struct MyAccountsTransferForm: View {
@@ -326,11 +432,7 @@ struct MyAccountsTransferForm: View {
                         isSendToSheetPresented.toggle()
                         showTransferToError = false
                     }
-                    //oldercode
-//            .sheet(isPresented: $isSendToSheetPresented) {
-//                        SendToSheet(selectedAccount_to: $selectedToAccount)
-//                                }
-                    
+
             
 
 
@@ -343,26 +445,7 @@ struct MyAccountsTransferForm: View {
                     
                                     )
                                 }
-                    //25
-//                    .sheet(item: Binding(
-//                        get: {
-//                            //isSendToSheetPresented ? selectedFromAccount : nil
-//                            if isSendToSheetPresented, let account = selectedFromAccount {
-//                                    return account
-//                                }
-//                                return nil
-//                        },
-//                        set: { _ in
-//                            isSendToSheetPresented = false
-//                        }
-//                    )) { fromAccount in
-//                        SendToSheet(
-//                            accountManager_to: accountManager,
-//                            selectedAccount_to: $selectedToAccount,
-//                            isPresented_to: $isSendToSheetPresented,
-//                            excludeAccount: fromAccount
-//                        )
-//                    }
+                 
                     
                     if showTransferToError {
                         //ErrorMessage(text: "This field is required")
@@ -383,7 +466,12 @@ struct MyAccountsTransferForm: View {
                                     showTransferToError = false
                                     showDateError = false
                                     showRecurringDateError = false
-                                    showInsufficientFundsError = false                        }
+                                    showInsufficientFundsError = false
+                                    
+//                                    let today = Date()
+//                                            startDate = today
+//                                            startDateText = formatDate(today)
+                                }
                             ))
                             .toggleStyle(SwitchToggleStyle(tint: .blue))
                             .scaleEffect(0.8)
@@ -405,6 +493,10 @@ struct MyAccountsTransferForm: View {
                                     showDateError = false
                                     showRecurringDateError = false
                                     showInsufficientFundsError = false
+//                                    
+//                                    let today = Date()
+//                                            startDate = today
+//                                            startDateText = formatDate(today)
                                 }
                             ))
                             .toggleStyle(SwitchToggleStyle(tint: .blue))
@@ -566,49 +658,159 @@ struct MyAccountsTransferForm: View {
                     
                     // **Date Picker Modal**
                     if showDatePicker {
-                                                      Color.black.opacity(0.001) // Invisible but tappable
-                                    .edgesIgnoringSafeArea(.all)
-                                    .onTapGesture {
-                                        showDatePicker = false
-                                    }
+                        Color.black.opacity(0.001)
+                            .edgesIgnoringSafeArea(.all)
+                            .onTapGesture {
+                                showDatePicker = false
+                            }
+
                         VStack {
-                            DatePicker("Select Date", selection: Binding(
-                                get: {
-                                    if !recurring { return startDate }
-                                    return isSelectingStartDate ? startDate : endDate
-                                },
-                                set: { newValue in
-                                    if !recurring {
-                                        startDate = newValue
-                                        dateText = formatDate(newValue)
-                                        if let date = dateText, !date.isEmpty {
-                                            showDateError = false
-                                        }
-                                    } else {
-                                        if isSelectingStartDate {
+                            if !recurring {
+                                DatePicker(
+                                    "Select Date",
+                                    selection: Binding(
+                                        get: { startDate },
+                                        set: { newValue in
                                             startDate = newValue
-                                            startDateText = formatDate(newValue)
-                                        } else {
-                                            endDate = newValue
-                                            endDateText = formatDate(newValue)
+                                            dateText = DateDefaults.formatDate(newValue)
+                                            showDateError = false
+                                            showDatePicker = false
                                         }
-                                        if let start = startDateText, !start.isEmpty,
-                                           let end = endDateText, !end.isEmpty {
-                                            showRecurringDateError = false
-                                        }
-                                    }
-                                    showDatePicker = false
+                                    ),
+                                    in: DateDefaults.startDateRange(),
+                                    displayedComponents: .date
+                                )
+                                .datePickerStyle(GraphicalDatePickerStyle()) // apply here
+                                .labelsHidden()
+                            } else {
+                                if isSelectingStartDate {
+                                    DatePicker(
+                                        "Start Date",
+                                        selection: Binding(
+                                            get: { startDate },
+                                            set: { newValue in
+                                                startDate = newValue
+                                                startDateText = DateDefaults.formatDate(newValue)
+                                                showRecurringDateError = false
+                                                showDatePicker = false
+                                            }
+                                        ),
+                                        in: DateDefaults.startDateRange(),
+                                        displayedComponents: .date
+                                    )
+                                    .datePickerStyle(GraphicalDatePickerStyle()) // ✅ apply here
+                                    .labelsHidden()
                                 }
-                            ), displayedComponents: .date)
-                            .datePickerStyle(GraphicalDatePickerStyle())
-                            .labelsHidden()
-                            .padding()
-                            .background(RoundedRectangle(cornerRadius: 10).fill(Color.white).shadow(radius: 5))
+
+                                if isSelectingEndDate {
+                                    DatePicker(
+                                        "End Date",
+                                        selection: Binding(
+                                            get: { endDate },
+                                            set: { newValue in
+                                                endDate = newValue
+                                                endDateText = DateDefaults.formatDate(newValue)
+                                                showRecurringDateError = false
+                                                showDatePicker = false
+                                            }
+                                        ),
+                                        in: DateDefaults.endDateRange(from: startDate),
+                                        displayedComponents: .date
+                                    )
+                                    .datePickerStyle(GraphicalDatePickerStyle()) // ✅ apply here
+                                    .labelsHidden()
+                                }
+                            }
                         }
-                        .id("calendarSection") // Important for scrollTo
-                        
-                    
-                }
+                        .padding()
+                        .background(RoundedRectangle(cornerRadius: 10).fill(Color.white).shadow(radius: 5))
+                        .id("calendarSection")
+                    }
+
+//                    if showDatePicker {
+//                                    Color.black.opacity(0.001) // Invisible but tappable
+//                                    .edgesIgnoringSafeArea(.all)
+//                                    .onTapGesture {
+//                                        showDatePicker = false
+//                                    }
+//                        VStack {
+////                            DatePicker("Select Date", selection: Binding(
+////                                get: {
+////                                    if !recurring { return startDate }
+////                                    return isSelectingStartDate ? startDate : endDate
+////                                },
+////                                set: { newValue in
+////                                    if !recurring {
+////                                        startDate = newValue
+////                                        dateText = formatDate(newValue)
+////                                        if let date = dateText, !date.isEmpty {
+////                                            showDateError = false
+////                                        }
+////                                    } else {
+////                                        if isSelectingStartDate {
+////                                            startDate = newValue
+////                                            startDateText = formatDate(newValue)
+////                                        } else {
+////                                            endDate = newValue
+////                                            endDateText = formatDate(newValue)
+////                                        }
+////                                        if let start = startDateText, !start.isEmpty,
+////                                           let end = endDateText, !end.isEmpty {
+////                                            showRecurringDateError = false
+////                                        }
+////                                    }
+////                                    showDatePicker = false
+////                                }
+////                            ), displayedComponents: .date)
+//                            //11 april
+//                            DatePicker(
+//                                "Select Date",
+//                                selection: Binding(
+//                                    get: {
+//                                        if !recurring { return startDate }
+//                                        return isSelectingStartDate ? startDate : endDate
+//                                    },
+//                                    set: { newValue in
+//                                        if !recurring {
+//                                            startDate = newValue
+//                                            dateText = formatDate(newValue)
+//                                            if let date = dateText, !date.isEmpty {
+//                                                showDateError = false
+//                                            }
+//                                        } else {
+//                                            if isSelectingStartDate {
+//                                                startDate = newValue
+//                                                startDateText = formatDate(newValue)
+//                                            } else {
+//                                                endDate = newValue
+//                                                endDateText = formatDate(newValue)
+//                                            }
+//                                            if let start = startDateText, !start.isEmpty,
+//                                               let end = endDateText, !end.isEmpty {
+//                                                showRecurringDateError = false
+//                                            }
+//                                        }
+//                                        showDatePicker = false
+//                                    }
+//                                ),
+//                                in: DateDefaults.minimumDate...,
+////                                in: recurring
+////                                       ? (isSelectingStartDate
+////                                           ? DateDefaults.startDateRange()
+////                                           : DateDefaults.endDateRange(from: startDate))
+////                                       : DateDefaults.startDateRange(),
+//                                displayedComponents: .date
+//                            )
+//
+//                            .datePickerStyle(GraphicalDatePickerStyle())
+//                            .labelsHidden()
+//                            .padding()
+//                            .background(RoundedRectangle(cornerRadius: 10).fill(Color.white).shadow(radius: 5))
+//                        }
+//                        .id("calendarSection") // Important for scrollTo
+//                        
+//                    
+//                }
                     // **Memo Field**
                     //TextField("Memo", text: $memo)
                     TextField(NSLocalizedString("memo", comment: "Placeholder for memo field"), text: $memo)
@@ -683,6 +885,66 @@ struct MyAccountsTransferForm: View {
 
                 }
                 .padding()
+                .onAppear {
+                    var tempDateText = dateText
+                    var tempStartDateText = startDateText
+                    var tempEndDateText = endDateText
+                    var tempStartDate = startDate
+                    var tempEndDate = endDate
+
+                    DateDefaults.initializeDefaultDates(
+                        isRecurring: recurring,
+                        dateText: &tempDateText,
+                        startDateText: &tempStartDateText,
+                        endDateText: &tempEndDateText,
+                        startDate: &tempStartDate,
+                        endDate: &tempEndDate
+                    )
+
+                    dateText = tempDateText
+                    startDateText = tempStartDateText
+                    endDateText = tempEndDateText
+                    startDate = tempStartDate
+                    endDate = tempEndDate
+                }
+                .onChange(of: recurring) { _ in
+                    var tempDateText = dateText
+                    var tempStartDateText = startDateText
+                    var tempEndDateText = endDateText
+                    var tempStartDate = startDate
+                    var tempEndDate = endDate
+
+                    DateDefaults.initializeDefaultDates(
+                        isRecurring: recurring,
+                        dateText: &tempDateText,
+                        startDateText: &tempStartDateText,
+                        endDateText: &tempEndDateText,
+                        startDate: &tempStartDate,
+                        endDate: &tempEndDate
+                    )
+
+                    dateText = tempDateText
+                    startDateText = tempStartDateText
+                    endDateText = tempEndDateText
+                    startDate = tempStartDate
+                    endDate = tempEndDate
+                }
+
+
+//                .onAppear {
+//                    let today = Date()
+//
+//                    if !recurring && (dateText == nil || dateText?.isEmpty == true) {
+//                        startDate = today
+//                        dateText = formatDate(today)
+//                    }
+//
+//                    if recurring && (startDateText == nil || startDateText?.isEmpty == true) {
+//                        startDate = today
+//                        startDateText = formatDate(today)
+//                    }
+//                }
+
                 
                 
             }
@@ -923,14 +1185,14 @@ struct AnotherMemberTransferForm: View {
                 ErrorMessage(text: NSLocalizedString("error_required_field", comment: "Validation error for empty field"))
                 
             }
-            Text(NSLocalizedString("select_contact", comment: ""))
+            Text(NSLocalizedString("select_recipient", comment: ""))
                 .font(.subheadline)
                 .foregroundColor(.gray)
                 .frame(maxWidth: .infinity, alignment: .leading)
             // **Transfer To Contact Selection**
 //            ContactSelectionButton(title: "Select Contact", contact: selectedContact)
             ContactSelectionButton(
-                title: NSLocalizedString("select_contact", comment: "Label for selecting a contact"),
+                title: NSLocalizedString("select_recipient", comment: "Label for selecting a contact"),
                 contact: selectedContact
             ){
                 showContactSheet.toggle()
@@ -959,6 +1221,10 @@ struct AnotherMemberTransferForm: View {
                             showDateError = false
                             showRecurringDateError = false
                             showInsufficientFundsError = false
+                            
+//                            let today = Date()
+//                                   startDate = today
+//                                   startDateText = formatDate(today)
                         }
                     ))
                     .toggleStyle(SwitchToggleStyle(tint: .blue))
@@ -981,6 +1247,10 @@ struct AnotherMemberTransferForm: View {
                             showDateError = false
                             showRecurringDateError = false
                             showInsufficientFundsError = false
+                            
+//                            let today = Date()
+//                                   startDate = today
+//                                   startDateText = formatDate(today)
                         }
                     ))
                     .toggleStyle(SwitchToggleStyle(tint: .blue))
@@ -1100,45 +1370,150 @@ struct AnotherMemberTransferForm: View {
 
             // **Date Picker Modal**
             if showDatePicker {
+                Color.black.opacity(0.001)
+                    .edgesIgnoringSafeArea(.all)
+                    .onTapGesture {
+                        showDatePicker = false
+                    }
+
                 VStack {
-                    DatePicker("Select Date", selection: Binding(
-                        get: {
-                            if !recurring { return startDate }
-                            return isSelectingStartDate ? startDate : endDate
-                        },
-                        set: { newValue in
-                            if !recurring {
-                                startDate = newValue
-                                dateText = formatDate(newValue)
-                                
-                                if let date = dateText, !date.isEmpty {
-                                            showDateError = false
-                                        }
-                            } else {
-                                if isSelectingStartDate {
+                    if !recurring {
+                        DatePicker(
+                            "Select Date",
+                            selection: Binding(
+                                get: { startDate },
+                                set: { newValue in
                                     startDate = newValue
-                                    startDateText = formatDate(newValue)
-                                } else {
-                                    endDate = newValue
-                                    endDateText = formatDate(newValue)
+                                    dateText = DateDefaults.formatDate(newValue)
+                                    showDateError = false
+                                    showDatePicker = false
                                 }
-                                if let start = startDateText, !start.isEmpty,
-                                           let end = endDateText, !end.isEmpty {
-                                            showRecurringDateError = false
-                                        }
-                                    
-                            }
-                            showDatePicker = false
+                            ),
+                            in: DateDefaults.startDateRange(),
+                            displayedComponents: .date
+                        )
+                        .datePickerStyle(GraphicalDatePickerStyle()) // apply here
+                        .labelsHidden()
+                    } else {
+                        if isSelectingStartDate {
+                            DatePicker(
+                                "Start Date",
+                                selection: Binding(
+                                    get: { startDate },
+                                    set: { newValue in
+                                        startDate = newValue
+                                        startDateText = DateDefaults.formatDate(newValue)
+                                        showRecurringDateError = false
+                                        showDatePicker = false
+                                    }
+                                ),
+                                in: DateDefaults.startDateRange(),
+                                displayedComponents: .date
+                            )
+                            .datePickerStyle(GraphicalDatePickerStyle()) // ✅ apply here
+                            .labelsHidden()
                         }
-                    ), displayedComponents: .date)
-                    .datePickerStyle(GraphicalDatePickerStyle())
-                    .labelsHidden()
-                    .padding()
-                    .background(RoundedRectangle(cornerRadius: 10).fill(Color.white).shadow(radius: 5))
-                    
+
+                        if isSelectingEndDate {
+                            DatePicker(
+                                "End Date",
+                                selection: Binding(
+                                    get: { endDate },
+                                    set: { newValue in
+                                        endDate = newValue
+                                        endDateText = DateDefaults.formatDate(newValue)
+                                        showRecurringDateError = false
+                                        showDatePicker = false
+                                    }
+                                ),
+                                in: DateDefaults.endDateRange(from: startDate),
+                                displayedComponents: .date
+                            )
+                            .datePickerStyle(GraphicalDatePickerStyle()) // ✅ apply here
+                            .labelsHidden()
+                        }
+                    }
                 }
-                
+                .padding()
+                .background(RoundedRectangle(cornerRadius: 10).fill(Color.white).shadow(radius: 5))
+                .id("calendarSection")
             }
+
+//            if showDatePicker {
+//                VStack {
+//                    //11 april
+//                    DatePicker(
+//                        "Select Date",
+//                        selection: Binding(
+//                            get: {
+//                                if !recurring { return startDate }
+//                                return isSelectingStartDate ? startDate : endDate
+//                            },
+//                            set: { newValue in
+//                                if !recurring {
+//                                    startDate = newValue
+//                                    dateText = formatDate(newValue)
+//                                    if let date = dateText, !date.isEmpty {
+//                                        showDateError = false
+//                                    }
+//                                } else {
+//                                    if isSelectingStartDate {
+//                                        startDate = newValue
+//                                        startDateText = formatDate(newValue)
+//                                    } else {
+//                                        endDate = newValue
+//                                        endDateText = formatDate(newValue)
+//                                    }
+//                                    if let start = startDateText, !start.isEmpty,
+//                                       let end = endDateText, !end.isEmpty {
+//                                        showRecurringDateError = false
+//                                    }
+//                                }
+//                                showDatePicker = false
+//                            }
+//                        ),
+//                        in: DateDefaults.minimumDate...,
+//                        displayedComponents: .date
+//                    )
+//
+////                    DatePicker("Select Date", selection: Binding(
+////                        get: {
+////                            if !recurring { return startDate }
+////                            return isSelectingStartDate ? startDate : endDate
+////                        },
+////                        set: { newValue in
+////                            if !recurring {
+////                                startDate = newValue
+////                                dateText = formatDate(newValue)
+////                                
+////                                if let date = dateText, !date.isEmpty {
+////                                            showDateError = false
+////                                        }
+////                            } else {
+////                                if isSelectingStartDate {
+////                                    startDate = newValue
+////                                    startDateText = formatDate(newValue)
+////                                } else {
+////                                    endDate = newValue
+////                                    endDateText = formatDate(newValue)
+////                                }
+////                                if let start = startDateText, !start.isEmpty,
+////                                           let end = endDateText, !end.isEmpty {
+////                                            showRecurringDateError = false
+////                                        }
+////                                    
+////                            }
+////                            showDatePicker = false
+////                        }
+//                    //), displayedComponents: .date)
+//                    .datePickerStyle(GraphicalDatePickerStyle())
+//                    .labelsHidden()
+//                    .padding()
+//                    .background(RoundedRectangle(cornerRadius: 10).fill(Color.white).shadow(radius: 5))
+//                    
+//                }
+//                
+//            }
 
             // **Memo Field**
             //TextField("Memo", text: $memo)
@@ -1219,6 +1594,64 @@ struct AnotherMemberTransferForm: View {
 
         }
         .padding()
+        .onAppear {
+            var tempDateText = dateText
+            var tempStartDateText = startDateText
+            var tempEndDateText = endDateText
+            var tempStartDate = startDate
+            var tempEndDate = endDate
+
+            DateDefaults.initializeDefaultDates(
+                isRecurring: recurring,
+                dateText: &tempDateText,
+                startDateText: &tempStartDateText,
+                endDateText: &tempEndDateText,
+                startDate: &tempStartDate,
+                endDate: &tempEndDate
+            )
+
+            dateText = tempDateText
+            startDateText = tempStartDateText
+            endDateText = tempEndDateText
+            startDate = tempStartDate
+            endDate = tempEndDate
+        }
+        .onChange(of: recurring) { _ in
+            var tempDateText = dateText
+            var tempStartDateText = startDateText
+            var tempEndDateText = endDateText
+            var tempStartDate = startDate
+            var tempEndDate = endDate
+
+            DateDefaults.initializeDefaultDates(
+                isRecurring: recurring,
+                dateText: &tempDateText,
+                startDateText: &tempStartDateText,
+                endDateText: &tempEndDateText,
+                startDate: &tempStartDate,
+                endDate: &tempEndDate
+            )
+
+            dateText = tempDateText
+            startDateText = tempStartDateText
+            endDateText = tempEndDateText
+            startDate = tempStartDate
+            endDate = tempEndDate
+        }
+//        .onAppear {
+//            let today = Date()
+//
+//            if !recurring && (dateText == nil || dateText?.isEmpty == true) {
+//                startDate = today
+//                dateText = formatDate(today)
+//            }
+//
+//            if recurring && (startDateText == nil || startDateText?.isEmpty == true) {
+//                startDate = today
+//                startDateText = formatDate(today)
+//            }
+//        }
+
     }
 
    
@@ -1730,7 +2163,8 @@ struct ContactSelectionSheet: View {
     @Binding var selectedContact: Contact?
     @Binding var isPresented: Bool
     @State private var searchText: String = "" // Search text state
-    
+    @State private var showAddContactForm = false
+
     var filteredContacts: [Contact] {
         if searchText.isEmpty {
             return contactManager.contacts
@@ -1744,7 +2178,7 @@ struct ContactSelectionSheet: View {
             // Header
             HStack {
                 //Text("Select Contact")
-                Text(NSLocalizedString("select_account", comment: ""))
+                Text(NSLocalizedString("select_recipient", comment: ""))
 
                     .font(.headline)
                     .bold()
@@ -1759,17 +2193,56 @@ struct ContactSelectionSheet: View {
             
             // Search Bar
             //TextField("Search", text: $searchText)
-            TextField(NSLocalizedString("search", comment: ""), text: $searchText)
-                .padding(10)
-                .background(Color(.white))
-                .cornerRadius(10)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10) // Border shape
-                        .stroke(Color.black, lineWidth: 1) // Border color & width
-                )
-                .padding(.horizontal)
-            
-            
+//            TextField(NSLocalizedString("search", comment: ""), text: $searchText)
+//                .padding(10)
+//                .background(Color(.white))
+//                .cornerRadius(10)
+//                .overlay(
+//                    RoundedRectangle(cornerRadius: 10) // Border shape
+//                        .stroke(Color.black, lineWidth: 1) // Border color & width
+//                )
+//                .padding(.horizontal)
+//            
+//            Button(action: {
+//                showAddContactForm = true
+//            }) {
+//                HStack {
+//                    Image(systemName: "plus.circle.fill")
+//                    Text(NSLocalizedString("add_new_contact", comment: ""))
+//                        .fontWeight(.medium)
+//                }
+//                .padding()
+//                .frame(maxWidth: .infinity)
+//                .background(Color.black)
+//                .foregroundColor(.white)
+//                .cornerRadius(10)
+//            }
+//            .padding(.horizontal)
+            HStack(spacing: 10) {
+                TextField(NSLocalizedString("search", comment: ""), text: $searchText)
+                    .padding(10)
+                    .background(Color.white)
+                    .cornerRadius(10)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(Color.black, lineWidth: 1)
+                    )
+
+                Button(action: {
+                    showAddContactForm = true
+                }) {
+                    Image(systemName: "plus")
+                        .font(.title2)
+                        .foregroundColor(.white)
+                        .padding(10)
+//                        .background(Color.black)
+//                        .cornerRadius(8)
+                        .background(Color.colorBlue)
+                        .clipShape(Circle())
+                }
+            }
+            .padding(.horizontal)
+
             
             // Contact List (Filtered)
             ScrollView {
@@ -1780,13 +2253,19 @@ struct ContactSelectionSheet: View {
                             isPresented = false
                         }) {
                             HStack {
-                                //  Show only name
-                                Text(contact.name)
-                                    .font(.headline)
-                                    .bold()
-                                    .bold()
-                                    .foregroundColor(.black)
-                                
+                                VStack(alignment: .leading, spacing: 4) {
+                                    //  Show only name
+                                    Text(contact.name)
+                                        .font(.headline)
+                                        .bold()
+                                        .bold()
+                                        .foregroundColor(.black)
+                                    if let accountNumber = contact.accountNumber, !accountNumber.isEmpty {
+                                        Text("Account Number: \(accountNumber)")
+                                            .font(.subheadline)
+                                            .foregroundColor(.gray)
+                                    }
+                                }
                                 Spacer()
                                 
                                 // Show checkmark if selected
@@ -1794,6 +2273,7 @@ struct ContactSelectionSheet: View {
                                     Image(systemName: "checkmark.circle.fill")
                                         .foregroundColor(.blue)
                                 }
+                                
                             }
                             .padding()
                             .background(selectedContact?.id == contact.id ? Color.blue.opacity(0.2) : Color(.systemGray6))
@@ -1806,6 +2286,17 @@ struct ContactSelectionSheet: View {
             //.frame(maxHeight: .infinity) // Ensures ScrollView expands fully
             .scrollIndicators(.hidden)
         }
+        .fullScreenCover(isPresented: $showAddContactForm) {
+            AddContactFormView(
+                isPresented: $showAddContactForm,
+                contactManager: contactManager,
+                onContactCreated: { contact in
+                            selectedContact = contact // pre-select new contact
+                        }
+                
+            )
+        }
+
         .padding(.horizontal)
         .presentationDetents([.medium, .large])
     }

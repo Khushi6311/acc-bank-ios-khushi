@@ -293,3 +293,9 @@
 
 
 
+//transfer_money
+"select_recipient"="Sélectionnez le destinataire";
+"confirm_security_answer"="Confirmer la réponse de sécurité";
+"security_info"="Informations de sécurité";
+"update"="Mise à jour";
+"add_recipient"="Ajouter un destinataire";
