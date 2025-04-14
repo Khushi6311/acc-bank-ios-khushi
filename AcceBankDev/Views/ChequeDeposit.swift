@@ -8,108 +8,6 @@
 import SwiftUI
 
 
-//struct DepositChequeView: View {
-//    @State private var currentStep = 1
-//    @State private var amount: String = ""
-//    @State private var showAccountSheet = false
-//    @State private var showConfirmationSheet = false
-//    @StateObject private var accountManager = AccountManager()
-//
-//    @State private var chequeFrontImage: UIImage?
-//    @State private var chequeBackImage: UIImage?
-//
-//    var body: some View {
-//        VStack(alignment: .leading, spacing: 20) {
-//
-//            // Top Bar
-//            HStack {
-//                Button(action: {}) {
-//                    Image(systemName: "arrow.left")
-//                        .font(.title2)
-//                        .foregroundColor(.black)
-//                }
-//                Spacer()
-//                Text("Deposit cheques")
-//                    .font(.title2)
-//                    .bold()
-//                Spacer()
-//            }
-//
-//            // Step Indicators
-//            HStack(spacing: 12) {
-//
-//                stepCircle(number: 1, isActive: currentStep >= 1, isCompleted: currentStep > 1)
-//                Rectangle().frame(height: 2).foregroundColor(.gray.opacity(0.5)).padding(.horizontal, -6)
-//                stepCircle(number: 2, isActive: currentStep >= 2, isCompleted: false)
-//                Rectangle().frame(height: 2).foregroundColor(.gray.opacity(0.5)).padding(.horizontal, -6)
-//                stepCircle(number: 3, isActive: currentStep == 3)
-//            }
-//
-//            // Step Views
-//            if currentStep == 1 {
-//                Step1View(accountManager: accountManager, showAccountSheet: $showAccountSheet, amount: $amount) {
-//                    currentStep = 2
-//                }
-//            } else if currentStep == 2 {
-//                Step2View(chequeFrontImage: $chequeFrontImage, chequeBackImage: $chequeBackImage) {
-//                    currentStep = 3
-//                }
-//            } else if currentStep == 3 {
-//                ChequeConfirmationSheet(
-//                        amount: amount,
-//                        chequeFrontImage: chequeFrontImage,
-//                        chequeBackImage: chequeBackImage
-//                    ) {
-//                        print("Confirmed!") // Replace with your confirm logic
-//                    }
-//            }
-//
-//            Spacer()
-//        }
-//        .padding()
-//        .sheet(isPresented: $showConfirmationSheet) {
-//            ChequeConfirmationSheet(
-//                amount: amount,
-//                chequeFrontImage: chequeFrontImage,
-//                chequeBackImage: chequeBackImage,
-//                onConfirm: {
-//                    showConfirmationSheet = false
-//                    // Submit logic here
-//                }
-//            )
-//        }
-//    }
-//
-//    func stepCircle(number: Int, isActive: Bool = false, isCompleted: Bool = false) -> some View {
-//        if isCompleted {
-//            return AnyView(
-//                ZStack {
-//                    Circle()
-//                        .fill(Constants.backgroundGradient)
-//                        .frame(width: 28, height: 28)
-//                    Image(systemName: "checkmark")
-//                        .foregroundColor(.white)
-//                        .font(.system(size: 14, weight: .bold))
-//                }
-//            )
-//        } else {
-//            return AnyView(
-//                Text("\(number)")
-//                    .font(.subheadline)
-//                    .foregroundColor(.white)
-//                    .frame(width: 28, height: 28)
-//                    .background(
-//                        Circle().fill(
-//                            isActive
-//                            ? Constants.backgroundGradient
-//                            : LinearGradient(gradient: Gradient(colors: [Color.gray.opacity(0.4)]), startPoint: .leading, endPoint: .trailing)
-//                        )
-//                    )
-//
-//            )
-//        }
-//    }
-//}
 
 struct DepositChequeView: View {
     @State private var currentStep = 1
@@ -120,6 +18,10 @@ struct DepositChequeView: View {
 
     @State private var chequeFrontImage: UIImage?
     @State private var chequeBackImage: UIImage?
+    
+    @State private var tempChequeFrontImage: UIImage?
+    @State private var tempChequeBackImage: UIImage?
+
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -162,15 +64,28 @@ struct DepositChequeView: View {
         }
         .padding()
         .sheet(isPresented: $showConfirmationSheet) {
+        //.fullScreenCover(isPresented: $showConfirmationSheet) {
+
             ChequeConfirmationSheet(
                 amount: amount,
-                chequeFrontImage: chequeFrontImage,
-                chequeBackImage: chequeBackImage
+                chequeFrontImage: $chequeFrontImage,
+                chequeBackImage: $chequeBackImage
             ) {
                 showConfirmationSheet = false
                 // Handle submission logic here
             }
         }
+//        .onChange(of: chequeFrontImage) { _ in
+//            if chequeFrontImage != nil && chequeBackImage != nil {
+//                showConfirmationSheet = true
+//            }
+//        }
+//        .onChange(of: chequeBackImage) { _ in
+//            if chequeFrontImage != nil && chequeBackImage != nil {
+//                showConfirmationSheet = true
+//            }
+//        }
+
     }
 
     func stepCircle(number: Int, isActive: Bool = false, isCompleted: Bool = false) -> some View {
@@ -207,6 +122,9 @@ struct Step1View: View {
     @Binding var showAccountSheet: Bool
     @Binding var amount: String
     var onContinue: () -> Void
+    @State private var showAmountError = false
+    @State private var showAccountError = false
+    @FocusState private var focusedField: FieldFocus?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -257,15 +175,45 @@ struct Step1View: View {
             .sheet(isPresented: $showAccountSheet) {
                 AccountSelectionSheet(accountManager: accountManager, isPresented: $showAccountSheet)
             }
-
+            if showAccountError {
+                            Text("Please select an account.")
+                                .font(.caption)
+                                .foregroundColor(.red)
+                        }
             // Amount
-            TextField("Amount", text: $amount)
-                .keyboardType(.decimalPad)
-                .padding()
-                .background(RoundedRectangle(cornerRadius: 8).stroke(Color.gray))
+//            TextField("Amount", text: $amount)
+//                .keyboardType(.decimalPad)
+//                .padding()
+//                .background(RoundedRectangle(cornerRadius: 8).stroke(Color.gray))
+        
+                            TextField("Amount", text: $amount)
+                                .keyboardType(.decimalPad)
+                                .padding(.vertical, 10)
+                   
+                        .padding(.horizontal)
+                        .onChange(of: amount) { oldValue,newValue in
+                            //amount = formatCurrencyInput(newValue)
+                            amount = CurrencyFormatter.format(newValue)
+                            if !newValue.trimmingCharacters(in: .whitespaces).isEmpty {
+                                    showAmountError = false // Hide error as soon as user types
+                                }
+                        }
+                        .focused($focusedField, equals: .amount)
+                        .onTapGesture {
+                            focusedField = nil
+                        }
+                    
+                        .background(RoundedRectangle(cornerRadius: 8).stroke(showAmountError ? Color.red : Color.gray))
+
+                        if showAmountError {
+                            Text("Amount is required.")
+                                .font(.caption)
+                                .foregroundColor(.red)
+                        }
 
             Button(action: {
-                onContinue()
+                //onContinue()
+                validateAndContinue()
             }) {
                 Text("Continue")
                     .font(.headline)
@@ -279,6 +227,14 @@ struct Step1View: View {
             }
         }
     }
+    private func validateAndContinue() {
+           showAmountError = amount.trimmingCharacters(in: .whitespaces).isEmpty
+           showAccountError = accountManager.selectedAccount == nil
+
+           if !showAmountError && !showAccountError {
+               onContinue()
+           }
+       }
 }
 
 // MARK: - Step 2 View
@@ -294,6 +250,8 @@ struct Step2View: View {
 
         @State private var showCameraFront = false
         @State private var showCameraBack = false
+        @State private var showFrontError = false
+        @State private var showBackError = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -328,6 +286,11 @@ struct Step2View: View {
             .sheet(isPresented: $showCameraFront) {
                             CameraPicker(image: $chequeFrontImage)
                         }
+            if showBackError {
+                           Text("Cheque back photo is required.")
+                               .font(.caption)
+                               .foregroundColor(.red)
+                       }
 
             Button(action: {
                 // Camera logic
@@ -348,10 +311,21 @@ struct Step2View: View {
         .sheet(isPresented: $showCameraBack) {
                        CameraPicker(image: $chequeBackImage)
                    }
+        if showBackError {
+                       Text("Cheque back photo is required.")
+                           .font(.caption)
+                           .foregroundColor(.red)
+                   }
+        
             Button(action: {
                 //onContinue()
+                showFrontError = chequeFrontImage == nil
+                                showBackError = chequeBackImage == nil
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        onContinue()
+                        //onContinue()
+                    if chequeFrontImage != nil && chequeBackImage != nil {
+                                onContinue()
+                            }
                     }
             }) {
                 Text("Continue")
@@ -364,53 +338,104 @@ struct Step2View: View {
                     .foregroundColor(.white)
                     .cornerRadius(10)
             }
+            .onChange(of: chequeFrontImage) { oldValue,newValue in
+                        if newValue != nil {
+                            showFrontError = false
+                        }
+                    }
+                    .onChange(of: chequeBackImage) {oldValue,newValue in
+                        if newValue != nil {
+                            showBackError = false
+                        }
+                    }
         }
+    
     }
 //}
 
+
 struct ChequeConfirmationSheet: View {
     var amount: String
-    var chequeFrontImage: UIImage?
-    var chequeBackImage: UIImage?
+    @Binding var chequeFrontImage: UIImage?
+    @Binding var chequeBackImage: UIImage?
     var onConfirm: () -> Void
+
+    // Format today's date
+    var formattedDate: String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .long
+        return formatter.string(from: Date())
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
+            // Top Bar
             HStack {
                 Text("Confirmation")
-                    .font(.title2).bold()
+                    .font(.headline)
                 Spacer()
                 Button(action: {
-                    // Optionally dismiss
+                    // dismiss handled by parent
                 }) {
                     Image(systemName: "xmark")
                         .foregroundColor(.black)
                 }
             }
+            .padding(.bottom, 8)
 
+            // Info Fields
             Group {
+//                Text("Deposit to")
+//                    .font(.caption)
+//                    .foregroundColor(.gray)
+//                Text(depositTo)
+//                    .font(.body)
+
+                Text("Deposit date")
+                    .font(.caption)
+                    .foregroundColor(.gray)
+                Text(formattedDate)
+                    .font(.body)
+                Divider()
                 Text("Amount")
-                    .font(.subheadline)
+                    .font(.caption)
+                    .foregroundColor(.gray)
                 Text(amount)
+                    .font(.title3)
                     .bold()
+                Divider()
+
             }
 
+            // Cheque front image
             if let front = chequeFrontImage {
                 Text("Cheque front")
+                    .font(.caption)
+                    .foregroundColor(.gray)
                 Image(uiImage: front)
                     .resizable()
-                    .scaledToFit()
-                    .frame(height: 120)
+                    .aspectRatio(contentMode: .fit)
+                    .frame(maxWidth: .infinity)
+                    .cornerRadius(10)
+                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.gray.opacity(0.2)))
             }
 
+            // Cheque back image
             if let back = chequeBackImage {
                 Text("Cheque back")
+                    .font(.caption)
+                    .foregroundColor(.gray)
                 Image(uiImage: back)
                     .resizable()
-                    .scaledToFit()
-                    .frame(height: 120)
+                    .aspectRatio(contentMode: .fit)
+                    .frame(maxWidth: .infinity)
+                    .cornerRadius(10)
+                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.gray.opacity(0.2)))
             }
 
+            Spacer()
+
+            // Confirm Button
             Button(action: {
                 onConfirm()
             }) {
@@ -420,12 +445,18 @@ struct ChequeConfirmationSheet: View {
                     .padding()
                     .background(Color.black)
                     .foregroundColor(.white)
-                    .cornerRadius(10)
+                    .cornerRadius(12)
             }
+            .padding(.top)
+
         }
+        .padding()
+        //.background(Color(.systemGray6))
+        .cornerRadius(20)
         .padding()
     }
 }
+
 
 
 struct AccountSelectionSheet: View {

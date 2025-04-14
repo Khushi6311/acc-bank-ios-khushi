@@ -1,10 +1,3 @@
-//
-//  AddAccountForm.swift
-//  AcceBankDev
-//
-//  Created by MCT on 07/03/25.
-//
-
 import SwiftUI
 
 struct AddAccountFormView: View {
@@ -15,11 +8,14 @@ struct AddAccountFormView: View {
     @State private var accountType = ""
     @State private var accountNumber = ""
     @State private var balance = ""
-    
+
     @State private var accountNameError = false
     @State private var accountTypeError = false
     @State private var accountNumberError = false
     @State private var balanceError = false
+
+    @State private var showAccountTypeDropdown = false
+    @State private var accountTypeOptions: [AccountTypeOption] = []
 
     var body: some View {
         NavigationStack {
@@ -51,12 +47,47 @@ struct AddAccountFormView: View {
                                 .foregroundColor(.red)
                         }
 
-                        // Account Type
-                        TextField("Account Type", text: $accountType)
+                        // Account Type Dropdown
+                        Button(action: {
+                            withAnimation {
+                                showAccountTypeDropdown.toggle()
+                            }
+                        }) {
+                            HStack {
+                                Text(accountType.isEmpty ? "Select Account Type" : accountType)
+                                    .foregroundColor(accountType.isEmpty ? .gray : .black)
+                                Spacer()
+                                Image(systemName: showAccountTypeDropdown ? "chevron.up" : "chevron.down")
+                                    .foregroundColor(.gray)
+                            }
                             .padding()
                             .background(Color(.systemGray6))
                             .cornerRadius(8)
                             .overlay(RoundedRectangle(cornerRadius: 8).stroke(accountTypeError ? Color.red : Color.clear, lineWidth: 1))
+                        }
+
+                        if showAccountTypeDropdown {
+                            VStack(alignment: .leading, spacing: 0) {
+                                ForEach(accountTypeOptions) { option in
+                                    Button(action: {
+                                        accountType = option.label
+                                        showAccountTypeDropdown = false
+                                        accountTypeError = false
+                                    }) {
+                                        Text(option.label)
+                                            .padding()
+                                            .frame(maxWidth: .infinity, alignment: .leading)
+                                            .background(Color.white)
+                                            .foregroundColor(.black)
+                                    }
+                                    Divider()
+                                }
+                            }
+                            .background(Color.white)
+                            .cornerRadius(8)
+                            .shadow(radius: 4)
+                        }
+
                         if accountTypeError {
                             Text("Required field.")
                                 .font(.footnote)
@@ -77,11 +108,10 @@ struct AddAccountFormView: View {
                         }
 
                         // Balance
-                        //TextField("Balance", text: $balance)
                         TextField("Balance", text: Binding(
-                            get: { balance }, // Return balance as is
+                            get: { balance },
                             set: { newValue in
-                                balance = formatCurrencyInput(newValue) // Ensure proper formatting
+                                balance = formatCurrencyInput(newValue)
                             }
                         ))
                             .padding()
@@ -115,27 +145,25 @@ struct AddAccountFormView: View {
                 }
                 .padding(.horizontal, 20)
             }
+            .onAppear {
+                fetchAccountTypes()
+            }
         }
     }
-    func formatCurrencyInput(_ input: String) -> String {
-        // Remove any existing "$" to avoid duplication
-        var filtered = input.replacingOccurrences(of: "$", with: "")
 
-        // Allow only numbers and one decimal point
+    func formatCurrencyInput(_ input: String) -> String {
+        var filtered = input.replacingOccurrences(of: "$", with: "")
         let validCharacters = "0123456789."
         filtered = String(filtered.filter { validCharacters.contains($0) })
 
-        // Ensure only one decimal point
         let components = filtered.split(separator: ".")
         if components.count > 2 {
-            return "$" + components[0] + "." + components[1].prefix(2) // Limit to 2 decimal places
+            return "$" + components[0] + "." + components[1].prefix(2)
         }
 
         return "$" + filtered
     }
 
-
-    // Function to Validate Fields
     private func validateFields() -> Bool {
         accountNameError = accountName.isEmpty
         accountTypeError = accountType.isEmpty
@@ -144,17 +172,44 @@ struct AddAccountFormView: View {
 
         return !(accountNameError || accountTypeError || accountNumberError || balanceError)
     }
+
+    // MARK: - API Call
+    func fetchAccountTypes() {
+        //guard let url = URL(string: "https://acceinfoapi-cga0hmcdazb5hjbs.eastus2-01.azurewebsites.net/api/accounts/master")
+        guard let url = URL(string: AppConfig.AccountTypeURL)
+        else { return }
+
+        URLSession.shared.dataTask(with: url) { data, response, error in
+            if let data = data {
+                do {
+                    let decoded = try JSONDecoder().decode(AccountTypeResponse.self, from: data)
+                    DispatchQueue.main.async {
+                        accountTypeOptions = decoded.data.map { AccountTypeOption(id: $0.key, label: $0.value) }
+                    }
+                } catch {
+                    print("Decoding error: \(error)")
+                }
+            }
+        }.resume()
+    }
 }
 
+// MARK: - API Models
+struct AccountTypeResponse: Decodable {
+    let status: String
+    let data: [String: String]
+}
 
-//#Preview {
-//    AddAccountFormView()
-//}
+struct AccountTypeOption: Identifiable {
+    let id: String
+    let label: String
+}
+
+// MARK: - Preview
 struct AddAccountFormView_Previews: PreviewProvider {
     static var previews: some View {
         AddAccountFormView(accountManager: AccountManager())
-           // .previewDevice("iPhone 14 Pro") // Adjust the device as needed
-            .previewLayout(.sizeThatFits) // This will make the preview fit the content size
+            .previewLayout(.sizeThatFits)
             .padding()
     }
 }

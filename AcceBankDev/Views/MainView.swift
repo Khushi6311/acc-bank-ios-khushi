@@ -18,6 +18,8 @@ struct MainView: View {
                     .padding(.bottom,0)//added
             }
         }
+        .navigationBarBackButtonHidden(true)
+
     }
 
     //Returns the view based on selectedTab

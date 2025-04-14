@@ -16,6 +16,7 @@ struct LoginView: View {
     @State private var showFaceIDButton = UserDefaults.standard.bool(forKey: "FaceIDEnabled")
 //    @EnvironmentObject var languageManager: LanguageManager  // Use Language Manager
     @State private var isPasswordHidden: Bool = true // Default to hidden
+    @State private var navigateToOTP = false
 
     
 
@@ -247,6 +248,7 @@ struct LoginView: View {
                                 }
                                 .padding(.top, 10)
                             }
+                        
                         }
                         .padding(.bottom, keyboardHeight)
                         .animation(.easeOut(duration: 0.3), value: keyboardHeight)
@@ -262,16 +264,23 @@ struct LoginView: View {
                             }
                         }
                     }
+                .ignoresSafeArea(.keyboard) // This keeps Face ID button from moving
+
                 //}
                 .frame(width: screenWidth, height: screenHeight)
-                .navigationDestination(isPresented: $navigateToWelcome) {
-                    MainView()
+//                .navigationDestination(isPresented: $navigateToWelcome) {
+//                    MainView()
+//                }
+                .navigationDestination(isPresented: $navigateToOTP) {
+                    OTPVerificationView(token: UserDefaults.standard.string(forKey: "AuthToken") ?? "")
                 }
+
                 .navigationDestination(isPresented: $navigateToRegister) {
                     RegisterView()
                 }
             }
         }
+        
         .alert(isPresented: $showFaceIDPrompt) {
                     Alert(
                         title: Text("Enable Face ID?"),
@@ -281,105 +290,81 @@ struct LoginView: View {
                         },
                         secondaryButton: .cancel(Text("No")) {
                             UserDefaults.standard.set(false, forKey: "FaceIDEnabled") // Don't show Face ID next time
-                            navigateToWelcome = true
+                            //navigateToWelcome = true
+                            navigateToOTP=true
                         }
                     )
                 }
             }
     
-//    
-//    private func verifyLogin() {
-//        if username.isEmpty || password.isEmpty {
-//            errorMessage = "Username and Password are required."
-//            return
-//        }
-//
-//        let users = UserDataManager.loadUsers()
-//        
-//        if let user = users.first(where: { $0.username == username && $0.password == password }) {
-//            //  Successful login
-//            print("Login successful for: \(user.username)")
-//
-//            //  Save username for future logins
-//            saveUsernameIfNew()
-//
-//            //  Check if Face ID has been set up before
-//            if !UserDefaults.standard.bool(forKey: "FaceIDEnabled") {
-//                //  First-time login: Ask if user wants to enable Face ID
-//                DispatchQueue.main.async {
-//                    showFaceIDPrompt = true
-//                }
-//            } else {
-//                //  Face ID already enabled: Navigate to MainView
-//                DispatchQueue.main.async {
-//                    navigateToWelcome = true
-//                }
-//            }
-//        } else {
-//            errorMessage = "Incorrect username or password."
-//        }
-//    }
-    
+
     //for API
     private func verifyLogin() {
-            guard !username.isEmpty, !password.isEmpty else {
-                errorMessage = "Username and Password are required."
-                return
-            }
+        guard !username.isEmpty, !password.isEmpty else {
+            errorMessage = "Username and Password are required."
+            return
+        }
 
-            guard let url = URL(string: "https://acceinfoapi-cga0hmcdazb5hjbs.eastus2-01.azurewebsites.net/api/auth/login") else {
-                errorMessage = "Invalid API URL."
-                return
-            }
+        print("Login URL: \(AppConfig.loginURL)")
+
+        guard let url = URL(string: AppConfig.loginURL) else {
+            errorMessage = "Invalid API URL."
+            return
+        }
 
         var request = URLRequest(url: url)
-            request.httpMethod = "POST"
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
-            let requestBody: [String: Any] = [
-                "username": username,
-                "password": password,
-                "type": "employee"
-            ]
-            request.httpBody = try? JSONSerialization.data(withJSONObject: requestBody)
+        let requestBody: [String: Any] = [
+            "username": username,
+            "password": password,
+            "type": "customer"
+        ]
+        request.httpBody = try? JSONSerialization.data(withJSONObject: requestBody)
 
-            URLSession.shared.dataTask(with: request) { data, response, error in
-                DispatchQueue.main.async {
-                    if let error = error {
-                        errorMessage = "Network error: \(error.localizedDescription)"
-                        return
-                    }
-
-                    guard let data = data else {
-                        errorMessage = "No data received from server."
-                        return
-                    }
-
-                    if let rawJson = String(data: data, encoding: .utf8) {
-                        print("Raw API Response: \(rawJson)")
-                    }
-
-                    do {
-                        let decodedResponse = try JSONDecoder().decode(LoginResponse.self, from: data)
-
-                        if decodedResponse.message.lowercased() == "success" {
-                            saveUsernameIfNew()
-                            errorMessage = nil
-
-                            if !UserDefaults.standard.bool(forKey: "FaceIDEnabled") {
-                                showFaceIDPrompt = true
-                            } else {
-                                navigateToWelcome = true
-                            }
-                        } else {
-                            errorMessage = "Login failed: \(decodedResponse.message)"
-                        }
-                    } catch {
-                        errorMessage = "Failed to decode response: \(error.localizedDescription)"
-                    }
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    errorMessage = "Network error: \(error.localizedDescription)"
+                    return
                 }
-            }.resume()
-        }
+
+                guard let data = data else {
+                    errorMessage = "No data received from server."
+                    return
+                }
+
+                if let rawJson = String(data: data, encoding: .utf8) {
+                    print("Raw API Response: \(rawJson)")
+                }
+
+                do {
+                    let decodedResponse = try JSONDecoder().decode(LoginResponse.self, from: data)
+                    let message = decodedResponse.message.lowercased()
+
+                    if message.contains("success") {
+                        saveUsernameIfNew()
+                        errorMessage = nil
+                        //navigateToOTP = true
+
+
+                        if !UserDefaults.standard.bool(forKey: "FaceIDEnabled") {
+                            showFaceIDPrompt = true
+                        } else {
+                            //navigateToWelcome = true
+                            navigateToOTP = true
+
+                        }
+                    } else {
+                        errorMessage = "Login failed: \(decodedResponse.message)"
+                    }
+                } catch {
+                    errorMessage = "Failed to decode response: \(error.localizedDescription)"
+                }
+            }
+        }.resume()
+    }
 
     private func saveUsernameIfNew() {
         UserDefaults.standard.set(username, forKey: "SavedUsername")
@@ -399,53 +384,7 @@ struct LoginView: View {
     }
 
     
-    //    private func authenticateWithFaceID() {
-    //        let context = LAContext()
-    //        var error: NSError?
-    //
-    //        if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) {
-    //            context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: "Login using Face ID") { success, authenticationError in
-    //                DispatchQueue.main.async {
-    //                    if success {
-    //                        username = UserDefaults.standard.string(forKey: "SavedUsername") ?? ""
-    //                        password = correctPassword
-    //                        navigateToWelcome = true
-    //                    } else {
-    //                        errorMessage = "Face ID Authentication Failed."
-    //                    }
-    //                }
-    //            }
-    //        } else {
-    //            errorMessage = "Face ID is not available on this device."
-    //        }
-    //    }
-    //}
-    //before change code ///////
-//    private func authenticateWithFaceID() {
-//        let context = LAContext()
-//        var error: NSError?
-//        
-//        if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) {
-//            context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: "Login using Face ID") { success, authenticationError in
-//                DispatchQueue.main.async {
-//                    if success {
-//                        if let savedUsername = UserDefaults.standard.string(forKey: "SavedUsername"),
-//                           let user = UserDataManager.loadUsers().first(where: { $0.username == savedUsername }) {
-//                            username = user.username
-//                            password = user.password //  Load saved password
-//                            navigateToWelcome = true
-//                        } else {
-//                            errorMessage = "User not found."
-//                        }
-//                    } else {
-//                        errorMessage = "Face ID Authentication Failed."
-//                    }
-//                }
-//            }
-//        } else {
-//            errorMessage = "Face ID is not available on this device."
-//        }
-//    }
+   
     private func authenticateWithFaceID() {
         let context = LAContext()
         var error: NSError?

@@ -40,7 +40,8 @@ struct AddContactFormView: View {
     
     @State private var accountNumber = ""
     @State private var accountNumberError = false
-
+    @State private var showLanguageDropdown = false
+    let languageOptions = ["English", "Français"]
 
     // Country Code Options
     let countryCodes = [
@@ -76,7 +77,7 @@ struct AddContactFormView: View {
                         .padding()
                         .background(Color(.systemGray6))
                         .cornerRadius(8)
-                        .overlay(RoundedRectangle(cornerRadius: 8).stroke(nameError ? Color.red : Color.clear, lineWidth: 1))
+                        //.overlay(RoundedRectangle(cornerRadius: 8).stroke(nameError ? Color.red : Color.clear, lineWidth: 1))
                     if nameError {
                         //Text("Required field.")error_required_field,error_invalid_email
                         Text(NSLocalizedString("error_required_field", comment: ""))
@@ -89,7 +90,7 @@ struct AddContactFormView: View {
                         .padding()
                         .background(Color(.systemGray6))
                         .cornerRadius(8)
-                        .overlay(RoundedRectangle(cornerRadius: 8).stroke(nameError ? Color.red : Color.clear, lineWidth: 1))
+                        //.overlay(RoundedRectangle(cornerRadius: 8).stroke(nameError ? Color.red : Color.clear, lineWidth: 1))
                     
                     
                     TextField(NSLocalizedString("account_number", comment: ""), text: $accountNumber)
@@ -97,20 +98,61 @@ struct AddContactFormView: View {
                         .padding()
                         .background(Color(.systemGray6))
                         .cornerRadius(8)
-                        .overlay(RoundedRectangle(cornerRadius: 8).stroke(accountNumberError ? Color.red : Color.clear, lineWidth: 1))
+                        //.overlay(RoundedRectangle(cornerRadius: 8).stroke(accountNumberError ? Color.red : Color.clear, lineWidth: 1))
 
                     if accountNumberError {
                         Text(NSLocalizedString("error_required_field", comment: ""))
                             .font(.footnote)
                             .foregroundColor(.red)
                     }
+//                    Text("Preferred Language")
+//                        .font(.subheadline)
+//                        .foregroundColor(.gray)
 
-                    TextField(NSLocalizedString("preffered_language", comment: ""), text: $language)
-
+                    Button(action: {
+                        withAnimation {
+                            showLanguageDropdown.toggle()
+                        }
+                    }) {
+                        HStack {
+                            Text(language.isEmpty ? NSLocalizedString("preffered_language", comment: "") : language)
+                                .foregroundColor(language.isEmpty ? .gray : .black)
+                            Spacer()
+                            Image(systemName: showLanguageDropdown ? "chevron.up" : "chevron.down")
+                                .foregroundColor(.gray)
+                        }
                         .padding()
                         .background(Color(.systemGray6))
                         .cornerRadius(8)
-                        .overlay(RoundedRectangle(cornerRadius: 8).stroke(nameError ? Color.red : Color.clear, lineWidth: 1))
+                    }
+
+                    if showLanguageDropdown {
+                        VStack(alignment: .leading, spacing: 0) {
+                            ForEach(languageOptions, id: \.self) { option in
+                                Button(action: {
+                                    language = option
+                                    showLanguageDropdown = false
+                                }) {
+                                    Text(option)
+                                        .padding()
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                        .foregroundColor(.black)
+                                        .background(Color.white)
+                                }
+                                Divider()
+                            }
+                        }
+                        .background(Color.white)
+                        .cornerRadius(8)
+                        .shadow(color: .gray.opacity(0.3), radius: 4, x: 0, y: 2)
+                    }
+
+//                    TextField(NSLocalizedString("preffered_language", comment: ""), text: $language)
+//
+//                        .padding()
+//                        .background(Color(.systemGray6))
+//                        .cornerRadius(8)
+                        //.overlay(RoundedRectangle(cornerRadius: 8).stroke(nameError ? Color.red : Color.clear, lineWidth: 1))
                     // Email Field
                     //TextField("Email", text: $email)
                     TextField(NSLocalizedString("email", comment: ""), text: $email)
@@ -156,7 +198,7 @@ struct AddContactFormView: View {
                             .padding()
                             .background(Color(.systemGray6))
                             .cornerRadius(8)
-                            .overlay(RoundedRectangle(cornerRadius: 8).stroke(mobilePhoneError ? Color.red : Color.clear, lineWidth: 1))
+                            //.overlay(RoundedRectangle(cornerRadius: 8).stroke(mobilePhoneError ? Color.red : Color.clear, lineWidth: 1))
 //                                .onChange(of: mobilePhone) { newValue in
 //                                    mobilePhone = formatPhoneNumber(newValue)
 //                                }
@@ -292,7 +334,9 @@ struct AddContactFormView: View {
 //                return email.range(of: emailRegex, options: .regularExpression, range: nil, locale: nil) != nil
 //            }
     func isValidEmail(_ email: String) -> Bool {
-        let emailRegex = #"^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$"#
+        //let emailRegex = #"^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$"#
+        let emailRegex = #"^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.(com|net|org|in|edu)$"#
+
         return email.range(of: emailRegex, options: [.regularExpression, .caseInsensitive]) != nil
     }
 

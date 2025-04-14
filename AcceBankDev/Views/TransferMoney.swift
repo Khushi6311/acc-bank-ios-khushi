@@ -698,7 +698,7 @@ struct MyAccountsTransferForm: View {
                                         in: DateDefaults.startDateRange(),
                                         displayedComponents: .date
                                     )
-                                    .datePickerStyle(GraphicalDatePickerStyle()) // ✅ apply here
+                                    .datePickerStyle(GraphicalDatePickerStyle()) //  apply here
                                     .labelsHidden()
                                 }
 
