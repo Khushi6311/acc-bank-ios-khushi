@@ -6,9 +6,6 @@
 //
 
 import SwiftUI
-
-
-
 struct DepositChequeView: View {
     @State private var currentStep = 1
     @State private var amount: String = ""
@@ -25,7 +22,7 @@ struct DepositChequeView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-
+            
             // Top Bar
             HStack {
                 Button(action: {}) {
@@ -38,30 +35,33 @@ struct DepositChequeView: View {
                     .font(.title2).bold()
                 Spacer()
             }
-
+            
             // Step Indicators (Only 2 Steps)
             HStack(spacing: 12) {
                 stepCircle(number: 1, isActive: currentStep == 1, isCompleted: currentStep > 1)
                 Rectangle().frame(height: 2).foregroundColor(.gray.opacity(0.5)).padding(.horizontal, -6)
                 stepCircle(number: 2, isActive: currentStep == 2, isCompleted: false)
             }
-
+            
             // Step Views
-            if currentStep == 1 {
-                Step1View(accountManager: accountManager, showAccountSheet: $showAccountSheet, amount: $amount) {
-                    currentStep = 2
+            ScrollView{
+                if currentStep == 1 {
+                    Step1View(accountManager: accountManager, showAccountSheet: $showAccountSheet, amount: $amount) {
+                        currentStep = 2
+                    }
+                } else if currentStep == 2 {
+                    Step2View(
+                        chequeFrontImage: $chequeFrontImage,
+                        chequeBackImage: $chequeBackImage
+                    ) {
+                        showConfirmationSheet = true
+                    }
                 }
-            } else if currentStep == 2 {
-                Step2View(
-                    chequeFrontImage: $chequeFrontImage,
-                    chequeBackImage: $chequeBackImage
-                ) {
-                    showConfirmationSheet = true
-                }
+                
+                Spacer()
             }
-
-            Spacer()
         }
+        .ignoresSafeArea(.keyboard)
         .padding()
         .sheet(isPresented: $showConfirmationSheet) {
         //.fullScreenCover(isPresented: $showConfirmationSheet) {
@@ -75,16 +75,6 @@ struct DepositChequeView: View {
                 // Handle submission logic here
             }
         }
-//        .onChange(of: chequeFrontImage) { _ in
-//            if chequeFrontImage != nil && chequeBackImage != nil {
-//                showConfirmationSheet = true
-//            }
-//        }
-//        .onChange(of: chequeBackImage) { _ in
-//            if chequeFrontImage != nil && chequeBackImage != nil {
-//                showConfirmationSheet = true
-//            }
-//        }
 
     }
 
@@ -128,6 +118,7 @@ struct Step1View: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
+            
             Text("Deposit cheques here as quickly, easily, and securely as a paper one.")
                 .font(.body)
             VStack(alignment: .leading, spacing: 6) {
@@ -187,7 +178,9 @@ struct Step1View: View {
 //                .background(RoundedRectangle(cornerRadius: 8).stroke(Color.gray))
         
                             TextField("Amount", text: $amount)
-                                .keyboardType(.decimalPad)
+                                //.keyboardType(.decimalPad)
+                .keyboardType(.numbersAndPunctuation)
+                  .submitLabel(.done)
                                 .padding(.vertical, 10)
                    
                         .padding(.horizontal)
@@ -359,8 +352,8 @@ struct ChequeConfirmationSheet: View {
     @Binding var chequeFrontImage: UIImage?
     @Binding var chequeBackImage: UIImage?
     var onConfirm: () -> Void
-
-    // Format today's date
+    @State private var showConfirmation = false
+    @State private var showSummary = false    // Format today's date
     var formattedDate: String {
         let formatter = DateFormatter()
         formatter.dateStyle = .long
@@ -437,7 +430,10 @@ struct ChequeConfirmationSheet: View {
 
             // Confirm Button
             Button(action: {
-                onConfirm()
+               // onConfirm()
+               // showConfirmation = true
+                showSummary=true
+
             }) {
                 Text("Confirm")
                     .font(.headline)
@@ -448,7 +444,25 @@ struct ChequeConfirmationSheet: View {
                     .cornerRadius(12)
             }
             .padding(.top)
-
+            .sheet(isPresented: $showConfirmation) {
+                    ChequeConfirmationSheet(
+                        amount: amount,
+                        chequeFrontImage: $chequeFrontImage,
+                        chequeBackImage: $chequeBackImage,
+                        onConfirm: {
+                            showConfirmation = false
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                showSummary = true
+                            }
+                        }
+                    )
+                }
+            .fullScreenCover(isPresented: $showSummary) {  //.sheet before full screen 
+                    ChequeSummarySheet(
+                        amount: amount,
+                        date: DateFormatter.localizedString(from: Date(), dateStyle: .long, timeStyle: .none)
+                    )
+                }
         }
         .padding()
         //.background(Color(.systemGray6))
@@ -457,6 +471,96 @@ struct ChequeConfirmationSheet: View {
     }
 }
 
+
+//summary
+struct ChequeSummarySheet: View {
+    var amount: String
+    var date: String
+    @State private var navigateToMainView = false
+
+    var body: some View {
+        VStack(spacing: 24) {
+            // Success Message Banner (optional)
+            HStack {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundColor(.white)
+                Text("Payment Sent")
+                    .foregroundColor(.white)
+                    .font(.subheadline)
+                    .bold()
+            }
+            .padding()
+            .frame(maxWidth: .infinity)
+            .background(Color.green)
+            .cornerRadius(12)
+            .padding(.top)
+
+            // Card-style summary box
+            VStack(alignment: .leading, spacing: 16) {
+                Text("Payment Summary")
+                    .font(.headline)
+                    .bold()
+                    .frame(maxWidth: .infinity, alignment: .center)
+
+                Divider()
+
+                HStack {
+                    Text("Deposit date")
+                        .foregroundColor(.gray)
+                        .font(.caption)
+                    //Spacer()
+                    Text(date)
+                        .font(.body)
+                    //Divider()
+
+                }
+                Divider()
+
+
+                HStack {
+                    Text("Amount")
+                        .foregroundColor(.gray)
+                        .font(.caption)
+                   // Spacer()
+                    Text(amount)
+                        .font(.body)
+                        .bold()
+                    //Divider()
+
+                }
+            }
+            .padding()
+            //.background(Color.white)
+            .background(RoundedRectangle(cornerRadius: 10).fill(Color.white).shadow(radius: 5))
+            .cornerRadius(12)
+            .shadow(radius: 5)
+            .padding(.horizontal)
+
+            Spacer()
+
+            // Done Button
+            Button(action: {
+                // dismiss logic here
+                navigateToMainView = true
+
+            }) {
+                Text("Done")
+                    .bold()
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.black)
+                    .foregroundColor(.white)
+                    .cornerRadius(12)
+            }
+            .padding(.horizontal)
+            .fullScreenCover(isPresented: $navigateToMainView) {
+                MainView() // Opens MainView when button is clicked
+            }
+        }
+        .padding()
+        .background(Color.white.ignoresSafeArea())
+    }
+}
 
 
 struct AccountSelectionSheet: View {

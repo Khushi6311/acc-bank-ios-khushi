@@ -303,3 +303,14 @@
 
 "account_number"="Numéro de compte";//14 april
 
+//pay bill screen
+"select_payees_placeholder"="Sélectionnez le bénéficiaire";
+"pay_to"="payer à";
+
+
+//more option form
+"logout" = "Déconnexion";
+"logout_confirmation_title" = "Êtes-vous sûr de vouloir vous déconnecter ?";
+"yes" = "Oui";
+"cancel" = "Annuler";
+

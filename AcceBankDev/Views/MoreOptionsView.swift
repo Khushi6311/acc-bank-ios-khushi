@@ -77,7 +77,9 @@ struct MoreOptionsView: View {
                                     .foregroundColor(.black)
                                     .font(.title2)
                                 
-                                Text("Logout")
+                                //Text("Logout")
+                                Text(NSLocalizedString("logout", comment: ""))
+
                                     .foregroundColor(.black)
                                     .font(.headline)
                                 
@@ -104,13 +106,21 @@ struct MoreOptionsView: View {
                     Spacer()
                 }
             }
-            .alert("Are you sure you want to logout?", isPresented: $showLogoutConfirmation) {
-                Button("Yes", role: .destructive) {
+//            .alert("Are you sure you want to logout?", isPresented: $showLogoutConfirmation) {
+//                Button("Yes", role: .destructive) {
+//                    isLoggedOut = true
+//                    dismiss()
+//
+//                }
+//                Button("Cancel", role: .cancel) { }
+//            }
+            
+            .alert(NSLocalizedString("logout_confirmation_title", comment: ""), isPresented: $showLogoutConfirmation) {
+                Button(NSLocalizedString("yes", comment: ""), role: .destructive) {
                     isLoggedOut = true
                     dismiss()
-
                 }
-                Button("Cancel", role: .cancel) { }
+                Button(NSLocalizedString("cancel", comment: ""), role: .cancel) { }
             }
             //                        .background(
             //                            // Navigate to login page if needed

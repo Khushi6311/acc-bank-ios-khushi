@@ -543,7 +543,9 @@ struct MyAccountsTransferForm: View {
                     //            TextField("Enter Transfer Amount", text: $amount)
                     TextField(NSLocalizedString("enter_transfer_amount", comment: "Placeholder for transfer amount input"), text: $amount)
                     
-                        .keyboardType(.decimalPad)
+                        //.keyboardType(.decimalPad)
+                        .keyboardType(.numbersAndPunctuation)
+                          .submitLabel(.done)
                         .padding()
                         .background(RoundedRectangle(cornerRadius: 10).stroke(Color.gray, lineWidth: 1))
                     //.focused($focusedField, equals: .amount)
@@ -717,7 +719,7 @@ struct MyAccountsTransferForm: View {
                                         in: DateDefaults.endDateRange(from: startDate),
                                         displayedComponents: .date
                                     )
-                                    .datePickerStyle(GraphicalDatePickerStyle()) // ✅ apply here
+                                    .datePickerStyle(GraphicalDatePickerStyle()) // apply here
                                     .labelsHidden()
                                 }
                             }
@@ -1294,7 +1296,9 @@ struct AnotherMemberTransferForm: View {
             // **Amount Input**
             //TextField("Enter Transfer Amount", text: $amount)
             TextField(NSLocalizedString("enter_transfer_amount", comment: "Placeholder for transfer amount input"), text: $amount)
-                .keyboardType(.decimalPad)
+                //.keyboardType(.decimalPad)
+                .keyboardType(.numbersAndPunctuation)
+                  .submitLabel(.done)
                 .padding()
                 .background(RoundedRectangle(cornerRadius: 10).stroke(Color.gray, lineWidth: 1))
                 .onChange(of: amount) { oldValue,newValue in

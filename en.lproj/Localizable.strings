@@ -279,3 +279,15 @@
 
 
 "account_number"="Account Number"; //14 april 
+
+
+//pay bill screen
+"select_payees_placeholder"="Select payee";
+"pay_to"="Pay to";
+
+//more option form
+"logout" = "Logout";
+"logout_confirmation_title" = "Are you sure you want to logout?";
+"yes" = "Yes";
+"cancel" = "Cancel";
+

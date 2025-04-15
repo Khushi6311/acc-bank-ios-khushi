@@ -272,7 +272,9 @@ struct SendMoneyView: View {
                     //                    TextField("Enter transfer amount", text: $transferAmount)//
                     TextField(NSLocalizedString("enter_transfer_amount", comment: ""), text: $transferAmount)
                     
-                        .keyboardType(.decimalPad) // Ensure numeric input
+                        //.keyboardType(.decimalPad) // Ensure numeric input
+                        .keyboardType(.numbersAndPunctuation)
+                          .submitLabel(.done)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                         .padding(.top,5)
                         .onChange(of: transferAmount,initial:false) {_, newValue in

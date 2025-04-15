@@ -929,7 +929,9 @@ struct RecurringPaymentForm: View {
                     .transition(.opacity)
             }
 
-            Text("Pay from")
+            //Text("Pay from")
+            Text(NSLocalizedString("pay_from", comment: ""))
+
                 .font(.subheadline)
                 .foregroundColor(.gray)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -969,7 +971,8 @@ struct RecurringPaymentForm: View {
 //                    Text(selectedPayees.isEmpty ? "Select payee(s)" : selectedPayees.map { $0.name }.joined(separator: ", "))
                     Text(
                         selectedPayees.isEmpty
-                            ? "Select payee(s)"
+                            //? "Select payee(s)"
+                        ? NSLocalizedString("select_payees_placeholder", comment: "")
                             : selectedPayees.count == 1
                                 ? selectedPayees.first?.name ?? ""
                                 : "\(selectedPayees.count) Payees selected"
@@ -996,7 +999,9 @@ struct RecurringPaymentForm: View {
                         .padding()
                         .background(Color.colorBlue)
                         .clipShape(Circle())
-                    Text("Add payee")
+                    //Text("Add payee")//add_payee
+                    Text(NSLocalizedString("add_payee", comment: ""))
+
                         .foregroundColor(.colorBlue)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
@@ -1009,7 +1014,8 @@ struct RecurringPaymentForm: View {
                 }
             } else {
                 
-                TextField("Enter amount", text: $amount)
+                //TextField("Enter amount", text: $amount)
+                TextField(NSLocalizedString("enter_transfer_amount", comment: ""), text: $amount)
                     //.keyboardType(.decimalPad)
                     .keyboardType(.numbersAndPunctuation)
                       .submitLabel(.done)
@@ -1027,26 +1033,36 @@ struct RecurringPaymentForm: View {
                     }
                 FieldErrorView(message: NSLocalizedString("error_required_field", comment: "Amount is required"), show: $showAmountError)
 
-                Text("Select frequency")
+                //Text("Select frequency")
+                Text(NSLocalizedString("select_frequency", comment: ""))
+
                     .font(.subheadline)
                     .foregroundColor(.gray)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
-                Picker("Frequency", selection: $selectedFrequency) {
-                    Text("Weekly").tag("weekly")
-                    Text("Monthly").tag("monthly")
-                    Text("Yearly").tag("yearly")
+//                Picker("Frequency", selection: $selectedFrequency) {
+//                    Text("Weekly").tag("weekly")
+//                    Text("Monthly").tag("monthly")
+//                    Text("Yearly").tag("yearly")
+//                }
+                Picker(NSLocalizedString("frequency", comment: "Frequency picker label"), selection: $selectedFrequency) {
+                    Text(NSLocalizedString("weekly", comment: "Frequency option")).tag("weekly")
+                    Text(NSLocalizedString("monthly", comment: "Frequency option")).tag("monthly")
+                    Text(NSLocalizedString("yearly", comment: "Frequency option")).tag("yearly")
                 }
                 .pickerStyle(SegmentedPickerStyle())
 
-                DateField(title: "Start Date", dateText: $formattedStartDate) {
+//                DateField(title: "Start Date", dateText: $formattedStartDate)
+                DateField(title: String(localized: "start_date"), dateText: $formattedStartDate)
+{
                     isSelectingStartDate = true
                     
                     showDatePicker.toggle()
                 }
                 FieldErrorView(message: NSLocalizedString("error_required_field", comment: "Amount is required"), show: $showStartDateError)
 
-                DateField(title: "End Date", dateText: $formattedEndDate) {
+//                DateField(title: "End Date", dateText: $formattedEndDate)
+                DateField(title: String(localized: "end_date"), dateText: $formattedEndDate){
                     isSelectingStartDate = false
                     showDatePicker.toggle()
                 }
@@ -1113,10 +1129,15 @@ struct RecurringPaymentForm: View {
                     showStartDateError = result.showStartDateError
                     showEndDateError = result.showEndDateError
 
+//                    if result.balanceExceededError {
+//                        bannerErrorMessage = "Payment failed. This transfer amount exceeds your account balance."
+//                        return
+//                    }
                     if result.balanceExceededError {
-                        bannerErrorMessage = "Payment failed. This transfer amount exceeds your account balance."
+                        bannerErrorMessage = NSLocalizedString("error_transaction_limit", comment: "")
                         return
                     }
+
 
                     if result.isFormValid {
                         bannerErrorMessage = nil
@@ -1125,7 +1146,9 @@ struct RecurringPaymentForm: View {
                 }
 
             }) {
-                Text("Continue")
+               // Text("Continue")
+                Text(NSLocalizedString("continue", comment: ""))
+
                     .font(.headline)
                     .frame(maxWidth: .infinity)
                     .padding()
@@ -1180,7 +1203,7 @@ struct RecurringPaymentForm: View {
     }
 }
 
-//in recurring payment multiple payee are selected then show frild using this code
+//in recurring payment multiple payee are selected then show feild using this code
 struct MultiRecurringPayeeDetailView: View {
     @Binding var detail: PayeeRecurringDetails
     @State private var showStartPicker = false
@@ -1192,7 +1215,9 @@ struct MultiRecurringPayeeDetailView: View {
                 .font(.headline)
 
             // Amount field
-            TextField("Enter amount", text: $detail.amount)
+            TextField(NSLocalizedString("enter_transfer_amount", comment: ""), text: $detail.amount)
+
+            //TextField("Enter amount", text: $detail.amount)
                 //.keyboardType(.decimalPad)
                 .keyboardType(.numbersAndPunctuation)
                   .submitLabel(.done)
@@ -1205,20 +1230,30 @@ struct MultiRecurringPayeeDetailView: View {
                     }
                 }
             FieldErrorView(message: NSLocalizedString("error_required_field", comment: "Amount is required"), show: $detail.showAmountError)
-            Text("Select frequency")
+            //Text("Select frequency")
+            Text(NSLocalizedString("select_frequency", comment: ""))
+
                 .font(.subheadline)
                 .foregroundColor(.gray)
                 .frame(maxWidth: .infinity, alignment: .leading)
             // Frequency Picker
-            Picker("Frequency", selection: $detail.frequency) {
-                Text("Weekly").tag("weekly")
-                Text("Monthly").tag("monthly")
-                Text("Yearly").tag("yearly")
+//            Picker("Frequency", selection: $detail.frequency) {
+//                Text("Weekly").tag("weekly")
+//                Text("Monthly").tag("monthly")
+//                Text("Yearly").tag("yearly")
+//            }
+
+               
+            Picker(NSLocalizedString("frequency", comment: "Frequency picker label"), selection: $detail.frequency) {
+                Text(NSLocalizedString("weekly", comment: "Frequency option")).tag("weekly")
+                Text(NSLocalizedString("monthly", comment: "Frequency option")).tag("monthly")
+                Text(NSLocalizedString("yearly", comment: "Frequency option")).tag("yearly")
             }
             .pickerStyle(SegmentedPickerStyle())
 
             // Start Date
-            DateField(title: "Start Date", dateText: Binding(
+            //DateField(title: "Start Date", dateText: Binding
+            DateField(title: String(localized: "start_date"), dateText: Binding(
                 get: {
                     if let date = detail.startDate {
                         let formatter = DateFormatter()
@@ -1252,7 +1287,7 @@ struct MultiRecurringPayeeDetailView: View {
             FieldErrorView(message: NSLocalizedString("error_required_field", comment: "Amount is required"), show: $detail.showStartDateError)
 
             // End Date
-            DateField(title: "End Date", dateText: Binding(
+            DateField(title: String(localized: "end_date"), dateText: Binding(
                 get: {
                     if let date = detail.endDate {
                         let formatter = DateFormatter()
@@ -1853,19 +1888,35 @@ private struct RecurringPayeeSummaryView: View {
 
     var body: some View {
         if selectedPayees.count == 1, let detail = payeeDetails.first {
-            BillDetailRow(title: "Pay to", value: detail.payee.name, bold: true)
-            BillDetailRow(title: "Amount", value: detail.amount)
-            BillDetailRow(title: "Start Date", value: formatted(detail.startDate))
-            BillDetailRow(title: "End Date", value: formatted(detail.endDate))
-            BillDetailRow(title: "Frequency", value: detail.frequency.capitalized)
+//            BillDetailRow(title: "Pay to", value: detail.payee.name, bold: true)
+//            BillDetailRow(title: "Amount", value: detail.amount)
+//            BillDetailRow(title: "Start Date", value: formatted(detail.startDate))
+//            BillDetailRow(title: "End Date", value: formatted(detail.endDate))
+//            BillDetailRow(title: "Frequency", value: detail.frequency.capitalized)
+            BillDetailRow(title: NSLocalizedString("pay_to", comment: ""), value: detail.payee.name, bold: true)
+            BillDetailRow(title: NSLocalizedString("amount", comment: ""), value: detail.amount)
+            BillDetailRow(title: NSLocalizedString("start_date", comment: ""), value: formatted(detail.startDate))
+            BillDetailRow(title: NSLocalizedString("end_date", comment: ""), value: formatted(detail.endDate))
+            BillDetailRow(title: NSLocalizedString("frequency", comment: ""), value: detail.frequency.capitalized)
+
         } else {
             ForEach(payeeDetails) { detail in
                 VStack(alignment: .leading, spacing: 8) {
-                    BillDetailRow(title: "Pay to", value: "\(detail.payee.name) - \(detail.payee.accountNumber)", bold: true)
-                    BillDetailRow(title: "Amount", value: detail.amount)
-                    BillDetailRow(title: "Start Date", value: formatted(detail.startDate))
-                    BillDetailRow(title: "End Date", value: formatted(detail.endDate))
-                    BillDetailRow(title: "Frequency", value: detail.frequency.capitalized)
+//                    BillDetailRow(title: "Pay to", value: "\(detail.payee.name) - \(detail.payee.accountNumber)", bold: true)
+//                    BillDetailRow(title: "Amount", value: detail.amount)
+//                    BillDetailRow(title: "Start Date", value: formatted(detail.startDate))
+//                    BillDetailRow(title: "End Date", value: formatted(detail.endDate))
+//                    BillDetailRow(title: "Frequency", value: detail.frequency.capitalized)
+                    BillDetailRow(
+                        title: String(localized: "pay_to"),
+                        value: "\(detail.payee.name) - \(detail.payee.accountNumber)",
+                        bold: true
+                    )
+                    BillDetailRow(title: String(localized: "amount"), value: detail.amount)
+                    BillDetailRow(title: String(localized: "start_date"), value: formatted(detail.startDate))
+                    BillDetailRow(title: String(localized: "end_date"), value: formatted(detail.endDate))
+                    BillDetailRow(title: String(localized: "frequency"), value: detail.frequency.capitalized)
+
                 }
                 .padding()
                 .background(

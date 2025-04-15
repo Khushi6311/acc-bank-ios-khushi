@@ -10,14 +10,16 @@ struct MainView: View {
     var body: some View {
         ZStack {
             selectedView //  Calls the selected view dynamically
+                //.ignoresSafeArea(.keyboard, edges: .bottom)
 
             VStack {
                 Spacer()
                 BottomNavigationBar(selectedTab: $selectedTab) // Pass binding
-                    .frame(height:70)
-                    .padding(.bottom,0)//added
+                    .frame(height:600) //70
+                    .padding(.bottom,10)//added
             }
         }
+        .edgesIgnoringSafeArea(.bottom)
         .navigationBarBackButtonHidden(true)
 
     }

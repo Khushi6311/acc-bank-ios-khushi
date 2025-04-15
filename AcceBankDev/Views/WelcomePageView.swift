@@ -2,6 +2,13 @@
 //  WelcomePageView.swift
 //  AcceBankDev
 //
+//  Created by MCT on 15/04/25.
+//
+
+//
+//  WelcomePageView.swift
+//  AcceBankDev
+//
 //  Created by MCT on 26/02/25.
 //
 
