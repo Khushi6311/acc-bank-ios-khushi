@@ -1,5 +1,38 @@
 import SwiftUI
 import LocalAuthentication // for Face ID integration
+import KeychainAccess
+let keychain = Keychain(service: "mct.AcceBankDevKhushi") //  bundle identifier
+
+func saveTokenToKeychain(_ token: String) {
+    keychain["auth_token"] = token
+}
+
+func getTokenFromKeychain() -> String? {
+    return keychain["auth_token"]
+}
+
+//func getTokenFromKeychainIfValid() -> String? {
+//    guard let expiration = UserDefaults.stand,ard.object(forKey: "TokenExpiration") as? Date else {
+//        print("No expiration stored.")
+//        return nil
+//    }
+//
+//    if Date() > expiration {
+//        print("Token expired.")
+//        clearToken()
+//        return nil
+//    }
+//
+//    return keychain["auth_token"]
+//}
+//
+//func clearToken() {
+//    try? keychain.remove("auth_token")
+//    UserDefaults.standard.removeObject(forKey: "TokenExpiration")
+//    UserDefaults.standard.removeObject(forKey: "LoggedInContactId") // optional
+//    print("Token and expiration cleared.")
+//}
+
 
 struct LoginView: View {
     @StateObject private var languageManager = LanguageManager()
@@ -20,7 +53,7 @@ struct LoginView: View {
 
     
 
-    private let correctPassword = "123456" // Static password for demo
+    //private let correctPassword = "123456" // Static password for demo
     
     var body: some View {
         NavigationStack {
@@ -347,6 +380,17 @@ struct LoginView: View {
                         saveUsernameIfNew()
                         errorMessage = nil
                         //navigateToOTP = true
+                        if let token = decodedResponse.token {
+                            saveTokenToKeychain(token)
+                            print("Token saved to Keychain: \(token)")
+                            
+                            //expire
+//                                let expirationDate = Date().addingTimeInterval(30 * 60) // 30 minutes
+//                                UserDefaults.standard.set(expirationDate, forKey: "TokenExpiration")
+//                                print(" Expiration saved: \(expirationDate)")
+                        } else {
+                            print("Token missing in response")
+                        }
 
 
                         if !UserDefaults.standard.bool(forKey: "FaceIDEnabled") {
@@ -422,6 +466,7 @@ private func changeLanguage(to language: String) {
 
 struct LoginResponse: Decodable {
     let message: String
+    let token: String?
 }
 // Preview
 struct LoginView_Previews: PreviewProvider {

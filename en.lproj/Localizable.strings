@@ -290,4 +290,22 @@
 "logout_confirmation_title" = "Are you sure you want to logout?";
 "yes" = "Yes";
 "cancel" = "Cancel";
+"select_payee"="Select Payee";
 
+//
+"frequency_weekly" = "Weekly";
+"frequency_monthly" = "Monthly";
+"frequency_annual" = "Annual";
+
+//addaccount file
+"add_new_account" = "Add New Account";
+"account_name" = "Account Name";
+"select_account_type" = "Select Account Type";
+//"balance" = "Balance";
+"save_account" = "Save Account";
+"account_number"="Account Number";
+//"required_field" = "Required field.";
+
+//OTP screen
+"enter_otp_instruction"="Enter the OTP sent to your phone/email";
+"verify_otp"="Verify OTP";

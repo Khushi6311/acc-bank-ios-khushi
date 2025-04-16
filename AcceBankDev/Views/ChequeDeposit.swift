@@ -19,13 +19,16 @@ struct DepositChequeView: View {
     @State private var tempChequeFrontImage: UIImage?
     @State private var tempChequeBackImage: UIImage?
 
+    @State private var navigateToMoveMoney = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             
             // Top Bar
             HStack {
-                Button(action: {}) {
+                Button(action: {
+                    
+                }) {
                     Image(systemName: "arrow.left")
                         .font(.title2)
                         .foregroundColor(.black)

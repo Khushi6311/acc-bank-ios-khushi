@@ -17,7 +17,9 @@ struct OTPVerificationView: View {
                 .edgesIgnoringSafeArea(.all)
 
             VStack(spacing: 20) {
-                Text("Enter the OTP sent to your phone/email")
+                //Text("Enter the OTP sent to your phone/email")
+                Text(NSLocalizedString("enter_otp_instruction", comment: "Instruction to enter the OTP"))
+
                     .font(.headline)
                     .foregroundColor(.white)
 
@@ -59,7 +61,9 @@ struct OTPVerificationView: View {
                         .foregroundColor(.red)
                 }
 
-                Button("Verify OTP") {
+                    //Button("Verify OTP")
+                Button(NSLocalizedString("verify_otp", comment: "Verify OTP button")) {
+
                     verifyOTP()
                 }
                 .padding()

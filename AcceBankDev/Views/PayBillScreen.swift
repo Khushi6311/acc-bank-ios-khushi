@@ -814,7 +814,10 @@ struct PayeeListView: View {
     var body: some View {
         VStack {
             HStack {
-                Text("Select Payee").font(.headline).bold()
+                //Text("Select Payee").font(.headline).bold()
+                Text(NSLocalizedString("select_payee", comment: "Label for selecting payee"))
+                    .font(.headline)
+                    .bold()
                 Spacer()
                 Button(action: { showPayeeSheet = false }) {
                     Image(systemName: "xmark")
@@ -825,7 +828,9 @@ struct PayeeListView: View {
             .padding(.horizontal)
             .padding(.top)
 
-            TextField("Search", text: $searchText)
+            //TextField("Search", text: $searchText)
+            TextField(NSLocalizedString("search", comment: "Placeholder for search input"), text: $searchText)
+
                 .padding(10)
                 .background(Color(.systemGray6))
                 .cornerRadius(10)
@@ -1720,7 +1725,9 @@ struct RecurringBillConfirmationSheet: View {
                                 Text(NSLocalizedString("frequency", comment: ""))
                                     .font(.caption)
                                     .foregroundColor(.gray)
-                                Text(detail.frequency.capitalized)
+                                //Text(detail.frequency.capitalized)
+                                Text(NSLocalizedString("frequency_\(detail.frequency.lowercased())", comment: ""))
+
                                     .font(.body)
                             }
                         }
@@ -1915,7 +1922,12 @@ private struct RecurringPayeeSummaryView: View {
                     BillDetailRow(title: String(localized: "amount"), value: detail.amount)
                     BillDetailRow(title: String(localized: "start_date"), value: formatted(detail.startDate))
                     BillDetailRow(title: String(localized: "end_date"), value: formatted(detail.endDate))
-                    BillDetailRow(title: String(localized: "frequency"), value: detail.frequency.capitalized)
+//                    BillDetailRow(title: String(localized: "frequency"), value: detail.frequency.capitalized)
+                    BillDetailRow(
+                        title: NSLocalizedString("frequency", comment: ""),
+                        value: NSLocalizedString("frequency_\(detail.frequency.lowercased())", comment: "")
+                    )
+
 
                 }
                 .padding()

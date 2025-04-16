@@ -21,7 +21,9 @@ struct AddAccountFormView: View {
         NavigationStack {
             VStack {
                 HStack {
-                    Text("Add New Account")
+                    //Text("Add New Account")
+                    Text(NSLocalizedString("add_new_account", comment: "Add New Account"))
+
                         .font(.title)
                         .bold()
                     Spacer()
@@ -36,13 +38,17 @@ struct AddAccountFormView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 15) {
                         // Account Name
-                        TextField("Account Name", text: $accountName)
+                        //TextField("Account Name", text: $accountName)
+                        TextField(NSLocalizedString("account_name", comment: "Account Name"), text: $accountName)
+
                             .padding()
                             .background(Color(.systemGray6))
                             .cornerRadius(8)
-                            .overlay(RoundedRectangle(cornerRadius: 8).stroke(accountNameError ? Color.red : Color.clear, lineWidth: 1))
+//                            .overlay(RoundedRectangle(cornerRadius: 8).stroke(accountNameError ? Color.red : Color.clear, lineWidth: 1))
                         if accountNameError {
-                            Text("Required field.")
+                            //Text("Required field.")
+                            Text(NSLocalizedString("error_required_field", comment: "Required field"))
+
                                 .font(.footnote)
                                 .foregroundColor(.red)
                         }
@@ -54,8 +60,11 @@ struct AddAccountFormView: View {
                             }
                         }) {
                             HStack {
-                                Text(accountType.isEmpty ? "Select Account Type" : accountType)
+//                                Text(accountType.isEmpty ? "Select Account Type" : accountType)
+//                                    .foregroundColor(accountType.isEmpty ? .gray : .black)
+                                Text(accountType.isEmpty ? NSLocalizedString("select_account_type", comment: "Select Account Type") : accountType)
                                     .foregroundColor(accountType.isEmpty ? .gray : .black)
+
                                 Spacer()
                                 Image(systemName: showAccountTypeDropdown ? "chevron.up" : "chevron.down")
                                     .foregroundColor(.gray)
@@ -63,7 +72,7 @@ struct AddAccountFormView: View {
                             .padding()
                             .background(Color(.systemGray6))
                             .cornerRadius(8)
-                            .overlay(RoundedRectangle(cornerRadius: 8).stroke(accountTypeError ? Color.red : Color.clear, lineWidth: 1))
+//                            .overlay(RoundedRectangle(cornerRadius: 8).stroke(accountTypeError ? Color.red : Color.clear, lineWidth: 1))
                         }
 
                         if showAccountTypeDropdown {
@@ -89,26 +98,34 @@ struct AddAccountFormView: View {
                         }
 
                         if accountTypeError {
-                            Text("Required field.")
+                            //Text("Required field.")
+                            Text(NSLocalizedString("error_required_field", comment: "Required field"))
+
                                 .font(.footnote)
                                 .foregroundColor(.red)
                         }
 
                         // Account Number
-                        TextField("Account Number", text: $accountNumber)
+                        //TextField("Account Number", text: $accountNumber)
+                        TextField(NSLocalizedString("account_number", comment: "Account Name"), text: $accountNumber)
+
                             .padding()
                             .keyboardType(.numberPad)
                             .background(Color(.systemGray6))
                             .cornerRadius(8)
-                            .overlay(RoundedRectangle(cornerRadius: 8).stroke(accountNumberError ? Color.red : Color.clear, lineWidth: 1))
+//                            .overlay(RoundedRectangle(cornerRadius: 8).stroke(accountNumberError ? Color.red : Color.clear, lineWidth: 1))
                         if accountNumberError {
-                            Text("Required field.")
+                            //Text("Required field.")
+                            Text(NSLocalizedString("error_required_field", comment: "Required field"))
+
                                 .font(.footnote)
                                 .foregroundColor(.red)
                         }
 
                         // Balance
-                        TextField("Balance", text: Binding(
+                        //TextField("Balance", text: Binding(
+                        TextField(NSLocalizedString("balance", comment: "Balance"), text: Binding(
+
                             get: { balance },
                             set: { newValue in
                                 balance = formatCurrencyInput(newValue)
@@ -118,9 +135,11 @@ struct AddAccountFormView: View {
                             .keyboardType(.decimalPad)
                             .background(Color(.systemGray6))
                             .cornerRadius(8)
-                            .overlay(RoundedRectangle(cornerRadius: 8).stroke(balanceError ? Color.red : Color.clear, lineWidth: 1))
+//                            .overlay(RoundedRectangle(cornerRadius: 8).stroke(balanceError ? Color.red : Color.clear, lineWidth: 1))
                         if balanceError {
-                            Text("Required field.")
+                            //Text("Required field.")
+                            Text(NSLocalizedString("error_required_field", comment: "Required field"))
+
                                 .font(.footnote)
                                 .foregroundColor(.red)
                         }
@@ -134,7 +153,9 @@ struct AddAccountFormView: View {
                             presentationMode.wrappedValue.dismiss()
                         }
                     }) {
-                        Text("Save Account")
+                        //Text("Save Account")
+                        Text(NSLocalizedString("save_account", comment: "Save Account"))
+
                             .font(.headline)
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity, minHeight: 50)
@@ -173,31 +194,88 @@ struct AddAccountFormView: View {
         return !(accountNameError || accountTypeError || accountNumberError || balanceError)
     }
 
-    // MARK: - API Call
-    func fetchAccountTypes() {
-        //guard let url = URL(string: "https://acceinfoapi-cga0hmcdazb5hjbs.eastus2-01.azurewebsites.net/api/accounts/master")
-        guard let url = URL(string: AppConfig.AccountTypeURL)
-        else { return }
+    // MARK: - API Call before used stored (keychain token)
+//    func fetchAccountTypes() {
+//        //guard let url = URL(string: "https://acceinfoapi-cga0hmcdazb5hjbs.eastus2-01.azurewebsites.net/api/accounts/master")
+//        guard let url = URL(string: AppConfig.AccountTypeURL)
+//        else { return }
+//
+//        URLSession.shared.dataTask(with: url) { data, response, error in
+//            if let data = data {
+//                do {
+//                    let decoded = try JSONDecoder().decode(AccountTypeResponse.self, from: data)
+//                    DispatchQueue.main.async {
+//                        accountTypeOptions = decoded.data.map { AccountTypeOption(id: $0.key, label: $0.value) }
+//                    }
+//                } catch {
+//                    print("Decoding error: \(error)")
+//                }
+//            }
+//        }.resume()
+//    }
+//    
+    //in below code used stored keychain token
 
-        URLSession.shared.dataTask(with: url) { data, response, error in
-            if let data = data {
-                do {
-                    let decoded = try JSONDecoder().decode(AccountTypeResponse.self, from: data)
-                    DispatchQueue.main.async {
-                        accountTypeOptions = decoded.data.map { AccountTypeOption(id: $0.key, label: $0.value) }
+    
+    func fetchAccountTypes() {
+        guard let url = URL(string: AppConfig.AccountTypeURL) else { return }
+        guard let token = getTokenFromKeychain(), !token.isEmpty else {
+            print("Token missing or empty from Keychain")
+            return
+        }
+
+        print("Token used in request: \(token)")
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let httpResponse = response as? HTTPURLResponse {
+                print("Status code: \(httpResponse.statusCode)")
+            }
+
+            if let error = error {
+                print("Network error: \(error.localizedDescription)")
+                return
+            }
+
+            guard let data = data, !data.isEmpty else {
+                print("No data received or empty response body.")
+                return
+            }
+
+            if let raw = String(data: data, encoding: .utf8) {
+                print("Raw Response: \(raw)")
+            }
+
+            do {
+                let decoded = try JSONDecoder().decode(AccountTypeResponse.self, from: data)
+//                DispatchQueue.main.async {
+//                    accountTypeOptions = decoded.data.map { AccountTypeOption(id: $0.key, label: $0.value) }
+//                }
+                
+                DispatchQueue.main.async {
+                    accountTypeOptions = decoded.data.enumerated().map {
+                        AccountTypeOption(id: String($0.offset), label: $0.element)
                     }
-                } catch {
-                    print("Decoding error: \(error)")
                 }
+
+            } catch {
+                print(" Decoding error: \(error)")
             }
         }.resume()
     }
+
+
+
 }
 
 // MARK: - API Models
 struct AccountTypeResponse: Decodable {
     let status: String
-    let data: [String: String]
+    let data: [String]
 }
 
 struct AccountTypeOption: Identifiable {

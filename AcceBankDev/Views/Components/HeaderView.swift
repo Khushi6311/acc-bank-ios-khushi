@@ -1,28 +1,4 @@
-//import SwiftUI
-//
-//struct HeaderView: View {
-//    var body: some View {
-//        ZStack {
-//            Color.white
-//                .frame(height: 90) // set fixed height
-//                .frame(maxWidth: .infinity)
-//                .ignoresSafeArea(edges: .top)
-//
-//            // Properly Scaled and Centered Logo
-//            Image("AppLogo")
-//                .resizable()
-//                .scaledToFit()
-//                .frame(width: 140, height: 35) // Set fixed width & height for consistency
-//        }
-//    }
-//}
-//
-//// MARK: - Preview
-//struct HeaderView_Previews: PreviewProvider {
-//    static var previews: some View {
-//        HeaderView()
-//    }
-//}
+
 import SwiftUI
 
 struct HeaderView: View {

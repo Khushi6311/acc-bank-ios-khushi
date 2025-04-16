@@ -1,6 +1,6 @@
 import SwiftUI
 import Foundation
-
+// to save payee
 struct Payee: Identifiable, Codable ,Equatable{
     let id: String
     let name: String

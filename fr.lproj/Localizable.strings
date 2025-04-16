@@ -306,6 +306,7 @@
 //pay bill screen
 "select_payees_placeholder"="Sélectionnez le bénéficiaire";
 "pay_to"="payer à";
+"select_payee"="Sélectionnez le bénéficiaire";
 
 
 //more option form
@@ -314,3 +315,19 @@
 "yes" = "Oui";
 "cancel" = "Annuler";
 
+//
+"frequency_weekly" = "Hebdomadaire";
+"frequency_monthly" = "Mensuelle";
+"frequency_annual" = "Annuelle";
+
+
+//addaccount file
+"add_new_account" = "Ajouter un nouveau compte";
+"account_name" = "Nom du compte";
+"select_account_type" = "Sélectionnez le type de compte";
+"save_account" = "Enregistrer le compte";
+"account_number"="Numéro de compte";
+
+//OTP screen
+"enter_otp_instruction"="Saisissez l'OTP envoyé sur votre téléphone/e-mail";
+"verify_otp"="Vérifier OTP";

@@ -1,4 +1,5 @@
 import SwiftUI
+import Foundation
 
 enum FieldFocus: Hashable {
     case amount
@@ -382,6 +383,7 @@ struct MyAccountsTransferForm: View {
     @Binding var selectedContact: Contact?                // Add this
     @Binding var showConfirmationSheet: Bool
     @StateObject private var accountManager = AccountManager()
+    @State private var transferToSheetKey = UUID()
 
     var body: some View {
         ScrollViewReader { proxy in
@@ -441,9 +443,13 @@ struct MyAccountsTransferForm: View {
                                         accountManager_to: accountManager,  // Add this
                                         selectedAccount_to: $selectedToAccount,
                                         isPresented_to: $isSendToSheetPresented, // Add this
-                                        excludeAccount: selectedFromAccount // pass the selected from account
+                                        excludeAccount: $selectedFromAccount // pass the selected from account
                     
                                     )
+                                    //.id(selectedFromAccount?.id ?? "default")
+                                    .id(selectedFromAccount?.id ?? UUID())
+
+                                    
                                 }
                  
                     
@@ -729,90 +735,7 @@ struct MyAccountsTransferForm: View {
                         .id("calendarSection")
                     }
 
-//                    if showDatePicker {
-//                                    Color.black.opacity(0.001) // Invisible but tappable
-//                                    .edgesIgnoringSafeArea(.all)
-//                                    .onTapGesture {
-//                                        showDatePicker = false
-//                                    }
-//                        VStack {
-////                            DatePicker("Select Date", selection: Binding(
-////                                get: {
-////                                    if !recurring { return startDate }
-////                                    return isSelectingStartDate ? startDate : endDate
-////                                },
-////                                set: { newValue in
-////                                    if !recurring {
-////                                        startDate = newValue
-////                                        dateText = formatDate(newValue)
-////                                        if let date = dateText, !date.isEmpty {
-////                                            showDateError = false
-////                                        }
-////                                    } else {
-////                                        if isSelectingStartDate {
-////                                            startDate = newValue
-////                                            startDateText = formatDate(newValue)
-////                                        } else {
-////                                            endDate = newValue
-////                                            endDateText = formatDate(newValue)
-////                                        }
-////                                        if let start = startDateText, !start.isEmpty,
-////                                           let end = endDateText, !end.isEmpty {
-////                                            showRecurringDateError = false
-////                                        }
-////                                    }
-////                                    showDatePicker = false
-////                                }
-////                            ), displayedComponents: .date)
-//                            //11 april
-//                            DatePicker(
-//                                "Select Date",
-//                                selection: Binding(
-//                                    get: {
-//                                        if !recurring { return startDate }
-//                                        return isSelectingStartDate ? startDate : endDate
-//                                    },
-//                                    set: { newValue in
-//                                        if !recurring {
-//                                            startDate = newValue
-//                                            dateText = formatDate(newValue)
-//                                            if let date = dateText, !date.isEmpty {
-//                                                showDateError = false
-//                                            }
-//                                        } else {
-//                                            if isSelectingStartDate {
-//                                                startDate = newValue
-//                                                startDateText = formatDate(newValue)
-//                                            } else {
-//                                                endDate = newValue
-//                                                endDateText = formatDate(newValue)
-//                                            }
-//                                            if let start = startDateText, !start.isEmpty,
-//                                               let end = endDateText, !end.isEmpty {
-//                                                showRecurringDateError = false
-//                                            }
-//                                        }
-//                                        showDatePicker = false
-//                                    }
-//                                ),
-//                                in: DateDefaults.minimumDate...,
-////                                in: recurring
-////                                       ? (isSelectingStartDate
-////                                           ? DateDefaults.startDateRange()
-////                                           : DateDefaults.endDateRange(from: startDate))
-////                                       : DateDefaults.startDateRange(),
-//                                displayedComponents: .date
-//                            )
-//
-//                            .datePickerStyle(GraphicalDatePickerStyle())
-//                            .labelsHidden()
-//                            .padding()
-//                            .background(RoundedRectangle(cornerRadius: 10).fill(Color.white).shadow(radius: 5))
-//                        }
-//                        .id("calendarSection") // Important for scrollTo
-//                        
-//                    
-//                }
+
                     // **Memo Field**
                     //TextField("Memo", text: $memo)
                     TextField(NSLocalizedString("memo", comment: "Placeholder for memo field"), text: $memo)
@@ -909,7 +832,7 @@ struct MyAccountsTransferForm: View {
                     startDate = tempStartDate
                     endDate = tempEndDate
                 }
-                .onChange(of: recurring) { _ in
+                .onChange(of: recurring) { oldValue,_ in
                     var tempDateText = dateText
                     var tempStartDateText = startDateText
                     var tempEndDateText = endDateText
@@ -954,7 +877,6 @@ struct MyAccountsTransferForm: View {
     }
 }
 //end
-import Foundation
 
 struct TransferFormValidator {
     static func validate(
@@ -1620,7 +1542,7 @@ struct AnotherMemberTransferForm: View {
             startDate = tempStartDate
             endDate = tempEndDate
         }
-        .onChange(of: recurring) { _ in
+        .onChange(of: recurring) { oldValue,_ in
             var tempDateText = dateText
             var tempStartDateText = startDateText
             var tempEndDateText = endDateText
@@ -2405,8 +2327,8 @@ struct SendToSheet: View {
     @ObservedObject var accountManager_to: AccountManager
     @Binding var selectedAccount_to: BankAccount? // Unique variable for "Send To"
     @Binding var isPresented_to: Bool
-    var excludeAccount: BankAccount? // Add this//
-
+    //var excludeAccount: BankAccount? // Add this//
+    @Binding var excludeAccount: BankAccount?
     @State private var filteredAccounts: [BankAccount] = []
     
     var body: some View {
@@ -2433,50 +2355,53 @@ struct SendToSheet: View {
         }
         .padding()
     }
-
-    /// Extracted Account List.
     private var accountListView: some View {
         ScrollView {
             VStack(spacing: 10) {
-                //tried for from and to
-//                let filteredAccounts = accountManager_to.accounts.filter {
-//                    $0.id != excludeAccount?.id
-////                }
-//                let filteredAccounts = accountManager_to.accounts.filter {
-//                    guard let exclude = excludeAccount else { return true }
-//                    return $0.id != exclude.id
-//                }
-
-//end
-                //26 march
-//                ForEach(filteredAccounts) { account in
-//                                       accountButton(for: account)
-//                                   
-//              
-//
-//                }
-                ForEach(accountManager_to.accounts.filter { $0.id != excludeAccount?.id }) { account in
+                ForEach(filteredAccounts) { account in
                     AccountSelectionButton(title: "", account: .constant(account)) {
                         selectedAccount_to = account
                         isPresented_to = false
                     }
                 }
-                
             }
             .padding()
         }
-//        .onAppear {
-//                    filteredAccounts = accountManager_to.accounts.filter { $0.id != excludeAccount?.id }
-//                }
         .onAppear {
-            
+            print("Excluded: \(excludeAccount?.accountName ?? "none")")
             if let exclude = excludeAccount {
-                    filteredAccounts = accountManager_to.accounts.filter { $0.id != exclude.id }
-                } else {
-                    filteredAccounts = accountManager_to.accounts
-                }
+                filteredAccounts = accountManager_to.accounts.filter { $0.id != exclude.id }
+            } else {
+                filteredAccounts = accountManager_to.accounts
             }
+        }
     }
+
+    /// Extracted Account List.
+//    private var accountListView: some View {
+//        ScrollView {
+//            VStack(spacing: 10) {
+//
+//                ForEach(accountManager_to.accounts.filter { $0.id != excludeAccount?.id }) { account in
+//                    AccountSelectionButton(title: "", account: .constant(account)) {
+//                        selectedAccount_to = account
+//                        isPresented_to = false
+//                    }
+//                }
+//                
+//            }
+//            .padding()
+//        }
+//
+//        .onAppear {
+//            
+//            if let exclude = excludeAccount {
+//                    filteredAccounts = accountManager_to.accounts.filter { $0.id != exclude.id }
+//                } else {
+//                    filteredAccounts = accountManager_to.accounts
+//                }
+//            }
+//    }
 
     /// Extracted Button Component
     private func accountButton(for account: BankAccount) -> some View {

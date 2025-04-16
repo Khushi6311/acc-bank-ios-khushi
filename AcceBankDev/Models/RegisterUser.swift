@@ -5,7 +5,7 @@ struct User: Codable {
     var password: String
 }
 
-
+//user register
 class UserDataManager {
     static let fileName = "users.json"
 

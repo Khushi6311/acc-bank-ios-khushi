@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		00BB82D02DAF89A00065D94B /* KeychainAccess in Frameworks */ = {isa = PBXBuildFile; productRef = 00BB82CF2DAF89A00065D94B /* KeychainAccess */; };
 		00CD9BA02D70973E00B932D6 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 00CD9B9E2D70973E00B932D6 /* Localizable.strings */; };
 		CDE0F6D22D8946F30059ECA9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CDE0F6D12D8946F30059ECA9 /* Assets.xcassets */; };
 		CDE0F6D32D8946F30059ECA9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CDE0F6D12D8946F30059ECA9 /* Assets.xcassets */; };
@@ -62,6 +63,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				00BB82D02DAF89A00065D94B /* KeychainAccess in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -90,6 +92,7 @@
 				003F0DBF2D6373F100EF3FA5 /* AcceBankDev */,
 				003F0DD32D6373F200EF3FA5 /* AcceBankDevTests */,
 				003F0DDD2D6373F200EF3FA5 /* AcceBankDevUITests */,
+				00BB82CE2DAF89A00065D94B /* Frameworks */,
 				003F0DBE2D6373F100EF3FA5 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -102,6 +105,13 @@
 				003F0DDA2D6373F200EF3FA5 /* AcceBankDevUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		00BB82CE2DAF89A00065D94B /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -124,6 +134,7 @@
 			);
 			name = AcceBankDev;
 			packageProductDependencies = (
+				00BB82CF2DAF89A00065D94B /* KeychainAccess */,
 			);
 			productName = AcceBankDev;
 			productReference = 003F0DBD2D6373F100EF3FA5 /* AcceBankDev.app */;
@@ -209,6 +220,7 @@
 			mainGroup = 003F0DB42D6373F100EF3FA5;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				00BB82CD2DAF883D0065D94B /* XCRemoteSwiftPackageReference "KeychainAccess" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 003F0DBE2D6373F100EF3FA5 /* Products */;
@@ -636,6 +648,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		00BB82CD2DAF883D0065D94B /* XCRemoteSwiftPackageReference "KeychainAccess" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/kishikawakatsumi/KeychainAccess";
+			requirement = {
+				branch = master;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		00BB82CF2DAF89A00065D94B /* KeychainAccess */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 00BB82CD2DAF883D0065D94B /* XCRemoteSwiftPackageReference "KeychainAccess" */;
+			productName = KeychainAccess;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 003F0DB52D6373F100EF3FA5 /* Project object */;
 }
