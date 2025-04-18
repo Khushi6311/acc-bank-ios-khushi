@@ -1,5 +1,15 @@
 import SwiftUI
 
+struct OTPVerifyRequest: Codable {
+    let otp: String
+}
+
+struct OTPVerifyResponse: Codable {
+    //let success: Bool
+    let status: String
+
+    let message: String?
+}
 
 struct OTPVerificationView: View {
     let token: String
@@ -81,19 +91,87 @@ struct OTPVerificationView: View {
         }
         //.navigationTitle("OTP Verification")
     }
-
+//function without API
+//    private func verifyOTP() {
+//        guard otp.count == otpLength else {
+//            errorMessage = "Please enter a 6-digit OTP."
+//            return
+//        }
+//
+//        print("Verifying OTP: \(otp) with token: \(token)")
+//
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+//            isVerified = true
+//        }
+//    }
+    
+    //funtion with API
     private func verifyOTP() {
         guard otp.count == otpLength else {
             errorMessage = "Please enter a 6-digit OTP."
             return
         }
 
-        print("Verifying OTP: \(otp) with token: \(token)")
+        print("Verifying OTP: \(otp)")
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-            isVerified = true
+        guard let url = URL(string: AppConfig.OTPVerificationURL) else {
+            errorMessage = "Invalid verification URL"
+            return
         }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let payload = OTPVerifyRequest(otp: otp)
+
+        do {
+            request.httpBody = try JSONEncoder().encode(payload)
+        } catch {
+            errorMessage = "Failed to encode OTP data"
+            return
+        }
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    errorMessage = "Network error: \(error.localizedDescription)"
+                    return
+                }
+
+                guard let data = data else {
+                    errorMessage = "No data received"
+                    return
+                }
+
+                // Debug logs
+                if let httpResponse = response as? HTTPURLResponse {
+                    print("HTTP Status Code: \(httpResponse.statusCode)")
+                }
+                if let raw = String(data: data, encoding: .utf8) {
+                    print(" Raw OTP response: \(raw)")
+                }
+
+                do {
+                    let result = try JSONDecoder().decode(OTPVerifyResponse.self, from: data)
+                    //if result.status {
+                    if result.status.lowercased() == "success" {
+
+                        print("OTP Verified Successfully")
+                        isVerified = true
+                    } else {
+                        errorMessage = result.message ?? "OTP verification failed"
+                        print("OTP verification failed: \(result.message ?? "Unknown error")")
+                    }
+                } catch {
+                    errorMessage = "Invalid server response"
+                    print("JSON decode error: \(error)")
+                }
+            }
+        }.resume()
+
     }
+
 }
 extension String {
     var digits: [String] {

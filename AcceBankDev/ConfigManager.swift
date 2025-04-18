@@ -67,7 +67,10 @@ enum AppConfig {
     static var AccountTypeURL: String {
         return "\(baseURL)/accounts/master"  //this API for showing account list in account creation form
     }
+    static var OTPVerificationURL: String {
+        return "\(baseURL)/auth/otp-verify"  //this API for showing account list in account creation form
+    }
 }
-
+//BASE_URL=https://acceinfoapi-cga0hmcdazb5hjbs.eastus2-01.azurewebsites.net/api
 
 

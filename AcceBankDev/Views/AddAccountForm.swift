@@ -219,7 +219,9 @@ struct AddAccountFormView: View {
     
     func fetchAccountTypes() {
         guard let url = URL(string: AppConfig.AccountTypeURL) else { return }
-        guard let token = getTokenFromKeychain(), !token.isEmpty else {
+        //guard let token = getTokenFromKeychain(), !token.isEmpty else {
+        guard let token = TokenManager.shared.getToken(), !token.isEmpty else {
+
             print("Token missing or empty from Keychain")
             return
         }
@@ -257,9 +259,10 @@ struct AddAccountFormView: View {
 //                }
                 
                 DispatchQueue.main.async {
-                    accountTypeOptions = decoded.data.enumerated().map {
-                        AccountTypeOption(id: String($0.offset), label: $0.element)
+                    accountTypeOptions = decoded.data.map {
+                        AccountTypeOption(id: $0.accountCategoryId, label: $0.name)
                     }
+
                 }
 
             } catch {
@@ -273,9 +276,18 @@ struct AddAccountFormView: View {
 }
 
 // MARK: - API Models
+//struct AccountTypeResponse: Decodable {
+//    let status: String
+//    let data: [String]
+//}
 struct AccountTypeResponse: Decodable {
     let status: String
-    let data: [String]
+    let data: [AccountTypeItem]
+}
+
+struct AccountTypeItem: Decodable {
+    let name: String
+    let accountCategoryId: String
 }
 
 struct AccountTypeOption: Identifiable {

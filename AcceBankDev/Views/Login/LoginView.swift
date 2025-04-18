@@ -1,37 +1,170 @@
 import SwiftUI
 import LocalAuthentication // for Face ID integration
 import KeychainAccess
-let keychain = Keychain(service: "mct.AcceBankDevKhushi") //  bundle identifier
+import Foundation
 
-func saveTokenToKeychain(_ token: String) {
-    keychain["auth_token"] = token
-}
-
-func getTokenFromKeychain() -> String? {
-    return keychain["auth_token"]
-}
-
-//func getTokenFromKeychainIfValid() -> String? {
-//    guard let expiration = UserDefaults.stand,ard.object(forKey: "TokenExpiration") as? Date else {
-//        print("No expiration stored.")
-//        return nil
-//    }
+//let keychain = Keychain(service: "mct.AcceBankDevKhushi") //  bundle identifier
 //
-//    if Date() > expiration {
-//        print("Token expired.")
-//        clearToken()
-//        return nil
-//    }
+//func saveTokenToKeychain(_ token: String) {
+//    keychain["auth_token"] = token
+//}
 //
+//func getTokenFromKeychain() -> String? {
 //    return keychain["auth_token"]
 //}
-//
-//func clearToken() {
-//    try? keychain.remove("auth_token")
-//    UserDefaults.standard.removeObject(forKey: "TokenExpiration")
-//    UserDefaults.standard.removeObject(forKey: "LoggedInContactId") // optional
-//    print("Token and expiration cleared.")
-//}
+
+
+
+class TokenManager {
+    static let shared = TokenManager()
+    private let keychain = Keychain(service: "mct.AcceBankDevKhushi")
+
+    private let tokenKey = "auth_token"
+    private let expirationKey = "TokenExpiration"
+    private let refreshTokenKey = "refresh_token"
+
+
+    private init() {}
+
+    func saveToken(_ token: String, expiresIn minutes: Double = 30) {
+        keychain[tokenKey] = token
+        let expiration = Date().addingTimeInterval(minutes * 60)
+        UserDefaults.standard.set(expiration, forKey: expirationKey)
+    }
+
+    func getToken() -> String? {
+        return keychain[tokenKey]
+    }
+
+    func isTokenExpired() -> Bool {
+        guard let expiration = UserDefaults.standard.object(forKey: expirationKey) as? Date else {
+            return true
+        }
+        return Date() >= expiration
+    }
+    func saveRefreshToken(_ token: String) {
+        keychain[refreshTokenKey] = token
+    }
+
+    func getRefreshToken() -> String? {
+        return keychain[refreshTokenKey]
+    }
+    func clearToken() {
+        try? keychain.remove(tokenKey)
+        UserDefaults.standard.removeObject(forKey: expirationKey)
+    }
+    
+    //for refresh token
+    func refreshAccessToken(completion: @escaping (Bool) -> Void) {
+        guard let refreshToken = getRefreshToken() else {
+            print("No refresh token available.")
+            completion(false)
+            return
+        }
+
+        guard let url = URL(string: AppConfig.loginURL) else {
+            print("Invalid login URL")
+            completion(false)
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+//        let requestBody: [String: Any] = [
+//            "username": "",
+//            "password": "",
+//            "type": "customer",
+//            "refreshToken": refreshToken
+//        ]
+        let savedUsername = UserDefaults.standard.string(forKey: "LoggedInUsername") ?? ""
+        let savedPassword = UserDefaults.standard.string(forKey: "LoggedInPassword") ?? ""
+
+        let requestBody: [String: Any] = [
+            "username": savedUsername,
+            "password": savedPassword,
+            "type": "customer",
+            "refreshToken": refreshToken
+        ]
+
+        request.httpBody = try? JSONSerialization.data(withJSONObject: requestBody)
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    print("Refresh failed: \(error)")
+                    completion(false)
+                    return
+                }
+
+                guard let data = data else {
+                    print("No data in refresh response")
+                    completion(false)
+                    return
+                }
+
+                if let raw = String(data: data, encoding: .utf8) {
+                    print("Raw refresh response: \(raw)")
+                }
+
+                do {
+                    let decoded = try JSONDecoder().decode(LoginResponse.self, from: data)
+
+                    if let newToken = decoded.token {
+                        self.saveToken(newToken)
+                        print("Access token refreshed: \(newToken)")
+                    }
+
+                    if let newRefresh = decoded.refreshToken {
+                        self.saveRefreshToken(newRefresh)
+                        print("Refresh token updated: \(newRefresh)")
+                    }
+
+                    completion(true)
+                } catch {
+                    print("Refresh decoding failed: \(error)")
+                    completion(false)
+                }
+            }
+        }.resume()
+    }
+//2 for refreshing
+    private var refreshTimer: Timer?
+
+    func scheduleAutoRefresh() {
+        refreshTimer?.invalidate() // Cancel any existing timer
+        
+        guard let expiration = UserDefaults.standard.object(forKey: "TokenExpiration") as? Date else {
+            print("No token expiration date found")
+            return
+        }
+
+        let refreshTime = expiration.addingTimeInterval(-27 * 60) // 5 minutes before expiry
+        let interval = refreshTime.timeIntervalSinceNow
+
+        if interval <= 0 {
+            print("Token already expired or about to expire. Refreshing immediately.")
+            refreshAccessToken { _ in }
+            return
+        }
+
+        print("Scheduled token refresh in \(interval) seconds")
+        refreshTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: false) { _ in
+            self.refreshAccessToken { success in
+                if success {
+                    print("Token refreshed via scheduled task")
+                    self.scheduleAutoRefresh() // Reschedule for the new token
+                } else {
+                    print("Failed to refresh token via scheduler")
+                }
+            }
+        }
+    }
+
+}
+
+
 
 
 struct LoginView: View {
@@ -305,7 +438,9 @@ struct LoginView: View {
 //                    MainView()
 //                }
                 .navigationDestination(isPresented: $navigateToOTP) {
-                    OTPVerificationView(token: UserDefaults.standard.string(forKey: "AuthToken") ?? "")
+//                    OTPVerificationView(token: UserDefaults.standard.string(forKey: "AuthToken") ?? "")
+                    OTPVerificationView(token: TokenManager.shared.getToken() ?? "")
+
                 }
 
                 .navigationDestination(isPresented: $navigateToRegister) {
@@ -333,6 +468,9 @@ struct LoginView: View {
 
     //for API
     private func verifyLogin() {
+        UserDefaults.standard.set(username, forKey: "LoggedInUsername")
+        UserDefaults.standard.set(password, forKey: "LoggedInPassword")
+
         guard !username.isEmpty, !password.isEmpty else {
             errorMessage = "Username and Password are required."
             return
@@ -352,8 +490,8 @@ struct LoginView: View {
         let requestBody: [String: Any] = [
             "username": username,
             "password": password,
-            "type": "customer"
-        ]
+            "type": "customer",
+            "refreshToken": ""        ]
         request.httpBody = try? JSONSerialization.data(withJSONObject: requestBody)
 
         URLSession.shared.dataTask(with: request) { data, response, error in
@@ -381,16 +519,17 @@ struct LoginView: View {
                         errorMessage = nil
                         //navigateToOTP = true
                         if let token = decodedResponse.token {
-                            saveTokenToKeychain(token)
+                            TokenManager.shared.saveToken(token)
                             print("Token saved to Keychain: \(token)")
-                            
-                            //expire
-//                                let expirationDate = Date().addingTimeInterval(30 * 60) // 30 minutes
-//                                UserDefaults.standard.set(expirationDate, forKey: "TokenExpiration")
-//                                print(" Expiration saved: \(expirationDate)")
-                        } else {
-                            print("Token missing in response")
+                            TokenManager.shared.scheduleAutoRefresh()
                         }
+
+                        if let refreshToken = decodedResponse.refreshToken {
+                            TokenManager.shared.saveRefreshToken(refreshToken)
+                            print("Refresh Token saved to Keychain: \(refreshToken)")
+                        }
+
+                            
 
 
                         if !UserDefaults.standard.bool(forKey: "FaceIDEnabled") {
@@ -467,6 +606,8 @@ private func changeLanguage(to language: String) {
 struct LoginResponse: Decodable {
     let message: String
     let token: String?
+    let refreshToken: String?
+
 }
 // Preview
 struct LoginView_Previews: PreviewProvider {
