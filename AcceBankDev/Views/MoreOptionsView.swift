@@ -1,42 +1,4 @@
-////
-////  MoreOptionsView.swift
-////  AcceBankDev
-////
-////  Created by MCT on 26/03/25.
-////
-//
-//import SwiftUI
-//
-//struct MoreOptionsView: View {
-//    var body: some View {
-//        NavigationView {
-//            
-//            ZStack {
-//                Constants.backgroundGradient
-//                    .ignoresSafeArea(.all)
-//                
-//                VStack(spacing: 0) {
-//                    HeaderView()
-//                        .zIndex(1)
-//                        .frame(height: 25)
-//                        .background(Color.white)
-//                    
-//                    Spacer().frame(height: 840)
-//                    
-//                    VStack{
-//                        
-//                    }
-//                    
-//                    
-//                }
-//            }
-//        }
-//    }
-//}
-//
-//#Preview {
-//    MoreOptionsView()
-//}
+
 import SwiftUI
 
 struct MoreOptionsView: View {
@@ -117,8 +79,11 @@ struct MoreOptionsView: View {
             
             .alert(NSLocalizedString("logout_confirmation_title", comment: ""), isPresented: $showLogoutConfirmation) {
                 Button(NSLocalizedString("yes", comment: ""), role: .destructive) {
+                    logout()
                     isLoggedOut = true
-                    dismiss()
+                    //dismiss()
+//                    logout() // clear all data
+//                       isLoggedOut = true
                 }
                 Button(NSLocalizedString("cancel", comment: ""), role: .cancel) { }
             }
@@ -131,12 +96,30 @@ struct MoreOptionsView: View {
 //            NavigationLink(destination: LoginView(), isActive: $isLoggedOut) {
 //                EmptyView()
 //            }
-            .navigationDestination(isPresented: $isLoggedOut) {
-                            LoginView()
-                        }
+//            .navigationDestination(isPresented: $isLoggedOut) {
+//                            LoginView()
+//                        }
+            .fullScreenCover(isPresented: $isLoggedOut) {
+                LoginView()
+            }
+
         }
     }
 }
+
+func logout() {
+    // 1. Clear Keychain
+    TokenManager.shared.clearToken()
+
+    // 2. Clear saved credentials from UserDefaults
+    UserDefaults.standard.removeObject(forKey: "LoggedInUsername")
+    UserDefaults.standard.removeObject(forKey: "LoggedInPassword")
+    //UserDefaults.standard.set(false, forKey: "FaceIDEnabled")
+    UserDefaults.standard.set(false, forKey: "HasLoggedInBefore")
+
+    print("All session data cleared")
+}
+
 #Preview {
     MoreOptionsView()
 }

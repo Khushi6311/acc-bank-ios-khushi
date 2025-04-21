@@ -309,3 +309,5 @@
 //OTP screen
 "enter_otp_instruction"="Enter the OTP sent to your phone/email";
 "verify_otp"="Verify OTP";
+
+"amount"="Amount";

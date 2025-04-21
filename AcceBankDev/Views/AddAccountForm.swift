@@ -16,6 +16,7 @@ struct AddAccountFormView: View {
 
     @State private var showAccountTypeDropdown = false
     @State private var accountTypeOptions: [AccountTypeOption] = []
+    @State private var selectedAccountTypeLabel = ""
 
     var body: some View {
         NavigationStack {
@@ -62,7 +63,9 @@ struct AddAccountFormView: View {
                             HStack {
 //                                Text(accountType.isEmpty ? "Select Account Type" : accountType)
 //                                    .foregroundColor(accountType.isEmpty ? .gray : .black)
-                                Text(accountType.isEmpty ? NSLocalizedString("select_account_type", comment: "Select Account Type") : accountType)
+//                                Text(accountType.isEmpty ? NSLocalizedString("select_account_type", comment: "Select Account Type") : accountType)
+                                Text(selectedAccountTypeLabel.isEmpty ? NSLocalizedString("select_account_type", comment: "Select Account Type") : selectedAccountTypeLabel)
+
                                     .foregroundColor(accountType.isEmpty ? .gray : .black)
 
                                 Spacer()
@@ -79,7 +82,10 @@ struct AddAccountFormView: View {
                             VStack(alignment: .leading, spacing: 0) {
                                 ForEach(accountTypeOptions) { option in
                                     Button(action: {
-                                        accountType = option.label
+                                        //accountType = option.label
+                                        accountType = option.id // now the correct ID (GUID) is saved
+                                        selectedAccountTypeLabel = option.label  // Show label to user
+
                                         showAccountTypeDropdown = false
                                         accountTypeError = false
                                     }) {
@@ -124,7 +130,7 @@ struct AddAccountFormView: View {
 
                         // Balance
                         //TextField("Balance", text: Binding(
-                        TextField(NSLocalizedString("balance", comment: "Balance"), text: Binding(
+                        TextField(NSLocalizedString("amount", comment: "Balance"), text: Binding(
 
                             get: { balance },
                             set: { newValue in
@@ -147,11 +153,14 @@ struct AddAccountFormView: View {
                     .padding()
 
                     Button(action: {
+//                        if validateFields() {
+//                            let newAccount = BankAccount(accountName: accountName, accountType: accountType, accountNumber: accountNumber, balance: balance)
+//                            accountManager.addAccount(account: newAccount)
+//                            presentationMode.wrappedValue.dismiss()
+//                        }
                         if validateFields() {
-                            let newAccount = BankAccount(accountName: accountName, accountType: accountType, accountNumber: accountNumber, balance: balance)
-                            accountManager.addAccount(account: newAccount)
-                            presentationMode.wrappedValue.dismiss()
-                        }
+                                submitAccountToServer()
+                            }
                     }) {
                         //Text("Save Account")
                         Text(NSLocalizedString("save_account", comment: "Save Account"))
@@ -184,6 +193,84 @@ struct AddAccountFormView: View {
 
         return "$" + filtered
     }
+    
+    //API use
+    func submitAccountToServer() {
+        guard let url = URL(string: AppConfig.AddAccountURL)
+        else {
+
+            print("Invalid URL")
+            return
+        }
+        
+        print("Final AddAccount URL: \(url)")
+
+
+        guard let token = TokenManager.shared.getToken(), !token.isEmpty else {
+            print("Missing token")
+            return
+        }
+
+        guard let contactId = TokenManager.shared.getContactId(), !contactId.isEmpty else {
+            print("Missing contact ID")
+            return
+        }
+
+        let sanitizedAmount = balance.replacingOccurrences(of: "$", with: "")
+        let amountDouble = Double(sanitizedAmount) ?? 0.0
+
+        let requestBody: [String: Any] = [
+            "contactId": contactId,
+            "accountName": accountName,
+            "accountType": accountType,
+            "amount": amountDouble
+        ]
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.httpBody = try? JSONSerialization.data(withJSONObject: requestBody)
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    print("Error saving account: \(error.localizedDescription)")
+                    return
+                }
+
+                guard let data = data else {
+                    print("No data received from API.")
+                    return
+                }
+
+                do {
+                    let decoded = try JSONDecoder().decode(GenericAPIResponse.self, from: data)
+                    print("Account saved: \(decoded.message)")
+                    presentationMode.wrappedValue.dismiss()
+                } catch {
+                    print("Decoding error: \(error.localizedDescription)")
+                    
+                    if let raw = String(data: data, encoding: .utf8) {
+                        print("Raw Save Account Response: '\(raw)'")
+                    } else {
+                        print("Unable to decode response to string")
+                    }
+
+                    // Fallback: check if it's just a 200 with no content
+                    if let httpResponse = response as? HTTPURLResponse {
+                        print("📡 Status code: \(httpResponse.statusCode)")
+                        if httpResponse.statusCode == 200 {
+                            print("✅ Account saved with 200 OK, but no response body.")
+                            presentationMode.wrappedValue.dismiss()
+                        }
+                    }
+                }
+
+            }
+        }.resume()
+    }
+
 
     private func validateFields() -> Bool {
         accountNameError = accountName.isEmpty
@@ -294,6 +381,14 @@ struct AccountTypeOption: Identifiable {
     let id: String
     let label: String
 }
+
+//
+struct GenericAPIResponse: Decodable {
+    let status: String
+    let message: String
+    let statusCode: Int
+}
+
 
 // MARK: - Preview
 struct AddAccountFormView_Previews: PreviewProvider {

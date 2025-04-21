@@ -331,3 +331,5 @@
 //OTP screen
 "enter_otp_instruction"="Saisissez l'OTP envoyé sur votre téléphone/e-mail";
 "verify_otp"="Vérifier OTP";
+
+"amount"="Montante";

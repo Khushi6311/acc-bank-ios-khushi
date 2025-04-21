@@ -2,6 +2,7 @@ import SwiftUI
 
 struct OTPVerifyRequest: Codable {
     let otp: String
+    let token: String
 }
 
 struct OTPVerifyResponse: Codable {
@@ -122,11 +123,35 @@ struct OTPVerificationView: View {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization") // Add this for pass bearer token
+        //print("Request: \(request)")//pass bearer token
 
-        let payload = OTPVerifyRequest(otp: otp)
+        print("Bearer Token: \(token)")//pass bearer token
+
+        //let payload = OTPVerifyRequest(otp: otp)
+//        let payload = OTPVerifyRequest(otp: otp, token: token)
+//
+//
+//        do {
+//            request.httpBody = try JSONEncoder().encode(payload)
+//            //for token
+//            if let jsonString = String(data: request.httpBody!, encoding: .utf8) {
+//                    print("Request Body:\n\(jsonString)") // optional: print body too
+//                }
+//        } catch {
+//            errorMessage = "Failed to encode OTP data"
+//            return
+//        }
+        let payload: [String: Any] = [
+            "otp": otp,
+            "token": token
+        ]
 
         do {
-            request.httpBody = try JSONEncoder().encode(payload)
+            request.httpBody = try JSONSerialization.data(withJSONObject: payload, options: [])
+            if let jsonString = String(data: request.httpBody!, encoding: .utf8) {
+                print("Request Body:\n\(jsonString)")
+            }
         } catch {
             errorMessage = "Failed to encode OTP data"
             return
@@ -152,21 +177,39 @@ struct OTPVerificationView: View {
                     print(" Raw OTP response: \(raw)")
                 }
 
+//                do {
+//                    let result = try JSONDecoder().decode(OTPVerifyResponse.self, from: data)
+//                    //if result.status {
+//                    if result.status.lowercased() == "success" {
+//
+//                        print("OTP Verified Successfully")
+//                        isVerified = true
+//                    } else {
+//                        errorMessage = result.message ?? "OTP verification failed"
+//                        print("OTP verification failed: \(result.message ?? "Unknown error")")
+//                    }
+//                } catch {
+//                    errorMessage = "Invalid server response"
+//                    print("JSON decode error: \(error)")
+//                }
+                
                 do {
-                    let result = try JSONDecoder().decode(OTPVerifyResponse.self, from: data)
-                    //if result.status {
-                    if result.status.lowercased() == "success" {
+                    if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                        print("Parsed response JSON: \(json)")
 
-                        print("OTP Verified Successfully")
-                        isVerified = true
+                        if let status = json["status"] as? String, status.lowercased() == "success" {
+                            isVerified = true
+                        } else {
+                            errorMessage = json["message"] as? String ?? "OTP verification failed"
+                        }
                     } else {
-                        errorMessage = result.message ?? "OTP verification failed"
-                        print("OTP verification failed: \(result.message ?? "Unknown error")")
+                        errorMessage = "Unexpected response format"
                     }
                 } catch {
-                    errorMessage = "Invalid server response"
-                    print("JSON decode error: \(error)")
+                    errorMessage = "Failed to parse response"
+                    print("Parsing error: \(error.localizedDescription)")
                 }
+
             }
         }.resume()
 

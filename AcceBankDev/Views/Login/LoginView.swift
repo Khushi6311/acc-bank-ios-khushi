@@ -3,7 +3,7 @@ import LocalAuthentication // for Face ID integration
 import KeychainAccess
 import Foundation
 
-//let keychain = Keychain(service: "mct.AcceBankDevKhushi") //  bundle identifier
+//let keychain = Keychain(service: "mct.AcceBankDevKhushi") //bundle identifier
 //
 //func saveTokenToKeychain(_ token: String) {
 //    keychain["auth_token"] = token
@@ -22,9 +22,20 @@ class TokenManager {
     private let tokenKey = "auth_token"
     private let expirationKey = "TokenExpiration"
     private let refreshTokenKey = "refresh_token"
+    private let contactIdKey = "contact_id"
+
 
 
     private init() {}
+    
+    //contact
+    func saveContactId(_ contactId: String) {
+        keychain[contactIdKey] = contactId
+    }
+
+    func getContactId() -> String? {
+        return keychain[contactIdKey]
+    }
 
     func saveToken(_ token: String, expiresIn minutes: Double = 30) {
         keychain[tokenKey] = token
@@ -49,12 +60,19 @@ class TokenManager {
     func getRefreshToken() -> String? {
         return keychain[refreshTokenKey]
     }
+//    func clearToken() {
+//        try? keychain.remove(tokenKey)
+//        UserDefaults.standard.removeObject(forKey: expirationKey)
+//    }
     func clearToken() {
         try? keychain.remove(tokenKey)
+        try? keychain.remove(contactIdKey)
         UserDefaults.standard.removeObject(forKey: expirationKey)
     }
+
     
     //for refresh token
+    // Inside TokenManager
     func refreshAccessToken(completion: @escaping (Bool) -> Void) {
         guard let refreshToken = getRefreshToken() else {
             print("No refresh token available.")
@@ -68,16 +86,6 @@ class TokenManager {
             return
         }
 
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-//        let requestBody: [String: Any] = [
-//            "username": "",
-//            "password": "",
-//            "type": "customer",
-//            "refreshToken": refreshToken
-//        ]
         let savedUsername = UserDefaults.standard.string(forKey: "LoggedInUsername") ?? ""
         let savedPassword = UserDefaults.standard.string(forKey: "LoggedInPassword") ?? ""
 
@@ -87,6 +95,22 @@ class TokenManager {
             "type": "customer",
             "refreshToken": refreshToken
         ]
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        // Add Authorization header with stored access token
+        if let accessToken = getToken() {
+            request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+            print("🛡️ Authorization Header: Bearer \(accessToken)")
+        }
+
+        // Log full request body
+        if let jsonData = try? JSONSerialization.data(withJSONObject: requestBody, options: .prettyPrinted),
+           let jsonString = String(data: jsonData, encoding: .utf8) {
+            print("\nRefresh Token Request Body:\n\(jsonString)")
+        }
 
         request.httpBody = try? JSONSerialization.data(withJSONObject: requestBody)
 
@@ -105,7 +129,7 @@ class TokenManager {
                 }
 
                 if let raw = String(data: data, encoding: .utf8) {
-                    print("Raw refresh response: \(raw)")
+                    print("\nRaw refresh response: \(raw)")
                 }
 
                 do {
@@ -129,6 +153,7 @@ class TokenManager {
             }
         }.resume()
     }
+
 //2 for refreshing
     private var refreshTimer: Timer?
 
@@ -184,7 +209,8 @@ struct LoginView: View {
     @State private var isPasswordHidden: Bool = true // Default to hidden
     @State private var navigateToOTP = false
 
-    
+    @State private var isFaceIDLogin = false
+
 
     //private let correctPassword = "123456" // Static password for demo
     
@@ -428,6 +454,8 @@ struct LoginView: View {
                             } else {
                                 checkIfReturningUser()
                             }
+
+
                         }
                     }
                 .ignoresSafeArea(.keyboard) // This keeps Face ID button from moving
@@ -464,19 +492,100 @@ struct LoginView: View {
                     )
                 }
             }
-    
+    //for face id
+    private func authenticateWithSavedCredentials(username: String, password: String) {
+        guard let url = URL(string: AppConfig.loginURL) else {
+            errorMessage = "Invalid API URL."
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let requestBody: [String: Any] = [
+            "username": username,
+            "password": password,
+            "type": "customer",
+            "refreshToken": ""
+        ]
+
+        if let jsonData = try? JSONSerialization.data(withJSONObject: requestBody, options: .prettyPrinted),
+           let jsonString = String(data: jsonData, encoding: .utf8) {
+            print("📦 Face ID Login Request:\n\(jsonString)")
+        }
+
+        request.httpBody = try? JSONSerialization.data(withJSONObject: requestBody)
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    errorMessage = "Network error: \(error.localizedDescription)"
+                    return
+                }
+
+                guard let data = data else {
+                    errorMessage = "No data received."
+                    return
+                }
+
+                if let raw = String(data: data, encoding: .utf8) {
+                    print("Face ID Login Response: \(raw)")
+                }
+
+                do {
+                    if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                        let message = (json["message"] as? String ?? "").lowercased()
+                        let token = json["token"] as? String
+                        let refreshToken = json["refreshToken"] as? String
+                        let contactId = json["contactId"] as? String
+
+                        if message.contains("success") {
+                            if let token = token {
+                                TokenManager.shared.saveToken(token)
+                                TokenManager.shared.scheduleAutoRefresh()
+                            }
+
+                            if let refreshToken = refreshToken {
+                                TokenManager.shared.saveRefreshToken(refreshToken)
+                            }
+
+                            if let contactId = contactId {
+                                TokenManager.shared.saveContactId(contactId)
+                            }
+
+                            let faceIDAlreadyEnabled = UserDefaults.standard.bool(forKey: "FaceIDEnabled")
+                            if !faceIDAlreadyEnabled {
+                                showFaceIDPrompt = true
+                                return
+                            }
+
+                            if isFaceIDLogin {
+                                navigateToWelcome = true
+                            } else {
+                                navigateToOTP = true
+                            }
+                        } else {
+                            errorMessage = "Face ID login failed: \(json["message"] as? String ?? "Unknown error")"
+                        }
+                    } else {
+                        errorMessage = "Invalid response format from server"
+                    }
+                } catch {
+                    errorMessage = "Face ID login failed: \(error.localizedDescription)"
+                }
+            }
+        }.resume()
+    }
+
+
 
     //for API
     private func verifyLogin() {
-        UserDefaults.standard.set(username, forKey: "LoggedInUsername")
-        UserDefaults.standard.set(password, forKey: "LoggedInPassword")
-
         guard !username.isEmpty, !password.isEmpty else {
             errorMessage = "Username and Password are required."
             return
         }
-
-        print("Login URL: \(AppConfig.loginURL)")
 
         guard let url = URL(string: AppConfig.loginURL) else {
             errorMessage = "Invalid API URL."
@@ -491,7 +600,14 @@ struct LoginView: View {
             "username": username,
             "password": password,
             "type": "customer",
-            "refreshToken": ""        ]
+            "refreshToken": ""
+        ]
+
+        if let jsonData = try? JSONSerialization.data(withJSONObject: requestBody, options: .prettyPrinted),
+           let jsonString = String(data: jsonData, encoding: .utf8) {
+            print("📦 Request Body:\n\(jsonString)")
+        }
+
         request.httpBody = try? JSONSerialization.data(withJSONObject: requestBody)
 
         URLSession.shared.dataTask(with: request) { data, response, error in
@@ -511,36 +627,41 @@ struct LoginView: View {
                 }
 
                 do {
-                    let decodedResponse = try JSONDecoder().decode(LoginResponse.self, from: data)
-                    let message = decodedResponse.message.lowercased()
+                    if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                        let message = (json["message"] as? String ?? "").lowercased()
+                        let token = json["token"] as? String
+                        let refreshToken = json["refreshToken"] as? String
+                        let contactId = json["contactId"] as? String
 
-                    if message.contains("success") {
-                        saveUsernameIfNew()
-                        errorMessage = nil
-                        //navigateToOTP = true
-                        if let token = decodedResponse.token {
-                            TokenManager.shared.saveToken(token)
-                            print("Token saved to Keychain: \(token)")
-                            TokenManager.shared.scheduleAutoRefresh()
-                        }
+                        if message.contains("success") {
+                            UserDefaults.standard.set(username, forKey: "LoggedInUsername")
+                            UserDefaults.standard.set(password, forKey: "LoggedInPassword")
+                            saveUsernameIfNew()
+                            errorMessage = nil
 
-                        if let refreshToken = decodedResponse.refreshToken {
-                            TokenManager.shared.saveRefreshToken(refreshToken)
-                            print("Refresh Token saved to Keychain: \(refreshToken)")
-                        }
+                            if let token = token {
+                                TokenManager.shared.saveToken(token)
+                                TokenManager.shared.scheduleAutoRefresh()
+                            }
 
-                            
+                            if let refreshToken = refreshToken {
+                                TokenManager.shared.saveRefreshToken(refreshToken)
+                            }
 
+                            if let contactId = contactId {
+                                TokenManager.shared.saveContactId(contactId)
+                            }
 
-                        if !UserDefaults.standard.bool(forKey: "FaceIDEnabled") {
-                            showFaceIDPrompt = true
+                            if !UserDefaults.standard.bool(forKey: "FaceIDEnabled") {
+                                showFaceIDPrompt = true
+                            } else {
+                                navigateToOTP = true
+                            }
                         } else {
-                            //navigateToWelcome = true
-                            navigateToOTP = true
-
+                            errorMessage = "Login failed: \(json["message"] as? String ?? "Unknown error")"
                         }
                     } else {
-                        errorMessage = "Login failed: \(decodedResponse.message)"
+                        errorMessage = "Invalid server response format."
                     }
                 } catch {
                     errorMessage = "Failed to decode response: \(error.localizedDescription)"
@@ -576,10 +697,20 @@ struct LoginView: View {
             context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: "Enable Face ID for future logins") { success, authenticationError in
                 DispatchQueue.main.async {
                     if success {
-                        print("Face ID successfully set up!")
-                        UserDefaults.standard.set(true, forKey: "FaceIDEnabled") //  Enable Face ID
+                        let storedUsername = UserDefaults.standard.string(forKey: "LoggedInUsername") ?? ""
+
+                        // If UI username doesn't match stored one, block Face ID login
+                        if username != storedUsername {
+                            errorMessage = "Entered username doesn't match saved Face ID login."
+                            return
+                        }
+
+                        let storedPassword = UserDefaults.standard.string(forKey: "LoggedInPassword") ?? ""
+                        isFaceIDLogin = true
+                        UserDefaults.standard.set(true, forKey: "FaceIDEnabled")
                         showFaceIDButton = true
-                        navigateToWelcome = true
+
+                        authenticateWithSavedCredentials(username: storedUsername, password: storedPassword)
                     } else {
                         errorMessage = "Face ID setup failed. Please try again."
                     }
@@ -589,6 +720,7 @@ struct LoginView: View {
             errorMessage = "Face ID is not available on this device."
         }
     }
+
 
 
 }
@@ -607,7 +739,7 @@ struct LoginResponse: Decodable {
     let message: String
     let token: String?
     let refreshToken: String?
-
+    let contactId: String?
 }
 // Preview
 struct LoginView_Previews: PreviewProvider {
