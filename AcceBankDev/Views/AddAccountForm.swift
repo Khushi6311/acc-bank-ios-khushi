@@ -259,9 +259,9 @@ struct AddAccountFormView: View {
 
                     // Fallback: check if it's just a 200 with no content
                     if let httpResponse = response as? HTTPURLResponse {
-                        print("📡 Status code: \(httpResponse.statusCode)")
+                        print("Status code: \(httpResponse.statusCode)")
                         if httpResponse.statusCode == 200 {
-                            print("✅ Account saved with 200 OK, but no response body.")
+                            print("Account saved with 200 OK, but no response body.")
                             presentationMode.wrappedValue.dismiss()
                         }
                     }

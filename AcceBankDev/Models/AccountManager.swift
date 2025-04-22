@@ -3,22 +3,82 @@
 import Foundation
 
 // Define the BankAccount Model
+//struct BankAccount: Identifiable, Codable, Equatable {
+//    var id = UUID()
+//    var accountName: String  //  No Fee
+//    var accountType: String  // Chequing
+//    var accountNumber: String // 100108226953
+//    var balance: String       // $51,494.78
+////    var id: String { accountId }
+////
+////        let accountId: String
+////        let accountNumber: String
+////        let accountCategoryName: String
+////        let accountCategoryId: String
+////        let balance: Double
+// 
+//      
+//    
+//
+//    
+//    // Define equality check
+//    static func == (lhs: BankAccount, rhs: BankAccount) -> Bool {
+//        return lhs.id == rhs.id // Compare by unique ID
+//    }
+//}
+
+
+
 struct BankAccount: Identifiable, Codable, Equatable {
     var id = UUID()
-    var accountName: String  //  No Fee
-    var accountType: String  // Chequing
-    var accountNumber: String // 100108226953
-    var balance: String       // $51,494.78
-    
-    
-    // Define equality check
+    var accountName: String
+    var accountType: String
+    var accountNumber: String
+    var balance: String
+
+    enum CodingKeys: String, CodingKey {
+        case accountId
+        case accountNumber
+        case accountCategoryName
+        case accountCategoryId
+        case balance
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        let accountTypeRaw = try container.decode(String.self, forKey: .accountCategoryName)
+        accountType = accountTypeRaw
+        accountName = accountTypeRaw
+
+        accountNumber = try container.decode(String.self, forKey: .accountNumber)
+
+        let doubleBalance = try container.decode(Double.self, forKey: .balance)
+        balance = "$\(String(format: "%.2f", doubleBalance))"
+    }
+
+    // If you ever want to encode back to JSON
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+
+        try container.encode(accountNumber, forKey: .accountNumber)
+        try container.encode(accountType, forKey: .accountCategoryName)
+
+        let doubleBalance = Double(balance.replacingOccurrences(of: "$", with: "").replacingOccurrences(of: ",", with: "")) ?? 0.0
+        try container.encode(doubleBalance, forKey: .balance)
+    }
+
+    init(accountName: String, accountType: String, accountNumber: String, balance: String) {
+        self.accountName = accountName
+        self.accountType = accountType
+        self.accountNumber = accountNumber
+        self.balance = balance
+    }
+
     static func == (lhs: BankAccount, rhs: BankAccount) -> Bool {
-        return lhs.id == rhs.id // Compare by unique ID
+        lhs.id == rhs.id
     }
 }
-
-
-
 
 
 
@@ -88,6 +148,46 @@ class AccountManager: ObservableObject {
             print("Error creating JSON file: \(error)")
         }
     }
+//    func createJSONFile() {
+//        let defaultAccounts: [BankAccount] = [
+//            BankAccount(
+//                accountId: UUID().uuidString,
+//                accountNumber: "10125599631",
+//                accountType: "Chequing",
+//                accountCategoryId: UUID().uuidString,
+//                balance: 51494.78
+//            ),
+//            BankAccount(
+//                accountId: UUID().uuidString,
+//                accountNumber: "10125599632",
+//                accountType: "Savings",
+//                accountCategoryId: UUID().uuidString,
+//                balance: 25234.67
+//            ),
+//            BankAccount(
+//                accountId: UUID().uuidString,
+//                accountNumber: "10125599633",
+//                accountType: "Business",
+//                accountCategoryId: UUID().uuidString,
+//                balance: 10000.00
+//            )
+//        ]
+//
+//        let encoder = JSONEncoder()
+//        encoder.outputFormatting = .prettyPrinted
+//
+//        do {
+//            let jsonData = try encoder.encode(defaultAccounts)
+//            if let fileURL = getJSONFileURL() {
+//                try jsonData.write(to: fileURL, options: .atomic)
+//                print("New JSON File Created at: \(fileURL.path)")
+//            }
+//            self.accounts = defaultAccounts
+//            self.selectedAccount = defaultAccounts.first
+//        } catch {
+//            print("Error creating JSON file: \(error)")
+//        }
+//    }
 
     // Function to Add a New Account to JSON
     func addAccount(account: BankAccount) {

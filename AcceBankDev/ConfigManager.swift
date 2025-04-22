@@ -61,18 +61,23 @@ enum AppConfig {
     }
 
     static var loginURL: String {
-        return "\(baseURL)/auth/login" //this API is for login
+        return "\(baseURL)/auth/login" //this API is for login -post
     }
     
     static var AccountTypeURL: String {
-        return "\(baseURL)/accounts/master"  //this API for showing account list in account creation form
+        return "\(baseURL)/accounts/master"  //this API for showing account list in account creation form-post
     }
     static var OTPVerificationURL: String {
-        return "\(baseURL)/auth/otp-verify"  //this API for showing account list in account creation form
+        return "\(baseURL)/auth/otp-verify"  //this API for showing account list in account creation form-post
     }
     static var AddAccountURL: String {
-        return "\(baseURL)/accounts/add"  //this API for showing account list in account creation form
+        return "\(baseURL)/accounts/add"  //this API for showing account list in account creation form-post
     }
+    
+    
+    static func GetAccountsURL(for contactId: String) -> String {
+            return "\(baseURL)/accounts/cust-account?ContactId=\(contactId)"
+        }
 }
 //BASE_URL=https://acceinfoapi-cga0hmcdazb5hjbs.eastus2-01.azurewebsites.net/api
 
