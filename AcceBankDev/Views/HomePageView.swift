@@ -6,65 +6,77 @@ struct HomePageView: View {
     @State private var bankAccounts: [BankAccount] = []
     @State private var selectedAccount: BankAccount?
     let cardImages = ["Card", "Card2", "Card3"]
+    @State private var showHistory = false
+    @State private var selectedAccountForHistory: BankAccount? = nil
 
     var body: some View {
-        GeometryReader { geometry in
-            ZStack {
-                LinearGradient(
-                    gradient: Gradient(colors: [Color.colorTeal, Color.colorBlue]),
-                    startPoint: .leading,
-                    endPoint: .trailing
-                )
-                .edgesIgnoringSafeArea(.all)
-
-                VStack(spacing: 0) {
-                    HeaderView()
-                        .zIndex(1)
-                        .frame(height: 25)
-                        .background(Color.white)
-
-                    Spacer().frame(height: 60)
-
-                    Image("profilePic")
-                        .resizable()
-                        .frame(width: geometry.size.width * 0.18, height: geometry.size.width * 0.18)
-                        .clipShape(Circle())
-                        .padding(.top, -geometry.size.height * 0.05)
-
-                    VStack(spacing: 1) {
-                        Text(String(format: NSLocalizedString("welcome_text", comment: ""), username))
-                            .font(.system(size: 18, weight: .bold))
-                            .foregroundColor(.white)
-
-                        Text(NSLocalizedString("bank_name", comment: ""))
-                            .font(.system(size: 22, weight: .bold))
-                            .foregroundColor(.white)
-
-                        Text(getGreeting())
-                            .font(.system(size: 22, weight: .bold))
-                            .foregroundColor(.white)
+        NavigationView{
+            GeometryReader { geometry in
+                ZStack {
+                    LinearGradient(
+                        gradient: Gradient(colors: [Color.colorTeal, Color.colorBlue]),
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                    .edgesIgnoringSafeArea(.all)
+                    
+                    VStack(spacing: 0) {
+                        HeaderView()
+                            .zIndex(1)
+                            .frame(height: 25)
+                            .background(Color.white)
+                        
+                        Spacer().frame(height: 60)
+                        
+                        Image("profilePic")
+                            .resizable()
+                            .frame(width: geometry.size.width * 0.18, height: geometry.size.width * 0.18)
+                            .clipShape(Circle())
+                            .padding(.top, -geometry.size.height * 0.05)
+                        
+                        VStack(spacing: 1) {
+                            Text(String(format: NSLocalizedString("welcome_text", comment: ""), username))
+                                .font(.system(size: 18, weight: .bold))
+                                .foregroundColor(.white)
+                            
+                            Text(NSLocalizedString("bank_name", comment: ""))
+                                .font(.system(size: 22, weight: .bold))
+                                .foregroundColor(.white)
+                            
+                            Text(getGreeting())
+                                .font(.system(size: 22, weight: .bold))
+                                .foregroundColor(.white)
+                        }
+                        .padding(.top, 20)
+                        
+                        HStack {
+                            RoundedRectangle(cornerRadius: 20)
+                                .fill(Color.white)
+                                .frame(width: geometry.size.width * 0.95, height: geometry.size.height * 0.55)
+                                .overlay(
+                                    VStack(spacing: 15) {
+                                        accountTabsView
+                                        accountCardView
+                                    }
+                                )
+                        }
+                        .padding(.top, 20)
+                        .animation(.easeInOut(duration: 0.3), value: selectedAccount)
+                        
+                        NavigationLink(
+                            destination: HistoryView(account: selectedAccountForHistory),
+                            isActive: $showHistory
+                        ) {
+                            EmptyView()
+                        }
+                        .hidden()
+                        
+                        Spacer()
                     }
-                    .padding(.top, 20)
-
-                    HStack {
-                        RoundedRectangle(cornerRadius: 20)
-                            .fill(Color.white)
-                            .frame(width: geometry.size.width * 0.95, height: geometry.size.height * 0.55)
-                            .overlay(
-                                VStack(spacing: 15) {
-                                    accountTabsView
-                                    accountCardView
-                                }
-                            )
-                    }
-                    .padding(.top, 20)
-                    .animation(.easeInOut(duration: 0.3), value: selectedAccount)
-
-                    Spacer()
                 }
-            }
-            .onAppear {
-                fetchAccounts()
+                .onAppear {
+                    fetchAccounts()
+                }
             }
         }
     }
@@ -129,6 +141,13 @@ struct HomePageView: View {
                 //  Try decoding
                 let response = try JSONDecoder().decode(BankAccountAPIResponse.self, from: data)
                 let accounts = response.data
+                
+                //store
+//                if let encoded = try? JSONEncoder().encode(accounts) {
+//                    KeychainHelper.save(data: encoded, forKey: "bankAccounts")
+//                    print("Stored bank accounts in Keychain under key: 'bankAccounts'")
+//                     //  }
+//                }
                 DispatchQueue.main.async {
                     self.bankAccounts = accounts
                     self.selectedAccount = accounts.first
@@ -139,41 +158,84 @@ struct HomePageView: View {
         }.resume()
     }
 
+  
+
+    struct KeychainHelper {
+        static func save(data: Data, forKey key: String) {
+            let query: [String: Any] = [
+                kSecClass as String:            kSecClassGenericPassword,
+                kSecAttrAccount as String:      key,
+                kSecValueData as String:        data,
+                kSecAttrAccessible as String:   kSecAttrAccessibleWhenUnlocked
+            ]
+
+            SecItemDelete(query as CFDictionary) // Delete existing
+            SecItemAdd(query as CFDictionary, nil)
+        }
+
+        static func load(forKey key: String) -> Data? {
+            let query: [String: Any] = [
+                kSecClass as String:            kSecClassGenericPassword,
+                kSecAttrAccount as String:      key,
+                kSecReturnData as String:       true,
+                kSecMatchLimit as String:       kSecMatchLimitOne
+            ]
+
+            var dataTypeRef: AnyObject?
+            let status = SecItemCopyMatching(query as CFDictionary, &dataTypeRef)
+
+            if status == errSecSuccess {
+                return dataTypeRef as? Data
+            }
+            return nil
+        }
+    }
 
     // MARK: - ViewBuilder Subviews
 
     var accountTabsView: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 12) {
-                ForEach(bankAccounts) { account in
-                    AccountListView(
-                        icon: "banknote.fill",
-                        title: account.accountType,
-                        //title: account.accountCategoryName,
-
-                        number: "(\(account.accountNumber))",
-                        amount: account.balance,
-                        //amount: "$ \(String(format: "%.2f", account.balance))",
-
-                        isSelected: selectedAccount?.id == account.id
-                    )
-                    .onTapGesture {
-                        withAnimation {
-                            selectedAccount = account
+        ScrollView(.horizontal, showsIndicators: false){
+            //VStack(spacing:100){
+                HStack(spacing: 10) {
+                    ForEach(bankAccounts) { account in
+                        AccountListView(
+                            icon: "banknote.fill",
+                            title: account.accountType,
+                            //title: account.accountCategoryName,
+                            
+                            number: "(\(account.accountNumber))",
+                            amount: account.balance,
+                            //amount: "$ \(String(format: "%.2f", account.balance))",
+                            
+                            isSelected: selectedAccount?.id == account.id,
+                            onViewDetails: {
+                                selectedAccountForHistory = account
+                                showHistory = true
+                            }
+                        )
+                        .onTapGesture {
+                            withAnimation {
+                                selectedAccount = account
+                            }
                         }
+                        
+                        Divider()
+                            .frame(width: 1, height: 40)
+                            .background(Color.black.opacity(0.5))
                     }
-
-                    Divider()
-                        .frame(width: 1, height: 40)
-                        .background(Color.black.opacity(0.5))
                 }
-            }
+            //}
             .padding(.horizontal, 20)
-            .frame(minWidth: 700)
+            //.frame(minWidth: 700)
         }
+        
+      
         .frame(height: 120)
         .frame(maxWidth: .infinity)
-        .padding(.top, -50)
+        //.padding(.top, -50)
+        //.zIndex(1)
+        
+        
     }
 
     @ViewBuilder
@@ -236,8 +298,8 @@ struct AccountListView: View {
     var number: String
     var amount: String
     var isSelected: Bool
-    
-    //for different icons 
+    var onViewDetails: () -> Void
+    //for different icons
     var resolvedIcon: String {
         switch title.lowercased() {
         case let text where text.contains("loan"):
@@ -299,6 +361,19 @@ struct AccountListView: View {
                 .font(.headline)
                 .fontWeight(.bold)
                 .foregroundColor(.black)
+            
+            Button(action: {
+                onViewDetails()
+
+                            print("View Details tapped for \(title)")
+                            // Add your navigation or action here
+                        }) {
+                            Text("View Details")
+                                .font(.caption)
+                                .foregroundColor(Color.colorBlue)
+                                .underline()
+                        }
+                        .padding(.bottom, 20)
         }
         .padding(.vertical)
         .frame(width: 140)

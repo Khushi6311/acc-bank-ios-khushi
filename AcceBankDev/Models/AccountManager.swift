@@ -27,10 +27,10 @@ import Foundation
 //    }
 //}
 
-
-
 struct BankAccount: Identifiable, Codable, Equatable {
-    var id = UUID()
+    let accountId: String   // Original casing preserved
+    var id: UUID { UUID(uuidString: accountId) ?? UUID() } // For Identifiable
+
     var accountName: String
     var accountType: String
     var accountNumber: String
@@ -42,33 +42,35 @@ struct BankAccount: Identifiable, Codable, Equatable {
         case accountCategoryName
         case accountCategoryId
         case balance
+        case accountName
     }
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.accountId = try container.decode(String.self, forKey: .accountId) // Keep exact case
 
-        let accountTypeRaw = try container.decode(String.self, forKey: .accountCategoryName)
-        accountType = accountTypeRaw
-        accountName = accountTypeRaw
-
+        accountType = try container.decode(String.self, forKey: .accountCategoryName)
+        accountName = try container.decode(String.self, forKey: .accountName)
         accountNumber = try container.decode(String.self, forKey: .accountNumber)
 
         let doubleBalance = try container.decode(Double.self, forKey: .balance)
         balance = "$\(String(format: "%.2f", doubleBalance))"
     }
 
-    // If you ever want to encode back to JSON
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
 
+        try container.encode(accountId, forKey: .accountId) // Encode exactly as-is
         try container.encode(accountNumber, forKey: .accountNumber)
         try container.encode(accountType, forKey: .accountCategoryName)
+        try container.encode(accountName, forKey: .accountName)
 
         let doubleBalance = Double(balance.replacingOccurrences(of: "$", with: "").replacingOccurrences(of: ",", with: "")) ?? 0.0
         try container.encode(doubleBalance, forKey: .balance)
     }
 
-    init(accountName: String, accountType: String, accountNumber: String, balance: String) {
+    init(accountId: String, accountName: String, accountType: String, accountNumber: String, balance: String) {
+        self.accountId = accountId
         self.accountName = accountName
         self.accountType = accountType
         self.accountNumber = accountNumber
@@ -76,9 +78,62 @@ struct BankAccount: Identifiable, Codable, Equatable {
     }
 
     static func == (lhs: BankAccount, rhs: BankAccount) -> Bool {
-        lhs.id == rhs.id
+        lhs.accountId.lowercased() == rhs.accountId.lowercased()
     }
 }
+
+
+//struct BankAccount: Identifiable, Codable, Equatable {
+//    var id = UUID()
+//    
+//    var accountName: String
+//    var accountType: String
+//    var accountNumber: String
+//    var balance: String
+//
+//    enum CodingKeys: String, CodingKey {
+//        case accountId
+//        case accountNumber
+//        case accountCategoryName
+//        case accountCategoryId
+//        case balance
+//    }
+//
+//    init(from decoder: Decoder) throws {
+//        let container = try decoder.container(keyedBy: CodingKeys.self)
+//
+//        let accountTypeRaw = try container.decode(String.self, forKey: .accountCategoryName)
+//        accountType = accountTypeRaw
+//        accountName = accountTypeRaw
+//
+//        accountNumber = try container.decode(String.self, forKey: .accountNumber)
+//
+//        let doubleBalance = try container.decode(Double.self, forKey: .balance)
+//        balance = "$\(String(format: "%.2f", doubleBalance))"
+//    }
+//
+//    // If you ever want to encode back to JSON
+//    func encode(to encoder: Encoder) throws {
+//        var container = encoder.container(keyedBy: CodingKeys.self)
+//
+//        try container.encode(accountNumber, forKey: .accountNumber)
+//        try container.encode(accountType, forKey: .accountCategoryName)
+//
+//        let doubleBalance = Double(balance.replacingOccurrences(of: "$", with: "").replacingOccurrences(of: ",", with: "")) ?? 0.0
+//        try container.encode(doubleBalance, forKey: .balance)
+//    }
+//
+//    init(accountName: String, accountType: String, accountNumber: String, balance: String) {
+//        self.accountName = accountName
+//        self.accountType = accountType
+//        self.accountNumber = accountNumber
+//        self.balance = balance
+//    }
+//
+//    static func == (lhs: BankAccount, rhs: BankAccount) -> Bool {
+//        lhs.id == rhs.id
+//    }
+//}
 
 
 
@@ -121,33 +176,33 @@ class AccountManager: ObservableObject {
             }
         } else {
             print("JSON file not found, creating a new one.")
-            createJSONFile()
+            //createJSONFile()
         }
     }
 
     // Function to Create and Save a JSON File
-    func createJSONFile() {
-        let defaultAccounts: [BankAccount] = [
-            BankAccount(accountName:"No Fee", accountType: "Chequing", accountNumber:"10125599631", balance: "$51,494.78"),
-            BankAccount(accountName:"Spend & Save", accountType: "Savings", accountNumber:"10125599631", balance: "$25,234.67"),
-            BankAccount(accountName:"Travel Fund", accountType: "Business", accountNumber:"10125599631", balance: "$10,000.00")
-        ]
-
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = .prettyPrinted
-
-        do {
-            let jsonData = try encoder.encode(defaultAccounts)
-            if let fileURL = getJSONFileURL() {
-                try jsonData.write(to: fileURL, options: .atomic)
-                print("New JSON File Created at: \(fileURL.path)")
-            }
-            self.accounts = defaultAccounts
-            self.selectedAccount = defaultAccounts.first
-        } catch {
-            print("Error creating JSON file: \(error)")
-        }
-    }
+//    func createJSONFile() {
+//        let defaultAccounts: [BankAccount] = [
+//            BankAccount(accountName:"No Fee", accountType: "Chequing", accountNumber:"10125599631", balance: "$51,494.78"),
+//            BankAccount(accountName:"Spend & Save", accountType: "Savings", accountNumber:"10125599631", balance: "$25,234.67"),
+//            BankAccount(accountName:"Travel Fund", accountType: "Business", accountNumber:"10125599631", balance: "$10,000.00")
+//        ]
+//
+//        let encoder = JSONEncoder()
+//        encoder.outputFormatting = .prettyPrinted
+//
+//        do {
+//            let jsonData = try encoder.encode(defaultAccounts)
+//            if let fileURL = getJSONFileURL() {
+//                try jsonData.write(to: fileURL, options: .atomic)
+//                print("New JSON File Created at: \(fileURL.path)")
+//            }
+//            self.accounts = defaultAccounts
+//            self.selectedAccount = defaultAccounts.first
+//        } catch {
+//            print("Error creating JSON file: \(error)")
+//        }
+//    }
 //    func createJSONFile() {
 //        let defaultAccounts: [BankAccount] = [
 //            BankAccount(
@@ -207,4 +262,53 @@ class AccountManager: ObservableObject {
         }
     }
 }
+
+//class AccountManager: ObservableObject {
+//    @Published var accounts: [BankAccount] = []
+//
+//    func fetchAccounts() {
+//        guard let contactId = TokenManager.shared.getContactId(),
+//              let token = TokenManager.shared.getToken() else {
+//            print("Missing token or contactId")
+//            return
+//        }
+//
+//        let urlString = AppConfig.GetAccountsURL(for: contactId)
+//        guard let url = URL(string: urlString) else {
+//            print("Invalid URL")
+//            return
+//        }
+//
+//        var request = URLRequest(url: url)
+//        request.httpMethod = "GET"
+//        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+//        request.setValue("application/json", forHTTPHeaderField: "Accept")
+//
+//        URLSession.shared.dataTask(with: request) { data, response, error in
+//            if let error = error {
+//                print(" API Error: \(error.localizedDescription)")
+//                return
+//            }
+//
+//            guard let data = data,
+//                  let httpResponse = response as? HTTPURLResponse,
+//                  (200...299).contains(httpResponse.statusCode) else {
+//                print("Invalid response")
+//                return
+//            }
+//
+//            do {
+//                let decoded = try JSONDecoder().decode(BankAccountAPIResponse.self, from: data)
+//                DispatchQueue.main.async {
+//                    self.accounts = decoded.data
+//                    print("Fetched \(decoded.data.count) accounts")
+//                }
+//            } catch {
+//                print("Decoding Error: \(error)")
+//            }
+//        }.resume()
+//    }
+//}
+
+
 

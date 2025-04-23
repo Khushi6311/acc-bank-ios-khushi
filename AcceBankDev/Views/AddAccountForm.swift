@@ -39,7 +39,7 @@ struct AddAccountFormView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 15) {
                         // Account Name
-                        //TextField("Account Name", text: $accountName)
+                       // TextField("Account Name", text: $accountName)
                         TextField(NSLocalizedString("account_name", comment: "Account Name"), text: $accountName)
 
                             .padding()

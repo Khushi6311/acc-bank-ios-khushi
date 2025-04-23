@@ -7,7 +7,9 @@ enum FieldFocus: Hashable {
     case memo
 }
 
+
 struct TransferMoneyScreen: View {
+    
     @Environment(\.presentationMode) var presentationMode
     @State private var selectedPaymentType: String? = "My accounts"
 
@@ -23,7 +25,6 @@ struct TransferMoneyScreen: View {
     @State private var selectedFrequency = "Weekly"
     @State private var amount = ""
     @State private var memo = ""
-    //@State private var date = Date()//
 
     @State private var dateText: String? = nil
     @State private var showAmountError = false
@@ -51,6 +52,7 @@ struct TransferMoneyScreen: View {
     
     @FocusState private var focusedField: FieldFocus?
 
+    @State private var bankAccounts: [BankAccount] = []
 
     var body: some View {
         //ScrollView {
@@ -74,13 +76,7 @@ struct TransferMoneyScreen: View {
 
                 // **Payment Type Selector**
                 HStack(spacing: 0) {
-//                    ZStack {
-//                        LinearGradient(
-//                            gradient: Gradient(colors: [Color.gray.opacity(0.1), Color.gray.opacity(0.3)]),
-//                            startPoint: .leading,
-//                            endPoint: .trailing
-//                        )
-//                        .cornerRadius(30)
+//
 
                         HStack(spacing: 0) {
                             Button(action: { selectedPaymentType = "My accounts"
@@ -104,21 +100,7 @@ struct TransferMoneyScreen: View {
                                 showTransferFromError=false
                                 
                                 
-//                                if !recurring && (dateText == nil || dateText?.isEmpty == true) {
-//                                    let today = Date()
-//
-//                                        startDate = today
-//                                        dateText = formatDate(today)
-//                                        print("One-time default date set to: \(dateText ?? "nil")")
-//                                    }
-//
-//                                    if recurring && (startDateText == nil || startDateText?.isEmpty == true) {
-//                                        let today = Date()
-//
-//                                        startDate = today
-//                                        startDateText = formatDate(today)
-//                                        print("Recurring start date default set to: \(startDateText ?? "nil")")
-//                                    }
+
 }) {
                                 //Text("My accounts")
     Text(NSLocalizedString("my_accounts", comment: "Title for 'My accounts' tab"))
@@ -157,22 +139,7 @@ struct TransferMoneyScreen: View {
                                 showTransferFromError=false
                                 
                                 
-//                                if !recurring && (dateText == nil || dateText?.isEmpty == true) {
-//                                    let today = Date()
-//
-//                                        startDate = today
-//                                        dateText = formatDate(today)
-//                                        print("One-time default date set to: \(dateText ?? "nil")")
-//                                    }
-//
-//                                    if recurring && (startDateText == nil || startDateText?.isEmpty == true) {
-//                                        let today = Date()
-//
-//                                        startDate = today
-//                                        startDateText = formatDate(today)
-//                                        print("Recurring start date default set to: \(startDateText ?? "nil")")
-//                                    }
-                                
+
                                 
 }) {
                                 //Text("Another member")
@@ -211,6 +178,7 @@ struct TransferMoneyScreen: View {
                         {
                         
                         MyAccountsTransferForm(
+                            allAccounts: $bankAccounts,
                             selectedFromAccount: $selectedFromAccount,
                             selectedToAccount: $selectedToAccount,
                             isTransferFromSheetPresented: $isTransferFromSheetPresented,
@@ -234,9 +202,11 @@ struct TransferMoneyScreen: View {
                             endDate: $endDate,
                             startDateText: $startDateText,
                             endDateText: $endDateText,
-                            isAnotherMemberSelected: $showConfirmationSheet, // new
+                            isAnotherMemberSelected: $isAnotherMemberSelected,
+                            //isAnotherMemberSelected: $showConfirmationSheet, // new
                             selectedContact: $selectedContact,             // new
-                            showConfirmationSheet: $isAnotherMemberSelected
+                            //showConfirmationSheet: $isAnotherMemberSelected
+                            showConfirmationSheet: $showConfirmationSheet 
                             
                             
                         )
@@ -244,6 +214,7 @@ struct TransferMoneyScreen: View {
                         
                     } else if selectedPaymentType == "Another member" {
                         AnotherMemberTransferForm(
+                            allAccounts: $bankAccounts,
                             selectedFromAccount: $selectedFromAccount,
                             selectedContact: $selectedContact,
                             isTransferFromSheetPresented: $isTransferFromSheetPresented,
@@ -278,12 +249,79 @@ struct TransferMoneyScreen: View {
                 }
             }
             .padding(.horizontal, 10)
+            .onAppear {
+                fetchAccounts()
+            }
         //}
+            
+
     }
 
     
+    
+    func fetchAccounts() {
+        guard let contactId = TokenManager.shared.getContactId() else {
+            print("No Contact ID")
+            return
+        }
 
+        guard let token = TokenManager.shared.getToken() else {
+            print("No Auth Token")
+            return
+        }
+
+        let urlString = AppConfig.GetAccountsURL(for: contactId)
+
+        guard let url = URL(string: urlString) else {
+            print("Invalid API URL")
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("API Error: \(error.localizedDescription)")
+                return
+            }
+
+            guard let httpResponse = response as? HTTPURLResponse,
+                  (200...299).contains(httpResponse.statusCode),
+                  let data = data else {
+                print("invalid Response or Empty Data")
+                return
+            }
+
+            do {
+                let decoded = try JSONDecoder().decode(BankAccountAPIResponse.self, from: data)
+                DispatchQueue.main.async {
+                    self.bankAccounts = decoded.data
+                    print("Loaded \(decoded.data.count) accounts")
+                    
+                    for account in decoded.data {
+                        print("""
+                              -------------------------------
+                              Account Name: \(account.accountName)
+                              Type: \(account.accountType)
+                              Number: \(account.accountNumber)
+                              Balance: \(account.balance)
+                              ID: \(account.accountId)
+                              -------------------------------
+                              """)
+                    }
+                }
+            } catch {
+                print("JSON Decoding Error: \(error)")
+            }
+        }.resume()
+    }
+
+        
 }
+   
 
 let minimumDate: Date = {
     var components = DateComponents()
@@ -354,6 +392,9 @@ struct DateDefaults {
 
 
 struct MyAccountsTransferForm: View {
+    
+    @Binding var allAccounts: [BankAccount]
+
     @Binding var selectedFromAccount: BankAccount?
     @Binding var selectedToAccount: BankAccount?
     @Binding var isTransferFromSheetPresented: Bool
@@ -382,7 +423,7 @@ struct MyAccountsTransferForm: View {
     @Binding var isAnotherMemberSelected: Bool           // Add this
     @Binding var selectedContact: Contact?                // Add this
     @Binding var showConfirmationSheet: Bool
-    @StateObject private var accountManager = AccountManager()
+    //@StateObject private var accountManager = AccountManager()
     @State private var transferToSheetKey = UUID()
 
     var body: some View {
@@ -402,22 +443,33 @@ struct MyAccountsTransferForm: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                     // **Transfer From Account Selection**
                     //            AccountSelectionButton(title: "Transfer From", account: $selectedFromAccount)
-                    AccountSelectionButton(title: NSLocalizedString("transfer_from", comment: ""), account: $selectedFromAccount){
-
-                        isTransferFromSheetPresented.toggle()
+//                    AccountSelectionButton(title: NSLocalizedString("transfer_from", comment: ""), account: $selectedFromAccount){
+//
+//                        isTransferFromSheetPresented.toggle()
+//                        showTransferFromError = false
+//
+//                    }
+                    AccountSelectionButton(title: NSLocalizedString("transfer_from", comment: ""), account: $selectedFromAccount) {
+                        if allAccounts.isEmpty {
+                            print("⏳ Accounts still loading... Try again in a moment.")
+                            return
+                        }
+                        isTransferFromSheetPresented = true
                         showTransferFromError = false
-
                     }
+
                     //            .sheet(isPresented: $isTransferFromSheetPresented) {
                     //                TransferAccountSheet(selectedAccount_from: $selectedFromAccount)
                     //            }
                     .sheet(isPresented: $isTransferFromSheetPresented) {
                         TransferAccountSheet(
-                            accountManager: accountManager,  // Add this
+                            //accountManager: accountManager,  // Add this
+                            allAccounts: allAccounts,
                             selectedAccount_from: $selectedFromAccount,
                             isPresented: $isTransferFromSheetPresented  // Add this
                         )
                     }
+                    .id(allAccounts.count)
                     if showTransferFromError {
                         //ErrorMessage(text: "This field is required")
                         ErrorMessage(text: NSLocalizedString("error_required_field", comment: "Validation error for empty field"))
@@ -440,7 +492,8 @@ struct MyAccountsTransferForm: View {
 
                                 .sheet(isPresented: $isSendToSheetPresented) {
                                     SendToSheet(
-                                        accountManager_to: accountManager,  // Add this
+                                        //accountManager_to: accountManager,  // Add this
+                                        allAccounts: allAccounts,
                                         selectedAccount_to: $selectedToAccount,
                                         isPresented_to: $isSendToSheetPresented, // Add this
                                         excludeAccount: $selectedFromAccount // pass the selected from account
@@ -1038,6 +1091,8 @@ extension UIApplication {
 }
 
 struct AnotherMemberTransferForm: View {
+    @Binding var allAccounts: [BankAccount]
+
     @Binding var selectedFromAccount: BankAccount?
     @Binding var selectedContact: Contact?
     @Binding var isTransferFromSheetPresented: Bool
@@ -1098,7 +1153,8 @@ struct AnotherMemberTransferForm: View {
 
             .sheet(isPresented: $isTransferFromSheetPresented) {
                 TransferAccountSheet(
-                    accountManager: accountManager,  // Add this
+                    //accountManager: accountManager,  // Add this
+                    allAccounts: allAccounts,
                     selectedAccount_from: $selectedFromAccount,
                     isPresented: $isTransferFromSheetPresented  // Add this
                 )
@@ -1912,18 +1968,6 @@ struct SummarySheet: View { //SummarySheet
                 )
 
 
-//                PaymentDetailRow(title: "Transfer from",
-//                    value: "\(fromAccount?.accountName ?? "No Account") - \(fromAccount?.accountNumber ?? "")", bold: true)
-
-//                PaymentDetailRow(title: "Transfer to",
-//                    value: "\(toAccount?.accountName ?? "No Account") - \(toAccount?.accountNumber ?? "")", bold: true)
-//                PaymentDetailRow(
-//                    title: isAnotherMemberSelected ? "Send To" : "Transfer To",
-//                    value: isAnotherMemberSelected ?
-//                        (selectedContact?.name ?? "No Contact Selected") :
-//                        "\(toAccount?.accountName ?? "No Account") - \(toAccount?.accountNumber ?? "")",
-//                    bold: true
-//                )
                 PaymentDetailRow(
                     title: isAnotherMemberSelected
                         ? NSLocalizedString("send_to", comment: "Title for sending to a contact")
@@ -1944,32 +1988,7 @@ struct SummarySheet: View { //SummarySheet
                 )
 
 
-                //PaymentDetailRow(title: "Date", value: dateText, bold: false)
-                // Recurring vs One-Time logic here
-//                if isRecurring {
-//                       PaymentDetailRow(
-//                           title: "Payment Type",
-//                           value: "Recurring",
-//                           bold: true
-//                       )
-//
-//                       PaymentDetailRow(
-//                           title: "Frequency",
-//                           value: selectedFrequency ?? "N/A",
-//                           bold: false
-//                       )
-//
-//                       PaymentDetailRow(
-//                           title: "Start Date",
-//                           value: startDateText ?? "N/A",
-//                           bold: false
-//                       )
-//
-//                       PaymentDetailRow(
-//                           title: "End Date",
-//                           value: endDateText ?? "N/A",
-//                           bold: false
-//                       )
+
                 if isRecurring {
                     PaymentDetailRow(
                         title: NSLocalizedString("payment_type", comment: "Label for payment type"),
@@ -2116,34 +2135,7 @@ struct ContactSelectionSheet: View {
                 }
             }
             .padding()
-            
-            // Search Bar
-            //TextField("Search", text: $searchText)
-//            TextField(NSLocalizedString("search", comment: ""), text: $searchText)
-//                .padding(10)
-//                .background(Color(.white))
-//                .cornerRadius(10)
-//                .overlay(
-//                    RoundedRectangle(cornerRadius: 10) // Border shape
-//                        .stroke(Color.black, lineWidth: 1) // Border color & width
-//                )
-//                .padding(.horizontal)
-//            
-//            Button(action: {
-//                showAddContactForm = true
-//            }) {
-//                HStack {
-//                    Image(systemName: "plus.circle.fill")
-//                    Text(NSLocalizedString("add_new_contact", comment: ""))
-//                        .fontWeight(.medium)
-//                }
-//                .padding()
-//                .frame(maxWidth: .infinity)
-//                .background(Color.black)
-//                .foregroundColor(.white)
-//                .cornerRadius(10)
-//            }
-//            .padding(.horizontal)
+        
             HStack(spacing: 10) {
                 TextField(NSLocalizedString("search", comment: ""), text: $searchText)
                     .padding(10)
@@ -2234,20 +2226,33 @@ struct ContactSelectionSheet: View {
 
 
 struct TransferAccountSheet: View {
-    @ObservedObject var accountManager: AccountManager
-    @Binding var selectedAccount_from: BankAccount? // Unique variable for "Transfer From"
-    @Binding var isPresented: Bool
-
+    var allAccounts: [BankAccount]                   // Passed in from parent
+    @Binding var selectedAccount_from: BankAccount?  // For selection
+    @Binding var isPresented: Bool                   // To close sheet
+    @State private var filteredAccounts: [BankAccount] = []
     var body: some View {
         VStack {
             headerView
-            accountListView
-        }
-        .padding(.horizontal)
-        .presentationDetents([.medium, .large]) // Allows swipe-up bottom sheet
-    }
 
-    /// Extracted Header
+            ScrollView {
+                          VStack(spacing: 10) {
+                              if filteredAccounts.isEmpty {
+                                  ProgressView("Loading accounts...")
+                              } else {
+                                  ForEach(filteredAccounts) { account in
+                                      accountButton(for: account)
+                                  }
+                              }
+                          }
+                          .padding()
+                      }
+                  }
+                  .onAppear {
+                      filteredAccounts = allAccounts
+                      print("TransferAccountSheet loaded \(filteredAccounts.count) accounts")
+                  }
+                  .presentationDetents([.medium, .large])
+              }
     private var headerView: some View {
         HStack {
             Text(NSLocalizedString("transfer_from", comment: ""))
@@ -2264,31 +2269,17 @@ struct TransferAccountSheet: View {
         .padding()
     }
 
-    /// Extracted Account List
-    private var accountListView: some View {
-        ScrollView {
-            VStack(spacing: 10) {
-                ForEach(accountManager.accounts) { account in
-                    accountButton(for: account)
-                }
-            }
-            .padding()
-        }
-    }
-
-    /// Extracted Button Component
     private func accountButton(for account: BankAccount) -> some View {
         Button(action: {
             selectedAccount_from = account
             isPresented = false
-            print("Selected Account From: \(account.accountName)")
+            print("Selected From Account: \(account.accountName)")
         }) {
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(account.accountName)
                         .font(.headline)
                         .bold()
-                        .foregroundColor(.black)
                     Text(account.accountType)
                         .font(.subheadline)
                         .foregroundColor(.gray)
@@ -2301,46 +2292,55 @@ struct TransferAccountSheet: View {
                     .font(.headline)
                     .bold()
                     .foregroundColor(.black)
+
                 if let selected = selectedAccount_from, selected.id == account.id {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundColor(.blue)
                 }
-
             }
             .padding()
-            .background {
-                if let selected = selectedAccount_from, selected.id == account.id {
-                    Color.blue.opacity(0.2)
-                } else {
-                    Color(.systemGray6)
-                }
-            }
-
-
-            .cornerRadius(10)
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(selectedAccount_from?.id == account.id ? Color.blue.opacity(0.2) : Color(.systemGray6))
+            )
         }
     }
 }
 
-
 struct SendToSheet: View {
-    @ObservedObject var accountManager_to: AccountManager
-    @Binding var selectedAccount_to: BankAccount? // Unique variable for "Send To"
+    var allAccounts: [BankAccount]
+
+    @Binding var selectedAccount_to: BankAccount?
     @Binding var isPresented_to: Bool
-    //var excludeAccount: BankAccount? // Add this//
     @Binding var excludeAccount: BankAccount?
-    @State private var filteredAccounts: [BankAccount] = []
     
+    @State private var filteredAccounts: [BankAccount] = []
+
     var body: some View {
         VStack {
             headerView
-            accountListView
+            if filteredAccounts.isEmpty {
+                ProgressView("Loading accounts...")
+                    .padding()
+            } else {
+                ScrollView {
+                    VStack(spacing: 10) {
+                        ForEach(filteredAccounts) { account in
+                            accountButton(for: account)
+                        }
+                    }
+                    .padding()
+                }
+            }
+        }
+        .onAppear {
+            print("SendToSheet received \(allAccounts.count) accounts")
+            filteredAccounts = allAccounts.filter { $0.id != excludeAccount?.id }
         }
         .padding(.horizontal)
-        .presentationDetents([.medium, .large]) // Allows swipe-up bottom sheet
+        .presentationDetents([.medium, .large])
     }
 
-    /// Extracted Header
     private var headerView: some View {
         HStack {
             Text(NSLocalizedString("transfer_to", comment: ""))
@@ -2355,55 +2355,7 @@ struct SendToSheet: View {
         }
         .padding()
     }
-    private var accountListView: some View {
-        ScrollView {
-            VStack(spacing: 10) {
-                ForEach(filteredAccounts) { account in
-                    AccountSelectionButton(title: "", account: .constant(account)) {
-                        selectedAccount_to = account
-                        isPresented_to = false
-                    }
-                }
-            }
-            .padding()
-        }
-        .onAppear {
-            print("Excluded: \(excludeAccount?.accountName ?? "none")")
-            if let exclude = excludeAccount {
-                filteredAccounts = accountManager_to.accounts.filter { $0.id != exclude.id }
-            } else {
-                filteredAccounts = accountManager_to.accounts
-            }
-        }
-    }
 
-    /// Extracted Account List.
-//    private var accountListView: some View {
-//        ScrollView {
-//            VStack(spacing: 10) {
-//
-//                ForEach(accountManager_to.accounts.filter { $0.id != excludeAccount?.id }) { account in
-//                    AccountSelectionButton(title: "", account: .constant(account)) {
-//                        selectedAccount_to = account
-//                        isPresented_to = false
-//                    }
-//                }
-//                
-//            }
-//            .padding()
-//        }
-//
-//        .onAppear {
-//            
-//            if let exclude = excludeAccount {
-//                    filteredAccounts = accountManager_to.accounts.filter { $0.id != exclude.id }
-//                } else {
-//                    filteredAccounts = accountManager_to.accounts
-//                }
-//            }
-//    }
-
-    /// Extracted Button Component
     private func accountButton(for account: BankAccount) -> some View {
         Button(action: {
             selectedAccount_to = account
@@ -2428,27 +2380,20 @@ struct SendToSheet: View {
                     .font(.headline)
                     .bold()
                     .foregroundColor(.black)
-                if let selected = selectedAccount_to, selected.id == account.id
-                {
+                if selectedAccount_to?.id == account.id {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundColor(.blue)
                 }
-
             }
             .padding()
-            .background {
-                if let selected = selectedAccount_to, selected.id == account.id {
-                    Color.blue.opacity(0.2)
-                } else {
-                    Color(.systemGray6)
-                }
-            }
-
-
-            .cornerRadius(10)
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(selectedAccount_to?.id == account.id ? Color.blue.opacity(0.2) : Color(.systemGray6))
+            )
         }
     }
 }
+
 private func formatDate(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium

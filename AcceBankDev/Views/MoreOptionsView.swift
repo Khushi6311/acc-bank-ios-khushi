@@ -5,6 +5,7 @@ struct MoreOptionsView: View {
     @State private var showLogoutConfirmation = false
     @State private var isLoggedOut = false
     @Environment(\.dismiss) var dismiss
+    @State private var showHistory = false
 
     
     var body: some View {
@@ -30,34 +31,56 @@ struct MoreOptionsView: View {
                     VStack(spacing: 10) {
                         Button(action: {
                             showLogoutConfirmation = true
-
                             print("Logout tapped")
-                            // Handle logout logic here
                         }) {
                             HStack {
                                 Image(systemName: "arrow.right.square")
                                     .foregroundColor(.black)
                                     .font(.title2)
                                 
-                                //Text("Logout")
                                 Text(NSLocalizedString("logout", comment: ""))
-
+                                    .foregroundColor(.black)
+                                    .font(.headline)
+                                
+                                
+                                
+                                Spacer()
+                            }
+                            .padding()
+                            .background(Color(UIColor.systemGray6))
+                            .cornerRadius(10)
+                        }
+                        Divider().background(Color.gray.opacity(0.9)).padding(.horizontal, 20)
+                        // Add the History button below
+                        Button(action: {
+                            print("History tapped")
+                            // Navigate to HistoryView if you have one
+                            // navigation logic goes here
+                        }) {
+                            HStack {
+                                Image(systemName: "clock.arrow.circlepath")
+                                    .foregroundColor(.black)
+                                    .font(.title2)
+                                
+                                Text(NSLocalizedString("history", comment: "History")) // Use NSLocalizedString if needed
                                     .foregroundColor(.black)
                                     .font(.headline)
                                 
                                 Spacer()
-                                
                             }
                             .padding()
-                            //.background(Color.white)
                             .background(Color(UIColor.systemGray6))
-                            
                             .cornerRadius(10)
                         }
+                       
+
                         Divider().background(Color.gray.opacity(0.9)).padding(.horizontal, 20)
                         
                         Spacer()
                     }
+
+                    
+                    
                     .padding()
                     .frame(maxWidth: .infinity, maxHeight: 400)
                     .background(Color(UIColor.systemGray6))
@@ -68,15 +91,10 @@ struct MoreOptionsView: View {
                     Spacer()
                 }
             }
-//            .alert("Are you sure you want to logout?", isPresented: $showLogoutConfirmation) {
-//                Button("Yes", role: .destructive) {
-//                    isLoggedOut = true
-//                    dismiss()
-//
-//                }
-//                Button("Cancel", role: .cancel) { }
-//            }
-            
+            .navigationDestination(isPresented: $showHistory) {
+                HistoryView()
+            }
+
             .alert(NSLocalizedString("logout_confirmation_title", comment: ""), isPresented: $showLogoutConfirmation) {
                 Button(NSLocalizedString("yes", comment: ""), role: .destructive) {
                     logout()
@@ -87,18 +105,9 @@ struct MoreOptionsView: View {
                 }
                 Button(NSLocalizedString("cancel", comment: ""), role: .cancel) { }
             }
-            //                        .background(
-            //                            // Navigate to login page if needed
-            //                            NavigationLink("", destination: LoginView(), isActive: $isLoggedOut)
-            //                                .hidden()
-            //                        )
+          
             .navigationBarHidden(true)
-//            NavigationLink(destination: LoginView(), isActive: $isLoggedOut) {
-//                EmptyView()
-//            }
-//            .navigationDestination(isPresented: $isLoggedOut) {
-//                            LoginView()
-//                        }
+
             .fullScreenCover(isPresented: $isLoggedOut) {
                 LoginView()
             }

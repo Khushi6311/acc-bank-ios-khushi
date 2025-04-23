@@ -333,3 +333,8 @@
 "verify_otp"="Vérifier OTP";
 
 "amount"="Montante";
+
+
+//history page
+"accounts"="Account";
+"history"="History";

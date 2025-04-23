@@ -311,3 +311,8 @@
 "verify_otp"="Verify OTP";
 
 "amount"="Amount";
+
+
+//history page
+"accounts"="Account";
+"history"="History";

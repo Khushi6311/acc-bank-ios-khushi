@@ -35,7 +35,8 @@ struct MainView: View {
                 //HomeView()
             case 1:
                 MoveMoneyView()
-                
+            case 2:
+                MainOptionsView()
             case 4:
            MoreOptionsView()
             case 3:

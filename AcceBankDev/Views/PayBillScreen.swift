@@ -30,6 +30,7 @@ struct PayeeRecurringDetails: Identifiable {
 
 //common struct buttons and all
 struct PayBillScreen: View {
+    var account: BankAccount? = nil
     @State private var selectedDate = Date() // Date for the DatePicker
         @State private var showDatePicker = false // Toggle for DatePicker visibility
  
@@ -256,8 +257,29 @@ struct PayBillScreen: View {
 
 
        }
+            .sheet(isPresented: $showAddContactSheet) {
+                AddPayeeFormView { newPayee in
+                    selectedPayees.append(newPayee)
+
+                    if selectedPaymentType == "One-time Payment" {
+                        payeePaymentDetails.append(
+                            PayeePaymentDetails(payee: newPayee, amount: "", date: nil)
+                        )
+                    } else {
+                        payeeRecurringDetails.append(
+                            PayeeRecurringDetails(payee: newPayee, amount: "", frequency: "monthly", startDate: nil, endDate: nil)
+                        )
+                    }
+
+                    showAddContactSheet = false
+                }
+            }
+
     }
+    
 }
+
+
 //one time payment form
 struct OneTimePaymentForm: View {
     @ObservedObject var accountManager: AccountManager
@@ -550,6 +572,185 @@ selectedPayees: $selectedPayees, showPayeeSheet: $showPayeeSheet)
             
         }
        
+}
+//add payee
+
+
+struct PayeeStorageManager {
+    static let fileName = "saved_payees.json"
+
+    // Get path to JSON file
+    private static var fileURL: URL? {
+        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent(fileName)
+    }
+
+    // Save all payees to JSON file
+    static func save(_ payees: [Payee]) {
+        guard let url = fileURL else { return }
+        do {
+            let data = try JSONEncoder().encode(payees)
+            try data.write(to: url)
+        } catch {
+            print("Error saving payees: \(error.localizedDescription)")
+        }
+    }
+
+    // Load all payees from JSON file
+    static func load() -> [Payee] {
+        guard let url = fileURL,
+              let data = try? Data(contentsOf: url) else { return [] }
+
+        do {
+            return try JSONDecoder().decode([Payee].self, from: data)
+        } catch {
+            print(" Error loading payees: \(error.localizedDescription)")
+            return []
+        }
+    }
+}
+
+
+struct AddPayeeFormView: View {
+    @Environment(\.dismiss) var dismiss
+
+    @State private var accountNumber = ""
+    @State private var selectedPayee = ""
+    @State private var showPayeeList = false
+    @State private var searchText = ""
+
+    @State private var showPayeeError = false
+    @State private var showAccountError = false
+
+    let payeeTypes = [
+        "CRA – GST/HST", "CRA – Payroll",
+        "Hydro One", "Enbridge Gas", "Toronto Hydro",
+        "Bell Canada", "Rogers Cable", "Telus Mobility",
+        "City of Toronto Property Tax", "City of Ottawa Taxes",
+        "National Student Loan Service", "RBC Loan Payments",
+        "Manulife", "Sun Life Financial", "Desjardins"
+    ]
+
+    var onSave: (Payee) -> Void
+
+    var body: some View {
+        VStack(spacing: 20) {
+            // Header
+            HStack {
+                Text("Add New Payee")
+                    .font(.headline)
+                Spacer()
+                Button(action: { dismiss() }) {
+                    Image(systemName: "xmark")
+                        .foregroundColor(.black)
+                }
+            }
+            .padding()
+
+            // Payee Dropdown with Search
+            VStack(alignment: .leading, spacing: 0) {
+                Button(action: {
+                    withAnimation {
+                        showPayeeList.toggle()
+                    }
+                }) {
+                    HStack {
+                        Text(selectedPayee.isEmpty ? "Select Payee" : selectedPayee)
+                            .foregroundColor(selectedPayee.isEmpty ? .gray : .black)
+                        Spacer()
+                        Image(systemName: showPayeeList ? "chevron.up" : "chevron.down")
+                            .foregroundColor(.gray)
+                    }
+                    .padding()
+                    .background(Color(.systemGray6))
+                    .cornerRadius(8)
+                }
+
+                if showPayeeList {
+                    VStack(spacing: 0) {
+                        // Search bar
+                        TextField("Search Payee", text: $searchText)
+                            .padding(10)
+                            .background(Color(.systemGray5))
+                            .cornerRadius(6)
+                            .padding(8)
+
+                        ScrollView {
+                            VStack(spacing: 0) {
+                                ForEach(payeeTypes.filter {
+                                    searchText.isEmpty || $0.localizedCaseInsensitiveContains(searchText)
+                                }, id: \.self) { payee in
+                                    Button(action: {
+                                        selectedPayee = payee
+                                        showPayeeList = false
+                                        searchText = ""
+                                    }) {
+                                        Text(payee)
+                                            .frame(maxWidth: .infinity, alignment: .leading)
+                                            .padding()
+                                    }
+                                    Divider()
+                                }
+                            }
+                        }
+                        .frame(maxHeight: 200)
+                    }
+                    .background(Color.white)
+                    .cornerRadius(8)
+                    .shadow(radius: 5)
+                }
+            }
+            .padding(.horizontal)
+
+            if showPayeeError {
+                Text("Please select a payee")
+                    .foregroundColor(.red)
+                    .font(.caption)
+                    .padding(.horizontal)
+            }
+
+            // Account Number Field
+            TextField("Account Number", text: $accountNumber)
+                .keyboardType(.numberPad)
+                .padding()
+                .background(Color(.systemGray6))
+                .cornerRadius(8)
+                .padding(.horizontal)
+
+            if showAccountError {
+                Text("Account number is required")
+                    .foregroundColor(.red)
+                    .font(.caption)
+                    .padding(.horizontal)
+            }
+
+            // Save Button
+            Button(action: {
+                validateAndSave()
+            }) {
+                Text("Save Account")
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.black)
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
+            }
+            .padding(.horizontal)
+
+            Spacer()
+        }
+        .background(Color.white.ignoresSafeArea())
+    }
+
+    private func validateAndSave() {
+        showPayeeError = selectedPayee.isEmpty
+        showAccountError = accountNumber.trimmingCharacters(in: .whitespaces).isEmpty
+
+        guard !showPayeeError, !showAccountError else { return }
+
+        let newPayee = Payee(id: UUID().uuidString, name: selectedPayee, accountNumber: accountNumber, bank: selectedPayee)
+        onSave(newPayee)
+        dismiss()
+    }
 }
 
 
@@ -1012,6 +1213,7 @@ struct RecurringPaymentForm: View {
                 }
             }
             .padding(.vertical)
+            
 
             if selectedPayees.count > 1 {
                 ForEach($payeeRecurringDetails) { $detail in
