@@ -1,5 +1,8 @@
 import SwiftUI
 import Foundation
+
+import Combine
+
 struct SendMoneyView: View {
     @Environment(\.presentationMode) var presentationMode // To dismiss the modal
     @StateObject private var accountManager = AccountManager()
@@ -165,7 +168,8 @@ struct SendMoneyView: View {
                     }
                     .padding(.vertical)
                     .fullScreenCover(isPresented: $showAddContactSheet) { //  Full screen instead of sheet
-                        AddContactFormView(isPresented: $showAddContactSheet, contactManager: contactManager)
+                        AddContactFormView(isPresented: $showAddContactSheet, contactManager: contactManager
+                        )
                     }
                     
                     // Show only Security Question if a contact is selected
@@ -342,6 +346,9 @@ struct SendMoneyView: View {
             }
                 .padding()
             }
+//            .onAppear {
+//                contactManager.fetchContactsFromAPI()
+//            }
             .background(Color(.white))
             .clipShape(RoundedRectangle(cornerRadius: 20))
             //.padding(.horizontal, 20)
@@ -979,11 +986,54 @@ struct SendMoneyView: View {
         }
     }
     
+
     
     
-    
+
+//    class ContactManager: ObservableObject {
+//        @Published var contacts: [Contact] = []
+//
+//        func fetchContactsFromAPI() {
+//            guard let token = TokenManager.shared.getToken() else {
+//                print("No token found")
+//                return
+//            }
+//
+//            let urlString = "https://acceinfoapi-cga0hmcdazb5hjbs.eastus2-01.azurewebsites.net/api/member/get-list"
+//            guard let url = URL(string: urlString) else { return }
+//
+//            var request = URLRequest(url: url)
+//            request.httpMethod = "GET"
+//            request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+//            request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+//
+//            URLSession.shared.dataTask(with: request) { data, response, error in
+//                if let error = error {
+//                    print(" Error fetching contacts: \(error.localizedDescription)")
+//                    return
+//                }
+//
+//                guard let data = data else {
+//                    print(" No data received")
+//                    return
+//                }
+//
+//                do {
+//                    let decoded = try JSONDecoder().decode([Contact].self, from: data)
+//                    DispatchQueue.main.async {
+//                        self.contacts = decoded
+//                    }
+//                } catch {
+//                    print("Decoding failed: \(error)")
+//                }
+//            }.resume()
+//        }
+//    }
+
     
 }
+    
+
 // Preview
 struct SendMoneyView_Previews: PreviewProvider {
     static var previews: some View {

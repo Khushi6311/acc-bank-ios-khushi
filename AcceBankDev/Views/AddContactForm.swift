@@ -342,11 +342,16 @@ struct AddContactFormView: View {
 
 
     // Function to Get Full Phone Number with Country Code
+//    func fullPhoneNumber() -> String {
+//        let countryCode = selectedCountry.contains("+91") ? "+91" : "+1"
+//        return "\(countryCode) \(mobilePhone)"
+//    }
     func fullPhoneNumber() -> String {
-        let countryCode = selectedCountry.contains("+91") ? "+91" : "+1"
-        return "\(countryCode) \(mobilePhone)"
+        let countryCode = selectedCountry
+        let digitsOnly = mobilePhone.filter { "0123456789".contains($0) }
+        return "\(countryCode)\(digitsOnly)"
     }
-    
+
     // Function to Format Phone Number Based on Country
     func formatPhoneNumber(_ number: String) -> String {
         let digits = number.filter { $0.isNumber }
@@ -482,7 +487,7 @@ struct ContactConfirmationView: View {
 
                 // Confirm Button
                 Button(action: {
-                    saveContact()
+                    saveContactToAPI()
                 }) {
                     //Text("Confirm")
                     Text(NSLocalizedString("confirm", comment: ""))
@@ -508,30 +513,97 @@ struct ContactConfirmationView: View {
     }
 
     // Save contact function
-    private func saveContact() {
-        //print(" Security Answer Before Saving: \(securityAnswer)") // Debug
+//    private func saveContact() {
+//        //print(" Security Answer Before Saving: \(securityAnswer)") // Debug
+//
+//        let newContact = Contact(
+//            id: UUID(),
+//
+//            name: name,
+//            email: email,
+//            mobilePhone: mobilePhone,
+//            sendByEmail: sendByEmail,
+//            sendByMobile: sendByMobile,
+//            nickname: nickname,
+//            language: language,
+//            //securityQuestion: securityQuestion,
+//            //securityAnswer: securityAnswer,
+//            accountNumber: accountNumber
+//        )
+//        print("Saving Contact: \(newContact)") // Debug print before saving
+//
+//        contactManager.addContact(newContact)
+//        contactManager.saveContacts()
+//        onContactCreated?(newContact) //for transfer money screen
+//        showSuccessScreen = true // show success message
+//    }
+    
+    func saveContactToAPI() {
+        guard let token = TokenManager.shared.getToken() else {
+            print("No Auth Token")
+            return
+        }
+        print("Retrieved Token: \(token)")
 
-        let newContact = Contact(
-            id: UUID(),
+        let url = URL(string:AppConfig.AddContactURL)!
 
-            name: name,
-            email: email,
-            mobilePhone: mobilePhone,
-            sendByEmail: sendByEmail,
-            sendByMobile: sendByMobile,
-            nickname: nickname,
-            language: language,
-            //securityQuestion: securityQuestion,
-            //securityAnswer: securityAnswer,
-            accountNumber: accountNumber
-        )
-        print("Saving Contact: \(newContact)") // Debug print before saving
+        let contactPayload: [String: Any] = [
+            "Name": name,
+            "Email": email,
+            "ContactNumber": mobilePhone,
+            "IstransferByEmail": sendByEmail,
+            "IstransferByMobile": sendByMobile,
+            "PrefLanguage": language,
+            "NickName": nickname
+        ]
 
-        contactManager.addContact(newContact)
-        contactManager.saveContacts()
-        onContactCreated?(newContact) //for transfer money screen
-        showSuccessScreen = true // show success message
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        print("Headers:")
+        print("Authorization: Bearer \(token)")
+        print("Content-Type: application/json")
+
+        do {
+            let jsonData = try JSONSerialization.data(withJSONObject: contactPayload, options: .prettyPrinted)
+            request.httpBody = jsonData
+
+            // Log full request JSON
+            if let jsonString = String(data: jsonData, encoding: .utf8) {
+                print("Request Payload:\n\(jsonString)")
+            }
+        } catch {
+            print("Failed to serialize contact data: \(error)")
+            return
+        }
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print(" API error: \(error.localizedDescription)")
+                return
+            }
+
+            if let httpResponse = response as? HTTPURLResponse {
+                print("Response Status Code: \(httpResponse.statusCode)")
+
+                if let data = data, let responseBody = String(data: data, encoding: .utf8) {
+                    print("Response Body:\n\(responseBody)")
+                }
+
+                if httpResponse.statusCode == 200 || httpResponse.statusCode == 201 {
+                    print("Contact saved successfully to API.")
+                    DispatchQueue.main.async {
+                        showSuccessScreen = true
+                    }
+                } else {
+                    print("API returned non-success status code: \(httpResponse.statusCode)")
+                }
+            }
+        }.resume()
     }
+
+
 }
 
 

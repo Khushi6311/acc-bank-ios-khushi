@@ -73,12 +73,26 @@ enum AppConfig {
     static var AddAccountURL: String {
         return "\(baseURL)/accounts/add"  //this API for showing account list in account creation form-post
     }
+    static var AddContactURL: String {
+        return "\(baseURL)/member/add"  //this API for showing account list in account creation form-post
+    }
     
-    
+    static var AddPayeeURL: String {
+        return "\(baseURL)/member/payee-add"  //this API for showing account list in account creation form-post
+    }
+    //GET
     static func GetAccountsURL(for contactId: String) -> String {
             return "\(baseURL)/accounts/cust-account?ContactId=\(contactId)"
         }
+    
+    static var GetPayeeCategoryURL:String {
+            return "\(baseURL)/member/get-payeecategories"
+        }
+    static var GetPayeeListURL:String {
+            return "\(baseURL)member/getpayeelist"
+        }
 }
+//https://acceinfoapi-cga0hmcdazb5hjbs.eastus2-01.azurewebsites.net/api/member/getpayeelist
 //BASE_URL=https://acceinfoapi-cga0hmcdazb5hjbs.eastus2-01.azurewebsites.net/api
 
 

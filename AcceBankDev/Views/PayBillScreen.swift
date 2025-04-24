@@ -576,42 +576,11 @@ selectedPayees: $selectedPayees, showPayeeSheet: $showPayeeSheet)
 //add payee
 
 
-struct PayeeStorageManager {
-    static let fileName = "saved_payees.json"
-
-    // Get path to JSON file
-    private static var fileURL: URL? {
-        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent(fileName)
-    }
-
-    // Save all payees to JSON file
-    static func save(_ payees: [Payee]) {
-        guard let url = fileURL else { return }
-        do {
-            let data = try JSONEncoder().encode(payees)
-            try data.write(to: url)
-        } catch {
-            print("Error saving payees: \(error.localizedDescription)")
-        }
-    }
-
-    // Load all payees from JSON file
-    static func load() -> [Payee] {
-        guard let url = fileURL,
-              let data = try? Data(contentsOf: url) else { return [] }
-
-        do {
-            return try JSONDecoder().decode([Payee].self, from: data)
-        } catch {
-            print(" Error loading payees: \(error.localizedDescription)")
-            return []
-        }
-    }
-}
 
 
 struct AddPayeeFormView: View {
     @Environment(\.dismiss) var dismiss
+    @StateObject private var payeeManager = PayeeManager()
 
     @State private var accountNumber = ""
     @State private var selectedPayee = ""
@@ -620,6 +589,7 @@ struct AddPayeeFormView: View {
 
     @State private var showPayeeError = false
     @State private var showAccountError = false
+    @State private var payeeName = ""
 
     let payeeTypes = [
         "CRA – GST/HST", "CRA – Payroll",
@@ -645,9 +615,22 @@ struct AddPayeeFormView: View {
                 }
             }
             .padding()
-
+            VStack(alignment: .leading, spacing: 5) {
+//                   Text("Payee Name")
+//                       .font(.caption)
+//                       .foregroundColor(.gray)
+                   TextField("Enter Payee Name", text: $payeeName)
+                       .padding()
+                       .background(Color(.systemGray6))
+                       .cornerRadius(10)
+               }
+               .padding(.horizontal)
             // Payee Dropdown with Search
             VStack(alignment: .leading, spacing: 0) {
+                
+                // Payee Name Field
+                
+
                 Button(action: {
                     withAnimation {
                         showPayeeList.toggle()
@@ -668,32 +651,30 @@ struct AddPayeeFormView: View {
                 if showPayeeList {
                     VStack(spacing: 0) {
                         // Search bar
-                        TextField("Search Payee", text: $searchText)
-                            .padding(10)
-                            .background(Color(.systemGray5))
-                            .cornerRadius(6)
-                            .padding(8)
+                        
 
                         ScrollView {
                             VStack(spacing: 0) {
-                                ForEach(payeeTypes.filter {
-                                    searchText.isEmpty || $0.localizedCaseInsensitiveContains(searchText)
-                                }, id: \.self) { payee in
+                                ForEach(payeeManager.payeeTypes.filter {
+                                    searchText.isEmpty || $0.name.localizedCaseInsensitiveContains(searchText)
+                                }) { payee in
                                     Button(action: {
-                                        selectedPayee = payee
+                                        selectedPayee = payee.name
                                         showPayeeList = false
                                         searchText = ""
                                     }) {
-                                        Text(payee)
+                                        Text(payee.name)
                                             .frame(maxWidth: .infinity, alignment: .leading)
                                             .padding()
                                     }
                                     Divider()
                                 }
+
                             }
                         }
                         .frame(maxHeight: 200)
                     }
+                    .foregroundColor(Color.black)
                     .background(Color.white)
                     .cornerRadius(8)
                     .shadow(radius: 5)
@@ -738,22 +719,172 @@ struct AddPayeeFormView: View {
 
             Spacer()
         }
+        .onAppear {
+            payeeManager.fetchPayeeTypes()
+        }
+
         .background(Color.white.ignoresSafeArea())
     }
+    
+    //API
+    private func savePayeeToAPI() {
+        guard let token = TokenManager.shared.getToken() else {
+            print("No token found")
+            return
+        }
+
+        guard let selectedType = payeeManager.payeeTypes.first(where: { $0.name == selectedPayee }) else {
+            print("Payee type not selected or not found")
+            return
+        }
+
+        let requestData = AddPayeeRequest(
+            PayeeName: !payeeName.isEmpty ? payeeName : selectedPayee,
+                PayeeNumber: accountNumber,
+                PayeeType: selectedType.payeeTypeId
+        )
+
+        guard let url = URL(string: AppConfig.AddPayeeURL) else {
+            print("Invalid URL")
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+
+        do {
+            let jsonData = try JSONEncoder().encode(requestData)
+
+            // Print request body as JSON string
+            if let jsonString = String(data: jsonData, encoding: .utf8) {
+                print("Request JSON:\n\(jsonString)")
+            }
+
+            request.httpBody = jsonData
+        } catch {
+            print("JSON Encoding error: \(error)")
+            return
+        }
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("API Error: \(error.localizedDescription)")
+                return
+            }
+
+            if let httpResponse = response as? HTTPURLResponse {
+                if httpResponse.statusCode == 200 || httpResponse.statusCode == 201 {
+                    print("Payee added successfully")
+                    DispatchQueue.main.async {
+                        dismiss()
+                    }
+                } else {
+                    print("Server responded with status code: \(httpResponse.statusCode)")
+                    if let data = data, let message = String(data: data, encoding: .utf8) {
+                        print("Server message: \(message)")
+                    }
+                }
+            }
+        }.resume()
+    }
+
+
 
     private func validateAndSave() {
-        showPayeeError = selectedPayee.isEmpty
+        showPayeeError = selectedPayee.isEmpty && payeeName.isEmpty
         showAccountError = accountNumber.trimmingCharacters(in: .whitespaces).isEmpty
 
         guard !showPayeeError, !showAccountError else { return }
+        savePayeeToAPI()
 
-        let newPayee = Payee(id: UUID().uuidString, name: selectedPayee, accountNumber: accountNumber, bank: selectedPayee)
+        let finalPayeeName = !payeeName.isEmpty ? payeeName : selectedPayee
+        let newPayee = Payee(id: UUID().uuidString, name: finalPayeeName, accountNumber: accountNumber, bank: selectedPayee)
         onSave(newPayee)
         dismiss()
+        
     }
+
 }
 
 
+//struct PayeeType: Identifiable, Codable, Equatable {
+//    var id: String
+//    var name: String
+//    
+//}
+struct AddPayeeRequest: Codable {
+    let PayeeName: String
+    let PayeeNumber: String
+    let PayeeType: String
+}
+
+
+struct PayeeTypeResponse: Codable {
+    let status: String
+    let data: [PayeeType]
+    let message: String
+    let statusCode: Int
+}
+
+struct PayeeType: Codable, Identifiable {
+    var id: String { payeeTypeId } // computed id for SwiftUI
+    let name: String
+    let payeeTypeId: String
+}
+
+class PayeeManager: ObservableObject {
+    @Published var payeeTypes: [PayeeType] = []
+
+    func fetchPayeeTypes() {
+        guard let token = TokenManager.shared.getToken() else {
+            print("No token found")
+            return
+        }
+
+        guard let url = URL(string: AppConfig.GetPayeeCategoryURL) else {
+            print("Invalid URL")
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("API Error: \(error.localizedDescription)")
+                return
+            }
+
+            if let httpResponse = response as? HTTPURLResponse {
+                print("Status Code: \(httpResponse.statusCode)")
+            }
+
+            if let data = data, let raw = String(data: data, encoding: .utf8) {
+                print("Raw Response Body:\n\(raw)")
+            }
+
+            guard let data = data else {
+                print("No data received")
+                return
+            }
+
+            do {
+                let decodedResponse = try JSONDecoder().decode(PayeeTypeResponse.self, from: data)
+                DispatchQueue.main.async {
+                    self.payeeTypes = decodedResponse.data
+                }
+            } catch {
+                print("Decoding failed: \(error)")
+            }
+
+        }.resume()
+    }
+
+}
 
 //}
 //}

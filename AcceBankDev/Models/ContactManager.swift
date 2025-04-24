@@ -14,7 +14,7 @@ import Foundation
 //    var accountNumber: String?
 //    var securityQuestion: String? = nil
 //    var securityAnswer: String? = nil
-    
+    //final code
     class ContactManager: ObservableObject {
         @Published var contacts: [Contact] = []
         
@@ -79,36 +79,79 @@ import Foundation
             saveContacts()
         }
     }
+    
 
-// Load contacts from JSON file
-//    func loadContacts() {
-//        if let fileURL = getContactsFileURL(), FileManager.default.fileExists(atPath: fileURL.path) {
-//            do {
-//                let data = try Data(contentsOf: fileURL)
-//                let decodedContacts = try JSONDecoder().decode([Contact].self, from: data)
-//                DispatchQueue.main.async {
-//                    self.contacts = decodedContacts
-//                    print("Contacts loaded from JSON: \(self.contacts)")
-//                }
-//            } catch {
-//                print("Error loading contacts: \(error)")
-//            }
-//        } else {
-//            print("No contacts found, starting fresh.")
-//        }
-//    }
-// save contacts to JSON file
-//    func saveContacts() {
-//        let encoder = JSONEncoder()
-//        encoder.outputFormatting = .prettyPrinted
+
+//struct Contact: Identifiable, Codable, Equatable {
+//    var id: String
+//    var name: String
+//    var email: String
+//    var mobilePhone: String
+//    var sendByEmail: Bool
+//    var sendByMobile: Bool
+//    var nickname: String
+//    var language: String
+//    var accountNumber: String?
+//    var securityQuestion: String? = nil
+//    var securityAnswer: String? = nil
 //
-//        do {
-//            let jsonData = try encoder.encode(contacts)
-//            if let fileURL = getContactsFileURL() {
-//                try jsonData.write(to: fileURL, options: .atomic)
-//                print("Contacts saved successfully at: \(fileURL.path)")
+//    enum CodingKeys: String, CodingKey {
+//        case id = "contactId"
+//        case name = "name"
+//        case email = "email"
+//        case mobilePhone = "contactNumber"
+//        case sendByEmail = "istransferByEmail"
+//        case sendByMobile = "istransferByMobile"
+//        case nickname = "nickName"
+//        case language = "prefLanguage"
+//        case accountNumber
+//        case securityQuestion
+//        case securityAnswer
+//    }
+//    
+//    class ContactManager: ObservableObject {
+//        @Published var contacts: [Contact] = []
+//
+//        func fetchContactsFromAPI() {
+//            guard let token = TokenManager.shared.getToken() else {
+//                print("No token found")
+//                return
 //            }
-//        } catch {
-//            print("Error saving contacts: \(error)")
+//
+//            let urlString = "https://acceinfoapi-cga0hmcdazb5hjbs.eastus2-01.azurewebsites.net/api/member/get-list"
+//            guard let url = URL(string: urlString) else {
+//                print("Invalid URL")
+//                return
+//            }
+//
+//            var request = URLRequest(url: url)
+//            request.httpMethod = "GET"
+//            request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+//            request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+//
+//            URLSession.shared.dataTask(with: request) { data, response, error in
+//                if let error = error {
+//                    print("API Error: \(error.localizedDescription)")
+//                    return
+//                }
+//
+//                guard let data = data else {
+//                    print("No data received")
+//                    return
+//                }
+//
+//                do {
+//                    let decoded = try JSONDecoder().decode([Contact].self, from: data)
+//                    DispatchQueue.main.async {
+//                        self.contacts = decoded
+//                        print("Contacts fetched: \(decoded.count)")
+//                    }
+//                } catch {
+//                    print("Decoding failed: \(error)")
+//                }
+//            }.resume()
 //        }
 //    }
+//
+//
+//}
