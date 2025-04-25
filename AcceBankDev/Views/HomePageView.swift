@@ -5,7 +5,19 @@ struct HomePageView: View {
 
     @State private var bankAccounts: [BankAccount] = []
     @State private var selectedAccount: BankAccount?
-    let cardImages = ["Card", "Card2", "Card3"]
+    //let cardImages = ["Card", "Card2", "Card3"]
+    var cardImages: [String] {
+        switch username.lowercased() {
+        case "sarahmckenzie":
+            return ["SarahCard1"]
+        case "michaelthompson":
+            return ["MichaelCard1", "MichaelCard2"]
+        default:
+            return ["Card", "Card2", "Card3"]
+        }
+    }
+
+
     @State private var showHistory = false
     @State private var selectedAccountForHistory: BankAccount? = nil
 
