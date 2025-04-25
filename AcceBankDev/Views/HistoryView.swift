@@ -47,7 +47,7 @@ struct HistoryView: View {
 //                        fetchTransactionHistory(for: id.uuidString)
 //                    }
                     if let id = account?.accountId {
-                        fetchTransactionHistory(for: id, from: startDate, to: endDate)
+                        fetchTransactionHistory(for: id)
                     }
 
                 }) {
@@ -100,7 +100,7 @@ struct HistoryView: View {
 
                     Button(action: {
                         if let id = account?.accountId {
-                            fetchTransactionHistory(for: id, from: startDate, to: endDate)
+                            fetchTransactionHistory(for: id)
                         }
                     }) {
                         Text("Apply Filter")
@@ -119,98 +119,98 @@ struct HistoryView: View {
                 .shadow(radius: 4)
                 .padding(.horizontal)
                 
-                if isLoading {
-                    ProgressView("Loading...")
-                        .padding()
-                } else {
-                    ScrollView {
-                        VStack(spacing: 12) {
-                            ForEach(transactions) { tx in
-                                HStack(alignment: .top, spacing: 12) {
-                                    Image(systemName: tx.icon)
-                                        .font(.title2)
-                                        .frame(width: 40, height: 40)
-                                        .background(Color(UIColor.systemGray5))
-                                        .clipShape(Circle())
-
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text(tx.date)
-                                            .font(.caption)
-                                            .foregroundColor(.gray)
-                                        Text(tx.name)
-                                            .font(.headline)
-                                        Text(tx.type)
-                                            .font(.subheadline)
-                                            .foregroundColor(.gray)
-                                    }
-
-                                    Spacer()
-
-                                    VStack(alignment: .trailing) {
-                                        Text(String(format: "$%.2f", tx.amount))
-                                            .bold()
-                                        Text(tx.status)
-                                            .font(.caption)
-                                            .foregroundColor(.gray)
-                                    }
-                                }
-                                .padding()
-                                .background(Color.white)
-                                .cornerRadius(12)
-                                .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
-                            }
-                        }
-                        .padding(.horizontal)
-                    }
-                }
+//                if isLoading {
+//                    ProgressView("Loading...")
+//                        .padding()
+//                } else {
+//                    ScrollView {
+//                        VStack(spacing: 12) {
+//                            ForEach(transactions) { tx in
+//                                HStack(alignment: .top, spacing: 12) {
+//                                    Image(systemName: tx.icon)
+//                                        .font(.title2)
+//                                        .frame(width: 40, height: 40)
+//                                        .background(Color(UIColor.systemGray5))
+//                                        .clipShape(Circle())
+//
+//                                    VStack(alignment: .leading, spacing: 4) {
+//                                        Text(tx.date)
+//                                            .font(.caption)
+//                                            .foregroundColor(.gray)
+//                                        Text(tx.name)
+//                                            .font(.headline)
+//                                        Text(tx.type)
+//                                            .font(.subheadline)
+//                                            .foregroundColor(.gray)
+//                                    }
+//
+//                                    Spacer()
+//
+//                                    VStack(alignment: .trailing) {
+//                                        Text(String(format: "$%.2f", tx.amount))
+//                                            .bold()
+//                                        Text(tx.status)
+//                                            .font(.caption)
+//                                            .foregroundColor(.gray)
+//                                    }
+//                                }
+//                                .padding()
+//                                .background(Color.white)
+//                                .cornerRadius(12)
+//                                .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
+//                            }
+//                        }
+//                        .padding(.horizontal)
+//                    }
+//                }
             }
 
 
             // Transactions List
-//            if isLoading {
-//                ProgressView("Loading...")
-//                    .padding()
-//            } else {
-//                ScrollView {
-//                    VStack(spacing: 12) {
-//                        ForEach(transactions) { tx in
-//                            HStack(alignment: .top, spacing: 12) {
-//                                Image(systemName: tx.icon)
-//                                    .font(.title2)
-//                                    .frame(width: 40, height: 40)
-//                                    .background(Color(UIColor.systemGray5))
-//                                    .clipShape(Circle())
-//
-//                                VStack(alignment: .leading, spacing: 4) {
-//                                    Text(tx.date)
-//                                        .font(.caption)
-//                                        .foregroundColor(.gray)
-//                                    Text(tx.name)
-//                                        .font(.headline)
-//                                    Text(tx.type)
-//                                        .font(.subheadline)
-//                                        .foregroundColor(.gray)
-//                                }
-//
-//                                Spacer()
-//
-//                                VStack(alignment: .trailing) {
-//                                    Text(String(format: "$%.2f", tx.amount))
-//                                        .bold()
-//                                    Text(tx.status)
-//                                        .font(.caption)
-//                                        .foregroundColor(.gray)
-//                                }
-//                            }
-//                            .padding()
-//                            .background(Color.white)
-//                            .cornerRadius(12)
-//                            .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
-//                        }
-//                    }
-//                    .padding(.horizontal)
-//                }
-//            }
+            if isLoading {
+                ProgressView("Loading...")
+                    .padding()
+            } else {
+                ScrollView {
+                    VStack(spacing: 12) {
+                        ForEach(transactions) { tx in
+                            HStack(alignment: .top, spacing: 12) {
+                                Image(systemName: tx.icon)
+                                    .font(.title2)
+                                    .frame(width: 40, height: 40)
+                                    .background(Color(UIColor.systemGray5))
+                                    .clipShape(Circle())
+
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(tx.date)
+                                        .font(.caption)
+                                        .foregroundColor(.gray)
+                                    Text(tx.name)
+                                        .font(.headline)
+                                    Text(tx.type)
+                                        .font(.subheadline)
+                                        .foregroundColor(.gray)
+                                }
+
+                                Spacer()
+
+                                VStack(alignment: .trailing) {
+                                    Text(String(format: "$%.2f", tx.amount))
+                                        .bold()
+                                    Text(tx.status)
+                                        .font(.caption)
+                                        .foregroundColor(.gray)
+                                }
+                            }
+                            .padding()
+                            .background(Color.white)
+                            .cornerRadius(12)
+                            .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
+                        }
+                    }
+                    .padding(.horizontal)
+                }
+            }
 
             Spacer()
         }
@@ -219,15 +219,22 @@ struct HistoryView: View {
 
     // MARK: API Call
     //func fetchTransactionHistory(for accountId: String) {
-    func fetchTransactionHistory(for accountId: String, from startDate: Date, to endDate: Date) {
+    func fetchTransactionHistory(for accountId: String) {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd"
-
-        let body: [String: String] = [
-            "accountId": account!.accountId,
-            "startDate": dateFormatter.string(from: startDate),
-            "endDate": dateFormatter.string(from: endDate)
+        let shouldSendNullStartDate = false // or true based on your logic
+        let shouldSendNullEndDate = false 
+//        let body: [String: String] = [
+//            "accountId": account!.accountId,
+//            "startDate": dateFormatter.string(from: startDate),
+//            "endDate": dateFormatter.string(from: endDate)
+//        ]
+        var body: [String: Any] = [
+            "accountId": accountId,
+            //"startDate": shouldSendNullStartDate ? NSNull() : dateFormatter.string(from: startDate),
+            //"endDate": shouldSendNullEndDate ? NSNull() : dateFormatter.string(from: endDate)
         ]
+
         guard let token = TokenManager.shared.getToken() else {
             print("No token found")
             return

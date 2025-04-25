@@ -33,6 +33,7 @@ class TokenManager {
         keychain[contactIdKey] = contactId
     }
 
+    
     func getContactId() -> String? {
         return keychain[contactIdKey]
     }
