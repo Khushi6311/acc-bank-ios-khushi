@@ -65,34 +65,51 @@ enum AppConfig {
     }
     
     static var AccountTypeURL: String {
-        return "\(baseURL)/accounts/master"  //this API for showing account list in account creation form-post
+        return "\(baseURL)/accounts/master"  //master account list(predefined)-post
     }
     static var OTPVerificationURL: String {
-        return "\(baseURL)/auth/otp-verify"  //this API for showing account list in account creation form-post
+        return "\(baseURL)/auth/otp-verify"  //OTP verify (123456)-post
     }
     static var AddAccountURL: String {
-        return "\(baseURL)/accounts/add"  //this API for showing account list in account creation form-post
+        return "\(baseURL)/accounts/add"  //add account from (add account)-post
     }
     static var AddContactURL: String {
-        return "\(baseURL)/member/add"  //this API for showing account list in account creation form-post
+        return "\(baseURL)/member/add"  //add contact from (add contact)-post
     }
     
     static var AddPayeeURL: String {
-        return "\(baseURL)/member/payee-add"  //this API for showing account list in account creation form-post
+        return "\(baseURL)/member/payee-add"  //add payee from (add payee)-post
     }
+    static var PayBillURL: String {
+        return "\(baseURL)/accounts/PayBill"  //pay bill (make a payment)-paot
+    }
+    static var TransactionHistoryURL: String {
+        return "\(baseURL)/accounts/transaction-history"  //show transaction history-post
+    }
+    static var TransferMoneyURL: String {
+        return "\(baseURL)/accounts/transfer-money"  //Transfer money-post
+    }
+    
+    
+    
+    
+    
     //GET
     static func GetAccountsURL(for contactId: String) -> String {
-            return "\(baseURL)/accounts/cust-account?ContactId=\(contactId)"
+            return "\(baseURL)/accounts/cust-account?ContactId=\(contactId)"//give list of specific user -get
         }
     
     static var GetPayeeCategoryURL:String {
-            return "\(baseURL)/member/get-payeecategories"
+            return "\(baseURL)/member/get-payeecategories"//get common list of payee category-get
         }
     static var GetPayeeListURL:String {
-            return "\(baseURL)member/getpayeelist"
+            return "\(baseURL)/member/getpayeelist"//give stored payee list -get
+        }
+    static var GetContactListURL:String {
+            return "\(baseURL)/member/get-list"//give saved contact list-get
         }
 }
-//https://acceinfoapi-cga0hmcdazb5hjbs.eastus2-01.azurewebsites.net/api/member/getpayeelist
+
 //BASE_URL=https://acceinfoapi-cga0hmcdazb5hjbs.eastus2-01.azurewebsites.net/api
 
 

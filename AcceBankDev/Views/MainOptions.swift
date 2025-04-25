@@ -74,6 +74,8 @@ struct MainOptionsView: View {
                                     selectedPayees.append(newPayee)
                                     showAddPayeeSheet = false // Dismiss after save
                                     print("Payee saved: \(newPayee.name)")
+                                //print("Payee saved: \(newPayee.payeeName)")
+
                                 }                        }
 
                         Divider().background(Color.gray.opacity(0.9)).padding(.horizontal, 20)

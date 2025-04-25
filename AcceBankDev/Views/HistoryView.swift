@@ -15,12 +15,12 @@ struct HistoryView: View {
             // Top Bar
             HStack {
                 Button(action: { dismiss() }) {
-                    Image(systemName: "chevron.left")
+                    Image(systemName: "arrow.left")
                         .font(.system(size: 20, weight: .semibold))
                         .foregroundColor(.black)
                 }
                 Spacer()
-                Text("Transfer money")
+                Text("History")
                     .font(.headline)
                     .foregroundColor(.black)
                 Spacer()
@@ -111,60 +111,106 @@ struct HistoryView: View {
                             .background(Color.blue)
                             .cornerRadius(8)
                     }
+                 
                 }
                 .padding()
                 .background(Color.white)
                 .cornerRadius(12)
                 .shadow(radius: 4)
                 .padding(.horizontal)
+                
+                if isLoading {
+                    ProgressView("Loading...")
+                        .padding()
+                } else {
+                    ScrollView {
+                        VStack(spacing: 12) {
+                            ForEach(transactions) { tx in
+                                HStack(alignment: .top, spacing: 12) {
+                                    Image(systemName: tx.icon)
+                                        .font(.title2)
+                                        .frame(width: 40, height: 40)
+                                        .background(Color(UIColor.systemGray5))
+                                        .clipShape(Circle())
+
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text(tx.date)
+                                            .font(.caption)
+                                            .foregroundColor(.gray)
+                                        Text(tx.name)
+                                            .font(.headline)
+                                        Text(tx.type)
+                                            .font(.subheadline)
+                                            .foregroundColor(.gray)
+                                    }
+
+                                    Spacer()
+
+                                    VStack(alignment: .trailing) {
+                                        Text(String(format: "$%.2f", tx.amount))
+                                            .bold()
+                                        Text(tx.status)
+                                            .font(.caption)
+                                            .foregroundColor(.gray)
+                                    }
+                                }
+                                .padding()
+                                .background(Color.white)
+                                .cornerRadius(12)
+                                .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
+                            }
+                        }
+                        .padding(.horizontal)
+                    }
+                }
             }
 
 
             // Transactions List
-            if isLoading {
-                ProgressView("Loading...")
-                    .padding()
-            } else {
-                ScrollView {
-                    VStack(spacing: 12) {
-                        ForEach(transactions) { tx in
-                            HStack(alignment: .top, spacing: 12) {
-                                Image(systemName: tx.icon)
-                                    .font(.title2)
-                                    .frame(width: 40, height: 40)
-                                    .background(Color(UIColor.systemGray5))
-                                    .clipShape(Circle())
-
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(tx.date)
-                                        .font(.caption)
-                                        .foregroundColor(.gray)
-                                    Text(tx.name)
-                                        .font(.headline)
-                                    Text(tx.type)
-                                        .font(.subheadline)
-                                        .foregroundColor(.gray)
-                                }
-
-                                Spacer()
-
-                                VStack(alignment: .trailing) {
-                                    Text(String(format: "$%.2f", tx.amount))
-                                        .bold()
-                                    Text(tx.status)
-                                        .font(.caption)
-                                        .foregroundColor(.gray)
-                                }
-                            }
-                            .padding()
-                            .background(Color.white)
-                            .cornerRadius(12)
-                            .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
-                        }
-                    }
-                    .padding(.horizontal)
-                }
-            }
+//            if isLoading {
+//                ProgressView("Loading...")
+//                    .padding()
+//            } else {
+//                ScrollView {
+//                    VStack(spacing: 12) {
+//                        ForEach(transactions) { tx in
+//                            HStack(alignment: .top, spacing: 12) {
+//                                Image(systemName: tx.icon)
+//                                    .font(.title2)
+//                                    .frame(width: 40, height: 40)
+//                                    .background(Color(UIColor.systemGray5))
+//                                    .clipShape(Circle())
+//
+//                                VStack(alignment: .leading, spacing: 4) {
+//                                    Text(tx.date)
+//                                        .font(.caption)
+//                                        .foregroundColor(.gray)
+//                                    Text(tx.name)
+//                                        .font(.headline)
+//                                    Text(tx.type)
+//                                        .font(.subheadline)
+//                                        .foregroundColor(.gray)
+//                                }
+//
+//                                Spacer()
+//
+//                                VStack(alignment: .trailing) {
+//                                    Text(String(format: "$%.2f", tx.amount))
+//                                        .bold()
+//                                    Text(tx.status)
+//                                        .font(.caption)
+//                                        .foregroundColor(.gray)
+//                                }
+//                            }
+//                            .padding()
+//                            .background(Color.white)
+//                            .cornerRadius(12)
+//                            .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
+//                        }
+//                    }
+//                    .padding(.horizontal)
+//                }
+//            }
 
             Spacer()
         }
@@ -187,7 +233,7 @@ struct HistoryView: View {
             return
         }
 
-        guard let url = URL(string: "https://acceinfoapi-cga0hmcdazb5hjbs.eastus2-01.azurewebsites.net/api/accounts/transaction-history") else {
+        guard let url = URL(string:AppConfig.TransactionHistoryURL) else {
             print("Invalid URL")
             return
         }
@@ -306,39 +352,72 @@ struct AccountField: View {
 //    let status: String
 //    let icon: String
 //}
+//struct Transaction: Identifiable, Codable {
+//    var id: UUID { transactionId }
+//
+//    let transactionId: UUID
+//    let transactionFrom: Int
+//    let transactionTo: Int
+//    let createdOn: String
+//    let amount: Double
+//    let note: String
+//    let transactionType: String
+//    let isSelfTransfer: Bool
+//
+//    // Optional icon logic for UI
+//    var icon: String {
+//        transactionType.lowercased() == "credit" ? "arrow.down.right" : "arrow.up.right"
+//    }
+//
+//    var date: String {
+//        String(createdOn.prefix(10)) // Just the date part
+//    }
+//
+//    var name: String {
+//        note
+//    }
+//
+//    var type: String {
+//        transactionType
+//    }
+//
+//    var status: String {
+//        return isSelfTransfer ? "Internal" : "Processed"
+//    }
+//}
 struct Transaction: Identifiable, Codable {
     var id: UUID { transactionId }
 
     let transactionId: UUID
-    let transactionFrom: Int
-    let transactionTo: Int
+    let transactionFrom: String
+    let transactionTo: String
     let createdOn: String
     let amount: Double
-    let note: String
-    let transactionType: String
+    let note: String?
+    let transactionType: String?
     let isSelfTransfer: Bool
 
-    // Optional icon logic for UI
     var icon: String {
-        transactionType.lowercased() == "credit" ? "arrow.down.right" : "arrow.up.right"
+        (transactionType ?? "").lowercased() == "credit" ? "arrow.down.right" : "arrow.up.right"
     }
 
     var date: String {
-        String(createdOn.prefix(10)) // Just the date part
+        String(createdOn.prefix(10))
     }
 
     var name: String {
-        note
+        note ?? ""
     }
 
     var type: String {
-        transactionType
+        transactionType ?? "Transfer"
     }
 
     var status: String {
-        return isSelfTransfer ? "Internal" : "Processed"
+        isSelfTransfer ? "Internal" : "Processed"
     }
 }
+
 
 // MARK: - Preview
 //#Preview {

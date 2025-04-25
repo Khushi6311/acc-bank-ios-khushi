@@ -322,7 +322,106 @@ struct TransferMoneyScreen: View {
         
 }
    
+func sendTransferAPI(
+        fromAccount: BankAccount?,
+        toAccount: BankAccount?,
+        selectedContact: Contact?,
+        amount: String,
+        memo: String,
+        isRecurring: Bool,
+        startDate: Date?,
+        endDate: Date?,
+        selectedFrequency: String?,
+        isAnotherMemberSelected: Bool
+    ) {
+        guard let from = fromAccount else {
+            print("Missing from account")
+            return
+        }
 
+        // Safely extract `toId` based on transfer type
+        guard let toId = isAnotherMemberSelected
+            ? selectedContact?.id.uuidString // Use .id here
+            : toAccount?.accountId else {
+            print("Missing to account or contact")
+            return
+        }
+
+
+        let fromId = from.accountId
+
+        // Clean the entered amount string
+        let cleanAmount = Double(
+            amount
+                .replacingOccurrences(of: "$", with: "")
+                .replacingOccurrences(of: ",", with: "")
+                .trimmingCharacters(in: .whitespaces)
+        ) ?? 0.0
+
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd"
+
+        // Create request body
+        var requestBody: [String: Any] = [
+            "Note": memo,
+            "IsSelfTransfer": true,
+            "AccountNumberFrom": fromId,
+            "AccountNumberTo": toId,
+            "Amount": cleanAmount,
+            "Currency": "CAD"
+        ]
+
+        if isRecurring {
+            if let start = startDate, let end = endDate, let frequency = selectedFrequency {
+                requestBody["StartDate"] = dateFormatter.string(from: start)
+                requestBody["EndDate"] = dateFormatter.string(from: end)
+                requestBody["Frequency"] = frequency.capitalized
+            }
+        } else {
+            if let start = startDate {
+                requestBody["StartDate"] = dateFormatter.string(from: start)
+            }
+        }
+
+        // Prepare URL and headers
+        guard let url = URL(string:AppConfig.TransferMoneyURL),
+              let token = TokenManager.shared.getToken() else {
+            print("Invalid URL or missing token")
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+
+        do {
+            let jsonData = try JSONSerialization.data(withJSONObject: requestBody, options: [])
+            request.httpBody = jsonData
+
+            print("Transfer API Request:")
+            print(String(data: jsonData, encoding: .utf8) ?? "")
+
+            URLSession.shared.dataTask(with: request) { data, response, error in
+                if let error = error {
+                    print("API Error: \(error.localizedDescription)")
+                    return
+                }
+
+                if let response = response as? HTTPURLResponse {
+                    print("Response Code: \(response.statusCode)")
+                }
+
+                if let data = data, let body = String(data: data, encoding: .utf8) {
+                    print("Response Body:\n\(body)")
+                }
+
+            }.resume()
+
+        } catch {
+            print("JSON Encoding Error: \(error.localizedDescription)")
+        }
+    }
 let minimumDate: Date = {
     var components = DateComponents()
     components.year = 2025
@@ -852,12 +951,24 @@ struct MyAccountsTransferForm: View {
                             startDateText: $startDateText,
                             endDateText: $endDateText,
                             isAnotherMemberSelected: $isAnotherMemberSelected,
-                            selectedContact: $selectedContact // Add this
+                            selectedContact: $selectedContact,// Add this
 
-                            
+                            onConfirm: {
+                                        sendTransferAPI(
+                                            fromAccount: selectedFromAccount,
+                                            toAccount: selectedToAccount,
+                                            selectedContact: selectedContact,
+                                            amount: amount,
+                                            memo: memo,
+                                            isRecurring: recurring,
+                                            startDate: startDate,
+                                            endDate: endDate,
+                                            selectedFrequency: selectedFrequency,
+                                            isAnotherMemberSelected: isAnotherMemberSelected
+                                        )
+                                    }
                         )
-    //                    .presentationDetents([.medium, .fraction(2)]) // Makes the sheet smaller
-    //                        .presentationDragIndicator(.visible)
+    //
                     }
 
 
@@ -1392,7 +1503,7 @@ struct AnotherMemberTransferForm: View {
                                 in: DateDefaults.startDateRange(),
                                 displayedComponents: .date
                             )
-                            .datePickerStyle(GraphicalDatePickerStyle()) // ✅ apply here
+                            .datePickerStyle(GraphicalDatePickerStyle()) // apply here
                             .labelsHidden()
                         }
 
@@ -1411,7 +1522,7 @@ struct AnotherMemberTransferForm: View {
                                 in: DateDefaults.endDateRange(from: startDate),
                                 displayedComponents: .date
                             )
-                            .datePickerStyle(GraphicalDatePickerStyle()) // ✅ apply here
+                            .datePickerStyle(GraphicalDatePickerStyle()) // apply here
                             .labelsHidden()
                         }
                     }
@@ -1421,81 +1532,6 @@ struct AnotherMemberTransferForm: View {
                 .id("calendarSection")
             }
 
-//            if showDatePicker {
-//                VStack {
-//                    //11 april
-//                    DatePicker(
-//                        "Select Date",
-//                        selection: Binding(
-//                            get: {
-//                                if !recurring { return startDate }
-//                                return isSelectingStartDate ? startDate : endDate
-//                            },
-//                            set: { newValue in
-//                                if !recurring {
-//                                    startDate = newValue
-//                                    dateText = formatDate(newValue)
-//                                    if let date = dateText, !date.isEmpty {
-//                                        showDateError = false
-//                                    }
-//                                } else {
-//                                    if isSelectingStartDate {
-//                                        startDate = newValue
-//                                        startDateText = formatDate(newValue)
-//                                    } else {
-//                                        endDate = newValue
-//                                        endDateText = formatDate(newValue)
-//                                    }
-//                                    if let start = startDateText, !start.isEmpty,
-//                                       let end = endDateText, !end.isEmpty {
-//                                        showRecurringDateError = false
-//                                    }
-//                                }
-//                                showDatePicker = false
-//                            }
-//                        ),
-//                        in: DateDefaults.minimumDate...,
-//                        displayedComponents: .date
-//                    )
-//
-////                    DatePicker("Select Date", selection: Binding(
-////                        get: {
-////                            if !recurring { return startDate }
-////                            return isSelectingStartDate ? startDate : endDate
-////                        },
-////                        set: { newValue in
-////                            if !recurring {
-////                                startDate = newValue
-////                                dateText = formatDate(newValue)
-////                                
-////                                if let date = dateText, !date.isEmpty {
-////                                            showDateError = false
-////                                        }
-////                            } else {
-////                                if isSelectingStartDate {
-////                                    startDate = newValue
-////                                    startDateText = formatDate(newValue)
-////                                } else {
-////                                    endDate = newValue
-////                                    endDateText = formatDate(newValue)
-////                                }
-////                                if let start = startDateText, !start.isEmpty,
-////                                           let end = endDateText, !end.isEmpty {
-////                                            showRecurringDateError = false
-////                                        }
-////                                    
-////                            }
-////                            showDatePicker = false
-////                        }
-//                    //), displayedComponents: .date)
-//                    .datePickerStyle(GraphicalDatePickerStyle())
-//                    .labelsHidden()
-//                    .padding()
-//                    .background(RoundedRectangle(cornerRadius: 10).fill(Color.white).shadow(radius: 5))
-//                    
-//                }
-//                
-//            }
 
             // **Memo Field**
             //TextField("Memo", text: $memo)
@@ -1565,7 +1601,21 @@ struct AnotherMemberTransferForm: View {
                     startDateText: $startDateText,
                     endDateText: $endDateText,
                     isAnotherMemberSelected: $isAnotherMemberSelected,
-                    selectedContact: $selectedContact // Add this
+                    selectedContact: $selectedContact,
+                    onConfirm: {
+                                sendTransferAPI(
+                                    fromAccount: selectedFromAccount,
+                                    toAccount: nil,
+                                    selectedContact: selectedContact,
+                                    amount: amount,
+                                    memo: memo,
+                                    isRecurring: recurring,
+                                    startDate: startDate,
+                                    endDate: endDate,
+                                    selectedFrequency: selectedFrequency,
+                                    isAnotherMemberSelected: isAnotherMemberSelected
+                                )
+                            }// Add this
 
                     
                 )
@@ -1711,7 +1761,7 @@ struct ConfirmationSheet: View {
         @Binding var endDateText: String?
         @Binding var isAnotherMemberSelected: Bool
     @Binding var selectedContact: Contact?
-
+    var onConfirm: () -> Void
 
     @Environment(\.presentationMode) var presentationMode
     @State private var navigateToSummary = false  // Controls navigation
@@ -1876,6 +1926,8 @@ struct ConfirmationSheet: View {
             // Confirm Button
             Button(action: {
                 print("Transaction confirmed")
+                //sendTransferAPI()
+                onConfirm()
                 //presentationMode.wrappedValue.dismiss()
                 navigateToSummary = true // Show summary screen
 
@@ -1911,6 +1963,124 @@ struct ConfirmationSheet: View {
                     )
                 }
     }
+    func sendTransferAPI(
+        fromAccount: BankAccount?,
+        toAccount: BankAccount?,
+        selectedContact: Contact?,
+        amount: String,
+        memo: String,
+        isRecurring: Bool,
+        startDate: Date?,
+        endDate: Date?,
+        selectedFrequency: String?,
+        isAnotherMemberSelected: Bool
+    ) {
+        guard let from = fromAccount else {
+            print("Missing from account")
+            return
+        }
+
+        // Safely extract `toId` based on transfer type
+//        guard let toId = isAnotherMemberSelected
+//            ? selectedContact?.accountNumber
+//            : toAccount?.accountNumber else {
+//            print("Missing to account or contact")
+//            return
+//        }
+        guard let toId = isAnotherMemberSelected
+            ? selectedContact?.id.uuidString // ✅ Use .id here
+            : toAccount?.accountId else {
+            print("❌ Missing to account or contact")
+            return
+        }
+
+
+        let fromId = from.accountId
+
+        // Clean the entered amount string
+        let cleanAmount = Double(
+            amount
+                .replacingOccurrences(of: "$", with: "")
+                .replacingOccurrences(of: ",", with: "")
+                .trimmingCharacters(in: .whitespaces)
+        ) ?? 0.0
+
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd"
+
+        // Create request body
+        var requestBody: [String: Any] = [
+            "Note": memo,
+            "IsSelfTransfer": true,
+            "AccountNumberFrom": fromId,
+            "AccountNumberTo": toId,
+            "Amount": cleanAmount,
+            "Currency": "CAD"
+        ]
+
+        if isRecurring {
+            if let start = startDate, let end = endDate, let frequency = selectedFrequency {
+                requestBody["StartDate"] = dateFormatter.string(from: start)
+                requestBody["EndDate"] = dateFormatter.string(from: end)
+                requestBody["Frequency"] = frequency.capitalized
+            }
+        } else {
+            if let start = startDate {
+                requestBody["StartDate"] = dateFormatter.string(from: start)
+            }
+        }
+
+        // Prepare URL and headers
+        guard let url = URL(string:AppConfig.TransferMoneyURL),
+              let token = TokenManager.shared.getToken() else {
+            print("Invalid URL or missing token")
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+
+        do {
+            let jsonData = try JSONSerialization.data(withJSONObject: requestBody, options: [])
+            request.httpBody = jsonData
+
+            print("Transfer API Request:")
+            print(String(data: jsonData, encoding: .utf8) ?? "")
+
+            URLSession.shared.dataTask(with: request) { data, response, error in
+                if let error = error {
+                    print("API Error: \(error.localizedDescription)")
+                    return
+                }
+
+                if let response = response as? HTTPURLResponse {
+                    print("Response Code: \(response.statusCode)")
+                }
+
+                if let data = data, let body = String(data: data, encoding: .utf8) {
+                    print("Response Body:\n\(body)")
+                }
+
+            }.resume()
+
+        } catch {
+            print("JSON Encoding Error: \(error.localizedDescription)")
+        }
+    }
+
+}
+struct TransferRequest: Codable {
+    let AccountNumberFrom: String
+    let AccountNumberTo: String
+    let Amount: Double
+    let Currency: String
+    let IsSelfTransfer: Bool
+    let Frequency: String?
+    let Note: String
+    let StartDate: String
+    let EndDate: String
 }
 
 struct SummarySheet: View { //SummarySheet
@@ -2214,7 +2384,9 @@ struct ContactSelectionSheet: View {
                 
             )
         }
-
+        .onAppear {
+                    contactManager.fetchContactsFromAPI()
+                }
         .padding(.horizontal)
         .presentationDetents([.medium, .large])
     }

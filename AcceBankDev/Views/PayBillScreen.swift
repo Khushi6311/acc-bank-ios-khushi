@@ -1,4 +1,24 @@
 import SwiftUI
+extension Date {
+    var startOfDay: Date {
+        Calendar.current.startOfDay(for: self)
+    }
+}
+//for API
+struct PayBillRequest: Codable {
+    var AccountNumberFrom: String
+    var ToAccountNumbers: [ToAccount]
+}
+
+struct ToAccount: Codable {
+    var AccountNumberTo: String
+    var Amount: Double
+    var Currency: String
+    var Frequency: String
+    var StartDate: String
+    var EndDate: String
+    var Memo: String
+}
 
 //below struct for showing multiple field of multiple payee
 struct PayeePaymentDetails: Identifiable {
@@ -9,6 +29,11 @@ struct PayeePaymentDetails: Identifiable {
     var startDate: Date? = nil    // for recurring
     var endDate: Date? = nil
     var frequency: String = "monthly"
+    
+//var memo: String = ""
+    var memo: String? = nil
+
+       var showMemoError: Bool = false
     var showAmountError: Bool = false
      var showDateError: Bool = false
     var showCalendar: Bool = false
@@ -21,6 +46,8 @@ struct PayeeRecurringDetails: Identifiable {
     var frequency: String
     var startDate: Date?
     var endDate: Date?
+    //var memo: String = ""
+    var memo: String? = nil
 
     var showAmountError = false
     var showStartDateError = false
@@ -71,7 +98,9 @@ struct PayBillScreen: View {
     @State private var startDate = Date()
     @State private var endDate = Date()
      // for payee
-    @StateObject private var viewModel = PayeeViewModel()
+    //@StateObject private var viewModel = PayeeViewModel()
+    @ObservedObject var viewModel: PayeeViewModel
+
     @State private var showPayeeSheet = false
     //@State private var selectedPayee: Payee?
     @State private var selectedPayees: [Payee] = []
@@ -302,7 +331,7 @@ struct OneTimePaymentForm: View {
     @Binding var selectedPayees: [Payee]
     @Binding var showPayeeSheet: Bool
     @Binding var payeePaymentDetails: [PayeePaymentDetails]
-
+    @State private var memo: String = ""
     @State private var bannerErrorMessage: String?
 
     var body: some View {
@@ -394,7 +423,7 @@ struct OneTimePaymentForm: View {
             .sheet(isPresented: $showPayeeSheet) {
                 //PayeeListView()
                 PayeeListView(
-                    viewModel: PayeeViewModel(),
+                    viewModel: viewModel,
 selectedPayees: $selectedPayees, showPayeeSheet: $showPayeeSheet)
 
             }
@@ -449,20 +478,24 @@ selectedPayees: $selectedPayees, showPayeeSheet: $showPayeeSheet)
                     showDatePicker=true
                 }
                 FieldErrorView(message: NSLocalizedString("error_required_field", comment: "Date is required"), show: $showDateError)
+                TextField("Enter memo (optional)", text: $memo)
+                               .padding()
+                               .background(RoundedRectangle(cornerRadius: 10).stroke(Color.gray))
 
                 if showDatePicker {
-                    DatePicker("Select Date", selection: $selectedDate, displayedComponents: .date)
+                    DatePicker("Select Date", selection: $selectedDate, in: Date()..., displayedComponents: .date)
                         .datePickerStyle(GraphicalDatePickerStyle())
                         .padding()
-                        .background(RoundedRectangle(cornerRadius: 10).stroke(Color.gray, lineWidth: 1))
-                        .onChange(of: selectedDate, initial: false) { oldValue, newValue in
+                        .background(RoundedRectangle(cornerRadius: 10).stroke(Color.gray))
+                        .onChange(of: selectedDate, initial: false) { _, newValue in
                             let formatter = DateFormatter()
                             formatter.dateStyle = .medium
                             formattedDate = formatter.string(from: newValue)
                             showDatePicker = false
-                            showDateError=false
+                            showDateError = false
                         }
                 }
+
             }
 
 
@@ -564,14 +597,29 @@ selectedPayees: $selectedPayees, showPayeeSheet: $showPayeeSheet)
                     amount: amount,
                     date: formattedDate ?? "",
                     selectedPayees: selectedPayees,
-                    payeeDetails: payeePaymentDetails
+                    payeeDetails: payeePaymentDetails,
+                    memo:memo
 
                     
                 )
             }
-            
+            .onAppear {
+                let today = Calendar.current.startOfDay(for: Date())
+                if selectedDate < today {
+                    selectedDate = today
+                }
+
+                if formattedDate == nil {
+                    let formatter = DateFormatter()
+                    formatter.dateStyle = .medium
+                    formattedDate = formatter.string(from: selectedDate)
+                }
+            }
+
         }
-       
+    
+        
+
 }
 //add payee
 
@@ -800,7 +848,7 @@ struct AddPayeeFormView: View {
         savePayeeToAPI()
 
         let finalPayeeName = !payeeName.isEmpty ? payeeName : selectedPayee
-        let newPayee = Payee(id: UUID().uuidString, name: finalPayeeName, accountNumber: accountNumber, bank: selectedPayee)
+        let newPayee = Payee(payeeId: UUID().uuidString, payeeName: finalPayeeName, payeeNumber: accountNumber, payeeTypeName: selectedPayee)
         onSave(newPayee)
         dismiss()
         
@@ -808,11 +856,11 @@ struct AddPayeeFormView: View {
 
 }
 
-
+    
 //struct PayeeType: Identifiable, Codable, Equatable {
 //    var id: String
 //    var name: String
-//    
+//
 //}
 struct AddPayeeRequest: Codable {
     let PayeeName: String
@@ -1022,7 +1070,9 @@ struct OnetimeErrorMessageView: View {
 struct MultiPayeeDetailView: View {
     @Binding var detail: PayeePaymentDetails
     @FocusState private var focusedField: FieldFocus?
-
+    var today: Date {
+            Calendar.current.startOfDay(for: Date())
+        }
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text(detail.payee.name)
@@ -1048,88 +1098,77 @@ struct MultiPayeeDetailView: View {
             .onTapGesture {
                 focusedField = nil
             }
-//            if detail.showCalendar {
-//                let dateBinding = Binding<Date>(
-//                    get: { detail.date ?? Date() },
-//                    set: {
-//                        detail.date = $0
-//                        detail.showCalendar = false
-//                    }
-//                )
-//
-//                DatePicker("Select Date", selection: dateBinding,
-//                           in: Date.distantPast...Date.distantFuture,displayedComponents: .date)
-//                    .datePickerStyle(GraphicalDatePickerStyle())
-//                    .padding()
-//                    .background(RoundedRectangle(cornerRadius: 10).stroke(Color.gray))
+
             if detail.showCalendar {
-                let dateBinding = Binding<Date>(
-                    get: {
-                        // Just return a fallback for DatePicker, don't set detail.date here
-                        detail.date ?? Date()
-                    },
-                    set: { newDate in
-                        // Set detail.date only when user actually picks a date
-                        detail.date = newDate
-                        detail.showCalendar = false
-                        detail.showDateError = false
-                        print("Selected Date for \(detail.payee.name): \(newDate)")
-                    }
-                )
-                    
+                          DatePicker(
+                              "Select Date",
+                              selection: Binding(
+                                  get: { detail.date ?? today },
+                                  set: { newValue in
+                                      detail.date = newValue
+                                      detail.showCalendar = false
+                                      detail.showDateError = false
+                                  }
+                              ),
+                              in: today...,
+                              displayedComponents: .date
+                          )
+                          .datePickerStyle(GraphicalDatePickerStyle())
+                          .padding()
+                          .background(RoundedRectangle(cornerRadius: 10).stroke(Color.gray))
+                      } else {
+                          Button {
+                              // Force today's date if not already set
+                              if detail.date == nil || (detail.date! < today) {
+                                  detail.date = today
+                              }
+                              detail.showCalendar = true
+                          } label: {
+                              HStack {
+                                  Text(detail.date != nil ? formattedDate(detail.date!) : "Select date")
+                                      .foregroundColor(detail.date != nil ? .primary : .gray)
+                                  Spacer()
+                                  Image(systemName: "calendar")
+                                      .foregroundColor(.gray)
+                              }
+                              .padding()
+                              .background(RoundedRectangle(cornerRadius: 10).stroke(Color.gray))
+                          }
 
-                DatePicker("Select Date", selection: dateBinding, in: Date.distantPast...Date.distantFuture, displayedComponents: .date)
-                    .datePickerStyle(GraphicalDatePickerStyle())
-                    .padding()
-                    .background(RoundedRectangle(cornerRadius: 10).stroke(Color.gray))
-            
+                          FieldErrorView(
+                              message: NSLocalizedString("error_required_field", comment: "Date is required"),
+                              show: $detail.showDateError
+                          )
+                      }
+            TextField("Enter memo (optional)", text: Binding(
+                get: { detail.memo ?? "" },
+                set: { detail.memo = $0 }
+            ))
+            .padding()
+            .background(RoundedRectangle(cornerRadius: 10).stroke(Color.gray))
 
-                
-            } else {
-                Button {
-//                    if detail.date == nil {
-//                                detail.date = Date() // Ensure today is set before opening calendar
-//                            }
-                    detail.showCalendar = true
-                } label: {
-                    HStack {
-//                        Text(detail.date != nil ? formattedDate(detail.date!) : "Select date")
-//                            .foregroundColor(.gray)
-                        Text(detail.date != nil ? formattedDate(detail.date!) : "Select date")
-                                       .foregroundColor(detail.date != nil ? .primary : .gray)
-
-                       
-                        Spacer()
-                        
-                        Image(systemName: "calendar")
-                            .foregroundColor(.gray)
-                        
-                    }
-                    
-                    .padding()
-                    .background(RoundedRectangle(cornerRadius: 10).stroke(Color.gray))
-                    
-                }
-                FieldErrorView(
-                    message: NSLocalizedString("error_required_field", comment: "Date is required"),
-                    show: $detail.showDateError
-                )
-                
-            }
         }
         .padding(.vertical)
+        .onAppear {
+            if detail.date == nil {
+                detail.date = Calendar.current.startOfDay(for: Date())
+            }
+        }
     }
-
+        
     func formattedDate(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
         return formatter.string(from: date)
     }
+    
 }
 
 //show list of payee from json from bottom sheet
 struct PayeeListView: View {
-    @ObservedObject var viewModel = PayeeViewModel()
+    //@ObservedObject var viewModel = PayeeViewModel()
+    @ObservedObject var viewModel: PayeeViewModel
+
     @Binding var selectedPayees: [Payee]
     @Binding var showPayeeSheet: Bool
     @State private var searchText = ""
@@ -1204,10 +1243,15 @@ struct PayeeListView: View {
                 .padding()
             }
         }
+        .onAppear {
+            viewModel.fetchPayeesFromAPI()
+        }
         .presentationDetents([.medium, .large])
     }
-}
+        
 
+}
+    
 
 
 
@@ -1258,6 +1302,7 @@ struct RecurringPaymentForm: View {
     @Binding var payeeRecurringDetails: [PayeeRecurringDetails]
     @FocusState private var focusedField: FieldFocus?
     @State private var bannerErrorMessage: String?
+    @State private var memo: String = ""
 
     var body: some View {
         VStack(spacing: 15) {
@@ -1323,7 +1368,7 @@ struct RecurringPaymentForm: View {
                 .cornerRadius(10)
             }
             .sheet(isPresented: $showPayeeSheet) {
-                PayeeListView(viewModel: PayeeViewModel(), selectedPayees: $selectedPayees, showPayeeSheet: $showPayeeSheet)
+                PayeeListView(viewModel:viewModel, selectedPayees: $selectedPayees, showPayeeSheet: $showPayeeSheet)
             }
             //9
             FieldErrorView(message: NSLocalizedString("error_required_field", comment: "Payee is required"), show: $showContactError)
@@ -1405,10 +1450,15 @@ struct RecurringPaymentForm: View {
                     showDatePicker.toggle()
                 }
                 FieldErrorView(message: NSLocalizedString("error_required_field", comment: "Amount is required"), show: $showEndDateError)
-            }
+                
+                TextField("Enter memo (optional)", text: $memo)
+                    .padding()
+                    .background(RoundedRectangle(cornerRadius: 10).stroke(Color.gray))
 
+            }
+            
             if showDatePicker {
-                DatePicker("Select Date", selection: isSelectingStartDate ? $selectedStartDate : $selectedEndDate, displayedComponents: .date)
+                DatePicker("Select Date", selection: isSelectingStartDate ? $selectedStartDate : $selectedEndDate, in: Date()..., displayedComponents: .date)
                     .datePickerStyle(GraphicalDatePickerStyle())
                     .padding()
                     .background(RoundedRectangle(cornerRadius: 10).stroke(Color.gray, lineWidth: 1))
@@ -1417,17 +1467,17 @@ struct RecurringPaymentForm: View {
                         formatter.dateStyle = .medium
                         if isSelectingStartDate {
                             formattedStartDate = formatter.string(from: newValue)
-                            showStartDateError=false
-                            
+                            showStartDateError = false
                         } else {
                             formattedEndDate = formatter.string(from: newValue)
-                            showEndDateError=false
+                            showEndDateError = false
                         }
                         withAnimation {
-                                        showDatePicker = false
-                                    }
+                            showDatePicker = false
+                        }
                     }
             }
+
 
             Button(action: {
                 
@@ -1509,7 +1559,8 @@ struct RecurringPaymentForm: View {
                                 date: selectedStartDate, // only used for display
                                 startDate: selectedStartDate,
                                 endDate: selectedEndDate,
-                                frequency: selectedFrequency
+                                frequency: selectedFrequency,
+                                memo:memo
                             )
                           ]
                         : payeeRecurringDetails.map {
@@ -1519,7 +1570,8 @@ struct RecurringPaymentForm: View {
                                 date: $0.startDate,
                                 startDate: $0.startDate,
                                 endDate: $0.endDate,
-                                frequency: $0.frequency
+                                frequency: $0.frequency,
+                                memo: $0.memo
                             )
                           }
                 )
@@ -1538,7 +1590,27 @@ struct RecurringPaymentForm: View {
                 !newValue.contains(where: { $0.id == detail.payee.id })
             }
         }
+        .onAppear {
+            // Set default start date and its formatted text if empty
+            if formattedStartDate == nil || formattedStartDate?.isEmpty == true {
+                selectedStartDate = Calendar.current.startOfDay(for: Date())
+                let formatter = DateFormatter()
+                formatter.dateStyle = .medium
+                formattedStartDate = formatter.string(from: selectedStartDate)
+            }
+
+            // Set default end date and formatted value if needed (optional)
+//            if formattedEndDate == nil || formattedEndDate?.isEmpty == true {
+//                selectedEndDate = Calendar.current.date(byAdding: .day, value: 1, to: Date()) ?? Date()
+//                let formatter = DateFormatter()
+//                formatter.dateStyle = .medium
+//                formattedEndDate = formatter.string(from: selectedEndDate)
+            //}
+        }
+
+
     }
+    
 }
 
 //in recurring payment multiple payee are selected then show feild using this code
@@ -1552,46 +1624,34 @@ struct MultiRecurringPayeeDetailView: View {
             Text(detail.payee.name)
                 .font(.headline)
 
-            // Amount field
+            // Amount Field
             TextField(NSLocalizedString("enter_transfer_amount", comment: ""), text: $detail.amount)
-
-            //TextField("Enter amount", text: $detail.amount)
-                //.keyboardType(.decimalPad)
                 .keyboardType(.numbersAndPunctuation)
-                  .submitLabel(.done)
+                .submitLabel(.done)
                 .padding()
-                .background(RoundedRectangle(cornerRadius: 10).stroke(Color.gray, lineWidth: 1))
-                .onChange(of: detail.amount) { oldValue, newValue in
+                .background(RoundedRectangle(cornerRadius: 10).stroke(Color.gray))
+                .onChange(of: detail.amount) { _, newValue in
                     detail.amount = CurrencyFormatter.format(newValue)
                     if !newValue.trimmingCharacters(in: .whitespaces).isEmpty {
                         detail.showAmountError = false
                     }
                 }
-            FieldErrorView(message: NSLocalizedString("error_required_field", comment: "Amount is required"), show: $detail.showAmountError)
-            //Text("Select frequency")
-            Text(NSLocalizedString("select_frequency", comment: ""))
 
+            FieldErrorView(message: NSLocalizedString("error_required_field", comment: "Amount is required"), show: $detail.showAmountError)
+
+            Text(NSLocalizedString("select_frequency", comment: ""))
                 .font(.subheadline)
                 .foregroundColor(.gray)
-                .frame(maxWidth: .infinity, alignment: .leading)
-            // Frequency Picker
-//            Picker("Frequency", selection: $detail.frequency) {
-//                Text("Weekly").tag("weekly")
-//                Text("Monthly").tag("monthly")
-//                Text("Yearly").tag("yearly")
-//            }
 
-               
             Picker(NSLocalizedString("frequency", comment: "Frequency picker label"), selection: $detail.frequency) {
-                Text(NSLocalizedString("weekly", comment: "Frequency option")).tag("weekly")
-                Text(NSLocalizedString("monthly", comment: "Frequency option")).tag("monthly")
-                Text(NSLocalizedString("yearly", comment: "Frequency option")).tag("yearly")
+                Text(NSLocalizedString("weekly", comment: "")).tag("weekly")
+                Text(NSLocalizedString("monthly", comment: "")).tag("monthly")
+                Text(NSLocalizedString("yearly", comment: "")).tag("yearly")
             }
             .pickerStyle(SegmentedPickerStyle())
 
-            // Start Date
-            //DateField(title: "Start Date", dateText: Binding
-            DateField(title: String(localized: "start_date"), dateText: Binding(
+            // MARK: Start Date
+            DateField(title: NSLocalizedString("start_date", comment: ""), dateText: Binding(
                 get: {
                     if let date = detail.startDate {
                         let formatter = DateFormatter()
@@ -1611,21 +1671,15 @@ struct MultiRecurringPayeeDetailView: View {
                     set: { newVal in
                         detail.startDate = newVal
                         detail.showStartDateError = false
-                        withAnimation {
-                            showStartPicker = false
-                               }
-                        //showStartPicker = false
-                    }), displayedComponents: .date)
+                        showStartPicker = false
+                    }), in: Date()..., displayedComponents: .date)
                     .datePickerStyle(GraphicalDatePickerStyle())
-                
-                
             }
-           
 
-            FieldErrorView(message: NSLocalizedString("error_required_field", comment: "Amount is required"), show: $detail.showStartDateError)
+            FieldErrorView(message: NSLocalizedString("error_required_field", comment: ""), show: $detail.showStartDateError)
 
-            // End Date
-            DateField(title: String(localized: "end_date"), dateText: Binding(
+            // MARK: End Date
+            DateField(title: NSLocalizedString("end_date", comment: ""), dateText: Binding(
                 get: {
                     if let date = detail.endDate {
                         let formatter = DateFormatter()
@@ -1645,20 +1699,36 @@ struct MultiRecurringPayeeDetailView: View {
                     set: { newVal in
                         detail.endDate = newVal
                         detail.showEndDateError = false
-                        withAnimation {
-                            showEndPicker = false
-                               }
-                        //showEndPicker = false
-                    }), displayedComponents: .date)
+                        showEndPicker = false
+                    }), in: Date()..., displayedComponents: .date)
                     .datePickerStyle(GraphicalDatePickerStyle())
             }
-            FieldErrorView(message: NSLocalizedString("error_required_field", comment: "Amount is required"), show: $detail.showEndDateError)
+
+            FieldErrorView(message: NSLocalizedString("error_required_field", comment: ""), show: $detail.showEndDateError)
+
+            // Memo
+            TextField("Enter memo (optional)", text: Binding(
+                get: { detail.memo ?? "" },
+                set: { detail.memo = $0 }
+            ))
+            .padding()
+            .background(RoundedRectangle(cornerRadius: 10).stroke(Color.gray))
 
             Divider()
         }
         .padding(.vertical, 10)
+        .onAppear {
+            // Set default start & end dates if not already set
+            if detail.startDate == nil {
+                detail.startDate = Date()
+            }
+//            if detail.endDate == nil {
+//                detail.endDate = Calendar.current.date(byAdding: .day, value: 1, to: Date())
+//            }
+        }
     }
 }
+
 
 
 
@@ -1871,6 +1941,7 @@ struct BillConfirmationSheet: View {
     var date: String
     var selectedPayees: [Payee] = []
     var payeeDetails: [PayeePaymentDetails] = []
+    var memo: String? = nil // For single payee
 
     @State private var navigateToSummary = false
     @Environment(\.presentationMode) var presentationMode
@@ -1903,6 +1974,8 @@ struct BillConfirmationSheet: View {
 
                     // Conditional Display
                     if selectedPayees.count == 1 {
+                        let memoText = memo ?? ""
+
                         // Single Payee
                         BillDetailCard {
                             BillDetailRow(title: NSLocalizedString("pay_to", comment: ""),
@@ -1913,6 +1986,9 @@ struct BillConfirmationSheet: View {
 
                             BillDetailRow(title: NSLocalizedString("date", comment: ""),
                                           value: date)
+                            if !memoText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                                       BillDetailRow(title: NSLocalizedString("memo", comment: ""), value: memoText)
+                                   }
                         }
 
                     } else {
@@ -1939,6 +2015,14 @@ struct BillConfirmationSheet: View {
                                         .foregroundColor(.gray)
                                     Text(formattedDate(detail.date))
                                         .font(.body)
+                                    if let memoText = detail.memo, !memoText.isEmpty {
+                                                    Text(NSLocalizedString("memo", comment: ""))
+                                                        .font(.caption)
+                                                        .foregroundColor(.gray)
+                                                    Text(memoText)
+                                                        .font(.body)
+                                                }
+                                    
                                 }
                             }
                             .padding()
@@ -1958,6 +2042,9 @@ struct BillConfirmationSheet: View {
             Spacer()
 
             Button(action: {
+                if let fromAccount = fromAccount {
+                        sendPayBillRequest(fromAccount: fromAccount, payees: payeeDetails)
+                    }
                 navigateToSummary = true
             }) {
                 Text(NSLocalizedString("pay_now", comment: ""))
@@ -1988,6 +2075,81 @@ struct BillConfirmationSheet: View {
         formatter.dateStyle = .medium
         return formatter.string(from: date)
     }
+    
+    //fpr API
+    func sendPayBillRequest(fromAccount: BankAccount, payees: [PayeePaymentDetails]) {
+        guard let token = TokenManager.shared.getToken() else {
+            print("No token found")
+            return
+        }
+        print("Raw Payee Amounts:")
+        payees.forEach { payee in
+            print("Payee: \(payee.payee.name), Amount String: '\(payee.amount)'")
+        }
+
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+
+        let toAccounts = payees.map {
+            let cleanedAmount = $0.amount
+                .replacingOccurrences(of: "$", with: "")
+                .replacingOccurrences(of: ",", with: "")
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            print("Cleaned Amount for \($0.payee.name): '\(cleanedAmount)'")
+
+            let parsedAmount = Double(cleanedAmount) ?? 0.0
+
+            return ToAccount(
+                AccountNumberTo: $0.payee.accountNumber,
+                Amount: parsedAmount,
+                Currency: "CAD",
+                Frequency: $0.frequency.capitalized,
+                StartDate: formatter.string(from: $0.startDate ?? Date()),
+                EndDate: formatter.string(from: $0.endDate ?? Date()),
+                Memo: $0.memo ?? ""
+            )
+        }
+
+        let requestBody = PayBillRequest(AccountNumberFrom: fromAccount.accountId, ToAccountNumbers: toAccounts)
+
+        guard let url = URL(string:AppConfig.PayBillURL) else {
+            print("Invalid URL")
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+
+        do {
+            let jsonData = try JSONEncoder().encode(requestBody)
+            request.httpBody = jsonData
+
+            if let jsonString = String(data: jsonData, encoding: .utf8) {
+                print("Request JSON:\n\(jsonString)")
+            }
+
+            URLSession.shared.dataTask(with: request) { data, response, error in
+                if let error = error {
+                    print("API Error: \(error.localizedDescription)")
+                    return
+                }
+
+                if let response = response as? HTTPURLResponse {
+                    print("Response Code: \(response.statusCode)")
+                }
+
+                if let data = data, let raw = String(data: data, encoding: .utf8) {
+                    print("Response Body:\n\(raw)")
+                }
+
+            }.resume()
+        } catch {
+            print("Encoding error: \(error)")
+        }
+    }
+
 }
 
 //confirmation sheet for recurring form
@@ -1995,6 +2157,7 @@ struct RecurringBillConfirmationSheet: View {
     var fromAccount: BankAccount?
     var selectedPayees: [Payee] = []
     var payeeDetails: [PayeePaymentDetails] = [] // contains amount, startDate, endDate, frequency
+    var memo: String?
 
     @State private var navigateToSummary = false
     @Environment(\.presentationMode) var presentationMode
@@ -2062,6 +2225,17 @@ struct RecurringBillConfirmationSheet: View {
                                 Text(NSLocalizedString("frequency_\(detail.frequency.lowercased())", comment: ""))
 
                                     .font(.body)
+                                
+                                if let memoText = detail.memo,
+                                   !memoText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                                    Text(NSLocalizedString("memo", comment: ""))
+                                        .font(.caption)
+                                        .foregroundColor(.gray)
+                                    Text(memoText)
+                                        .font(.body)
+                                }
+
+
                             }
                         }
                         .padding()
@@ -2080,6 +2254,7 @@ struct RecurringBillConfirmationSheet: View {
             Spacer()
 
             Button(action: {
+                sendRecurringPayBillRequest()
                 navigateToSummary = true
             }) {
                 Text(NSLocalizedString("pay_now", comment: ""))
@@ -2110,6 +2285,84 @@ struct RecurringBillConfirmationSheet: View {
         formatter.dateStyle = .medium
         return formatter.string(from: date)
     }
+    
+    func sendRecurringPayBillRequest() {
+        guard let fromAccount = fromAccount else {
+            print("No fromAccount provided")
+            return
+        }
+
+        guard let token = TokenManager.shared.getToken() else {
+            print("No token found")
+            return
+        }
+
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+
+        let toAccounts = payeeDetails.map { detail in
+            let rawAmount = detail.amount.replacingOccurrences(of: "$", with: "").replacingOccurrences(of: ",", with: "")
+            print("Raw Amount String for \(detail.payee.name): \(detail.amount)")
+            print("Cleaned Amount: \(rawAmount)")
+
+            return ToAccount(
+                AccountNumberTo: detail.payee.accountNumber,
+                Amount: Double(rawAmount) ?? 0.0,
+                Currency: "CAD",
+                Frequency: detail.frequency.capitalized,
+                StartDate: formatter.string(from: detail.startDate ?? Date()),
+                EndDate: formatter.string(from: detail.endDate ?? Date()),
+                Memo: detail.memo ?? ""
+            )
+        }
+
+        let requestBody = PayBillRequest(
+            AccountNumberFrom: fromAccount.accountId,
+            ToAccountNumbers: toAccounts
+        )
+
+        guard let url = URL(string:AppConfig.PayBillURL) else {
+            print("Invalid URL")
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+
+        do {
+            let jsonData = try JSONEncoder().encode(requestBody)
+            if let jsonString = String(data: jsonData, encoding: .utf8) {
+                print("Recurring Payment Request JSON:\n\(jsonString)")
+            }
+
+            request.httpBody = jsonData
+
+            URLSession.shared.dataTask(with: request) { data, response, error in
+                if let error = error {
+                    print("API Error: \(error.localizedDescription)")
+                    return
+                }
+
+                if let response = response as? HTTPURLResponse {
+                    print("Response Code: \(response.statusCode)")
+                }
+
+                if let data = data, let raw = String(data: data, encoding: .utf8) {
+                    print("Response Body:\n\(raw)")
+                }
+
+                DispatchQueue.main.async {
+                    navigateToSummary = true
+                }
+
+            }.resume()
+        } catch {
+            print("Encoding error: \(error)")
+        }
+    }
+
 }
 
 
@@ -2345,7 +2598,8 @@ struct BillDetailRow: View {
 }
 struct PayBillScreen_Previews: PreviewProvider {
     static var previews: some View {
-        PayBillScreen()
+        let viewModel = PayeeViewModel()
+        PayBillScreen(viewModel: viewModel)
        // PayBillScreen(accountManager: AccountManager())
 
     }

@@ -512,7 +512,9 @@ struct MoveMoneyView: View {
                 AddAccountFormView(accountManager: AccountManager())
             }
             .fullScreenCover(isPresented: $isShowingPayBills) {
-                PayBillScreen() // Replace with your Pay Bills screen
+                let viewModel = PayeeViewModel()
+                PayBillScreen(viewModel: viewModel)
+                //PayBillScreen() // Replace with your Pay Bills screen
                 //PayBillScreen(accountManager: AccountManager())
 
             }

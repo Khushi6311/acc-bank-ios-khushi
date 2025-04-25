@@ -448,7 +448,7 @@ struct SendMoneyView: View {
 
                 if let index = contactManager.contacts.firstIndex(where: { $0.id == contact.id }) {
                     contactManager.contacts[index] = contact
-                    contactManager.saveContacts()
+                    //contactManager.saveContacts()
                 }
             }
         }

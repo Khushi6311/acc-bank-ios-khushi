@@ -139,176 +139,121 @@ struct BankAccount: Identifiable, Codable, Equatable {
 
 //###############
 // Account Manager for Handling JSON Read/Write
+//class AccountManager: ObservableObject {
+//    @Published var accounts: [BankAccount] = []
+//    @Published var selectedAccount: BankAccount?
+//    
+//
+//
+//    init() {
+//        loadJSONFile()
+//    }
+//
+//    func getJSONFileURL() -> URL? {
+//        let fileManager = FileManager.default
+//        if let directory = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first {
+//            let filePath = directory.appendingPathComponent("accounts.json")
+//            print("JSON File Path: \(filePath.path)") // PRINT PATH
+//            return filePath
+//        }
+//        return nil
+//    }
+//
+//    // Function to Load JSON File
+//    func loadJSONFile() {
+//        if let fileURL = getJSONFileURL(), FileManager.default.fileExists(atPath: fileURL.path) {
+//            do {
+//                let data = try Data(contentsOf: fileURL)
+//                let decodedAccounts = try JSONDecoder().decode([BankAccount].self, from: data)
+//                DispatchQueue.main.async {
+//                    self.accounts = decodedAccounts
+//                    self.selectedAccount = decodedAccounts.first
+//                    self.objectWillChange.send() // force UI update
+//                    print("Loaded Updated Accounts from JSON: \(self.accounts)")
+//                }
+//            } catch {
+//                print("Error reading JSON file: \(error)")
+//            }
+//        } else {
+//            print("JSON file not found, creating a new one.")
+//            //createJSONFile()
+//        }
+//    }
+//
+//
+//    // Function to Add a New Account to JSON
+//    func addAccount(account: BankAccount) {
+//        self.accounts.append(account)
+//
+//        let encoder = JSONEncoder()
+//        encoder.outputFormatting = .prettyPrinted
+//
+//        do {
+//            let jsonData = try encoder.encode(accounts)
+//            if let fileURL = getJSONFileURL() {
+//                try jsonData.write(to: fileURL, options: .atomic)
+//                print("New account added successfully!")
+//            }
+//        } catch {
+//            print("Error updating JSON file: \(error)")
+//        }
+//    }
+//}
+//
+
+
+//25
 class AccountManager: ObservableObject {
     @Published var accounts: [BankAccount] = []
     @Published var selectedAccount: BankAccount?
-    
-
 
     init() {
-        loadJSONFile()
+        // Call API directly instead of loading from local JSON
+        fetchAccounts()
     }
 
-    func getJSONFileURL() -> URL? {
-        let fileManager = FileManager.default
-        if let directory = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first {
-            let filePath = directory.appendingPathComponent("accounts.json")
-            print("JSON File Path: \(filePath.path)") // PRINT PATH
-            return filePath
+    func fetchAccounts() {
+        guard let contactId = TokenManager.shared.getContactId(),
+              let token = TokenManager.shared.getToken() else {
+            print("❌ Missing token or contactId")
+            return
         }
-        return nil
-    }
 
-    // Function to Load JSON File
-    func loadJSONFile() {
-        if let fileURL = getJSONFileURL(), FileManager.default.fileExists(atPath: fileURL.path) {
+        let urlString = AppConfig.GetAccountsURL(for: contactId)
+        guard let url = URL(string: urlString) else {
+            print("❌ Invalid URL")
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("❌ API Error: \(error.localizedDescription)")
+                return
+            }
+
+            guard let data = data,
+                  let httpResponse = response as? HTTPURLResponse,
+                  (200...299).contains(httpResponse.statusCode) else {
+                print("❌ Invalid response or data")
+                return
+            }
+
             do {
-                let data = try Data(contentsOf: fileURL)
-                let decodedAccounts = try JSONDecoder().decode([BankAccount].self, from: data)
+                let decoded = try JSONDecoder().decode(BankAccountAPIResponse.self, from: data)
                 DispatchQueue.main.async {
-                    self.accounts = decodedAccounts
-                    self.selectedAccount = decodedAccounts.first
-                    self.objectWillChange.send() // force UI update
-                    print("Loaded Updated Accounts from JSON: \(self.accounts)")
+                    self.accounts = decoded.data
+                    self.selectedAccount = decoded.data.first
+                    print("✅ Loaded \(decoded.data.count) accounts from API")
                 }
             } catch {
-                print("Error reading JSON file: \(error)")
+                print("❌ JSON Decoding Error: \(error)")
             }
-        } else {
-            print("JSON file not found, creating a new one.")
-            //createJSONFile()
-        }
-    }
-
-    // Function to Create and Save a JSON File
-//    func createJSONFile() {
-//        let defaultAccounts: [BankAccount] = [
-//            BankAccount(accountName:"No Fee", accountType: "Chequing", accountNumber:"10125599631", balance: "$51,494.78"),
-//            BankAccount(accountName:"Spend & Save", accountType: "Savings", accountNumber:"10125599631", balance: "$25,234.67"),
-//            BankAccount(accountName:"Travel Fund", accountType: "Business", accountNumber:"10125599631", balance: "$10,000.00")
-//        ]
-//
-//        let encoder = JSONEncoder()
-//        encoder.outputFormatting = .prettyPrinted
-//
-//        do {
-//            let jsonData = try encoder.encode(defaultAccounts)
-//            if let fileURL = getJSONFileURL() {
-//                try jsonData.write(to: fileURL, options: .atomic)
-//                print("New JSON File Created at: \(fileURL.path)")
-//            }
-//            self.accounts = defaultAccounts
-//            self.selectedAccount = defaultAccounts.first
-//        } catch {
-//            print("Error creating JSON file: \(error)")
-//        }
-//    }
-//    func createJSONFile() {
-//        let defaultAccounts: [BankAccount] = [
-//            BankAccount(
-//                accountId: UUID().uuidString,
-//                accountNumber: "10125599631",
-//                accountType: "Chequing",
-//                accountCategoryId: UUID().uuidString,
-//                balance: 51494.78
-//            ),
-//            BankAccount(
-//                accountId: UUID().uuidString,
-//                accountNumber: "10125599632",
-//                accountType: "Savings",
-//                accountCategoryId: UUID().uuidString,
-//                balance: 25234.67
-//            ),
-//            BankAccount(
-//                accountId: UUID().uuidString,
-//                accountNumber: "10125599633",
-//                accountType: "Business",
-//                accountCategoryId: UUID().uuidString,
-//                balance: 10000.00
-//            )
-//        ]
-//
-//        let encoder = JSONEncoder()
-//        encoder.outputFormatting = .prettyPrinted
-//
-//        do {
-//            let jsonData = try encoder.encode(defaultAccounts)
-//            if let fileURL = getJSONFileURL() {
-//                try jsonData.write(to: fileURL, options: .atomic)
-//                print("New JSON File Created at: \(fileURL.path)")
-//            }
-//            self.accounts = defaultAccounts
-//            self.selectedAccount = defaultAccounts.first
-//        } catch {
-//            print("Error creating JSON file: \(error)")
-//        }
-//    }
-
-    // Function to Add a New Account to JSON
-    func addAccount(account: BankAccount) {
-        self.accounts.append(account)
-
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = .prettyPrinted
-
-        do {
-            let jsonData = try encoder.encode(accounts)
-            if let fileURL = getJSONFileURL() {
-                try jsonData.write(to: fileURL, options: .atomic)
-                print("New account added successfully!")
-            }
-        } catch {
-            print("Error updating JSON file: \(error)")
-        }
+        }.resume()
     }
 }
-
-//class AccountManager: ObservableObject {
-//    @Published var accounts: [BankAccount] = []
-//
-//    func fetchAccounts() {
-//        guard let contactId = TokenManager.shared.getContactId(),
-//              let token = TokenManager.shared.getToken() else {
-//            print("Missing token or contactId")
-//            return
-//        }
-//
-//        let urlString = AppConfig.GetAccountsURL(for: contactId)
-//        guard let url = URL(string: urlString) else {
-//            print("Invalid URL")
-//            return
-//        }
-//
-//        var request = URLRequest(url: url)
-//        request.httpMethod = "GET"
-//        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-//        request.setValue("application/json", forHTTPHeaderField: "Accept")
-//
-//        URLSession.shared.dataTask(with: request) { data, response, error in
-//            if let error = error {
-//                print(" API Error: \(error.localizedDescription)")
-//                return
-//            }
-//
-//            guard let data = data,
-//                  let httpResponse = response as? HTTPURLResponse,
-//                  (200...299).contains(httpResponse.statusCode) else {
-//                print("Invalid response")
-//                return
-//            }
-//
-//            do {
-//                let decoded = try JSONDecoder().decode(BankAccountAPIResponse.self, from: data)
-//                DispatchQueue.main.async {
-//                    self.accounts = decoded.data
-//                    print("Fetched \(decoded.data.count) accounts")
-//                }
-//            } catch {
-//                print("Decoding Error: \(error)")
-//            }
-//        }.resume()
-//    }
-//}
-
-
 
