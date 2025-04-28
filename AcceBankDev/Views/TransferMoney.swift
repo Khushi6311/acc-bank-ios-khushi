@@ -13,7 +13,7 @@ struct TransferMoneyScreen: View {
     @Environment(\.presentationMode) var presentationMode
     @State private var selectedPaymentType: String? = "My accounts"
 
-    // Shared States
+    // Shared States.
     @State private var selectedFromAccount: BankAccount?
     @State private var selectedToAccount: BankAccount?
     @State private var selectedContact: Contact?
@@ -368,7 +368,8 @@ func sendTransferAPI(
             "AccountNumberFrom": fromId,
             "AccountNumberTo": toId,
             "Amount": cleanAmount,
-            "Currency": "CAD"
+            "Currency": "CAD",
+            "TransactionType": "Fund Transfer" 
         ]
 
         if isRecurring {
@@ -432,12 +433,16 @@ let minimumDate: Date = {
 
 struct DateDefaults {
     static let minimumDate: Date = {
-            var components = DateComponents()
-            components.year = 2025
-            components.month = 4
-            components.day = 11
-            return Calendar.current.date(from: components)!
-        }()
+        return Calendar.current.startOfDay(for: Date()) // today's date automatically
+    }()
+
+//    static let minimumDate: Date = {
+//            var components = DateComponents()
+//            components.year = 2025
+//            components.month = 4
+//            components.day = 11
+//            return Calendar.current.date(from: components)!
+//        }()
     
     static func endDateRange(from start: Date) -> ClosedRange<Date> {
         let validStart = max(start, minimumDate)
@@ -571,7 +576,7 @@ struct MyAccountsTransferForm: View {
                     .id(allAccounts.count)
                     if showTransferFromError {
                         //ErrorMessage(text: "This field is required")
-                        ErrorMessage(text: NSLocalizedString("error_required_field", comment: "Validation error for empty field"))
+                        ErrorMessage(text: NSLocalizedString("error_required_transfer_from_field", comment: "Validation error for empty field"))
                         
                     }
                     Text(NSLocalizedString("transfer_to", comment: ""))
@@ -607,7 +612,7 @@ struct MyAccountsTransferForm: View {
                     
                     if showTransferToError {
                         //ErrorMessage(text: "This field is required")
-                        ErrorMessage(text: NSLocalizedString("error_required_field", comment: "Validation error for empty field"))
+                        ErrorMessage(text: NSLocalizedString("error_required_transfer_to_field", comment: "Validation error for empty field"))
                         
                     }
                     
@@ -728,7 +733,7 @@ struct MyAccountsTransferForm: View {
                     
                     if showAmountError {
                         //ErrorMessage(text: "This field is required")
-                        ErrorMessage(text: NSLocalizedString("error_required_field", comment: "Validation error for empty field"))
+                        ErrorMessage(text: NSLocalizedString("error_required_payee_amount_field", comment: "Validation error for empty field"))
                     }
                     
                     // **Date Selection**
@@ -754,7 +759,7 @@ struct MyAccountsTransferForm: View {
                         
                         if showDateError {
                             //                    ErrorMessage(text: "This field is required")
-                            ErrorMessage(text: NSLocalizedString("error_required_field", comment: "Validation error for empty field"))
+                            ErrorMessage(text: NSLocalizedString("error_required_end_date_field", comment: "Validation error for empty field"))
                         }
                         
                     }
@@ -809,7 +814,7 @@ struct MyAccountsTransferForm: View {
                             
                             if showRecurringDateError {
                                 //                        ErrorMessage(text: "This field is required")
-                                ErrorMessage(text: NSLocalizedString("error_required_field", comment: "Validation error for empty field"))
+                                ErrorMessage(text: NSLocalizedString("error_required_end_date_field", comment: "Validation error for empty field"))
                             }
                         }
                     }
@@ -901,7 +906,7 @@ struct MyAccountsTransferForm: View {
                         }
                     if showMemoError {
                         // ErrorMessage(text: "This field is required")
-                        ErrorMessage(text: NSLocalizedString("error_required_field", comment: "Validation error for empty field"))
+                        ErrorMessage(text: NSLocalizedString("error_required_transfer_memo_field", comment: "Validation error for empty field"))
                     }
                     
                     Button(action: {
@@ -1273,7 +1278,7 @@ struct AnotherMemberTransferForm: View {
 
             if showTransferFromError {
                 //ErrorMessage(text: "This field is required")
-                ErrorMessage(text: NSLocalizedString("error_required_field", comment: "Validation error for empty field"))
+                ErrorMessage(text: NSLocalizedString("error_required_transfer_from_field", comment: "Validation error for empty field"))
                 
             }
             Text(NSLocalizedString("select_recipient", comment: ""))
@@ -1294,10 +1299,10 @@ struct AnotherMemberTransferForm: View {
                 ContactSelectionSheet(contactManager: contactManager, selectedContact: $selectedContact, isPresented: $showContactSheet)
             }
 
-//            if showTransferToError {
-//                //ErrorMessage(text: "This field is required")
-//                ErrorMessage(text: NSLocalizedString("error_required_field", comment: "Validation error for empty field"))
-//            }
+            if showTransferToError {
+                //ErrorMessage(text: "This field is required")
+                ErrorMessage(text: NSLocalizedString("error_required_transfer_contact_field", comment: "Validation error for empty field"))
+            }
 
             // **One-Time or Recurring Toggle**
             HStack(spacing: 20) {
@@ -1403,7 +1408,7 @@ struct AnotherMemberTransferForm: View {
 
             if showAmountError {
                 //ErrorMessage(text: "This field is required")
-                ErrorMessage(text: NSLocalizedString("error_required_field", comment: "Validation error for empty field"))
+                ErrorMessage(text: NSLocalizedString("error_required_payee_amount_field", comment: "Validation error for empty field"))
             }
 
             // **Date Selection**
@@ -1419,7 +1424,7 @@ struct AnotherMemberTransferForm: View {
                 )
                 if showDateError {
                     //ErrorMessage(text: "This field is required")
-                    ErrorMessage(text: NSLocalizedString("error_required_field", comment: "Validation error for empty field"))
+                    ErrorMessage(text: NSLocalizedString("error_required_end_date_field", comment: "Validation error for empty field"))
                 }
             }
 
@@ -1456,7 +1461,7 @@ struct AnotherMemberTransferForm: View {
                     )
                     if showRecurringDateError {
                         //ErrorMessage(text: "This field is required")
-                        ErrorMessage(text: NSLocalizedString("error_required_field", comment: "Validation error for empty field"))
+                        ErrorMessage(text: NSLocalizedString("error_required_end_date_field", comment: "Validation error for empty field"))
                     }
                 }
             }
@@ -1547,7 +1552,7 @@ struct AnotherMemberTransferForm: View {
 
             if showMemoError {
                 //ErrorMessage(text: "This field is required")
-                ErrorMessage(text: NSLocalizedString("error_required_field", comment: "Validation error for empty field"))
+                ErrorMessage(text: NSLocalizedString("error_required_transfer_memo_field", comment: "Validation error for empty field"))
             }
             Button(action: {
                 //validateFields()
@@ -1954,10 +1959,11 @@ struct ConfirmationSheet: View {
                         amount: amount,
                         dateText: dateText ?? "N/A",
                         memo: memo,
+                        //transactionId: transactionId,
                         isAnotherMemberSelected: isAnotherMemberSelected,   //
                         selectedContact: selectedContact,
                         isRecurring: isRecurring,                          //
-                                selectedFrequency: selectedFrequency,              //
+                                selectedFrequency: selectedFrequency,
                                 startDateText: startDateText,                      //
                                 endDateText: endDateText
                     )
@@ -2089,6 +2095,7 @@ struct SummarySheet: View { //SummarySheet
     var amount: String
     var dateText: String
     var memo: String
+    //var transactionId: String
     
     var isAnotherMemberSelected: Bool //  Add this
      var selectedContact: Contact?
@@ -2098,6 +2105,8 @@ struct SummarySheet: View { //SummarySheet
         var startDateText: String?                     // New
         var endDateText: String?
     @State private var navigateToMainView = false
+    @State private var navigateToTransferMoney = false
+
 
     @Environment(\.presentationMode) var presentationMode
 
@@ -2149,6 +2158,7 @@ struct SummarySheet: View { //SummarySheet
 
                     bold: true
                 )
+               
 //
 //                PaymentDetailRow(title: "Amount", value: "\(amount)", bold: true)
                 PaymentDetailRow(
@@ -2243,6 +2253,29 @@ struct SummarySheet: View { //SummarySheet
             }
             .padding(.horizontal)
             .padding(.bottom, 20)
+            
+            //added new button
+            Button(action: {
+                navigateToTransferMoney = true
+            }) {
+                Text(NSLocalizedString("continue_with_new_transfer", comment: "Continue with new transfer button"))
+                    .font(.headline)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    //.background(Color.colorBlue) // or .blue
+                    .background(
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(Constants.backgroundGradient)
+                    )
+
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
+            }
+            .fullScreenCover(isPresented: $navigateToTransferMoney) {
+                TransferMoneyScreen() // Your Transfer Money screen view
+            }
+            .padding(.horizontal)
+            .padding(.bottom, 20) // consiste
         }
         .padding()
     }
@@ -2451,6 +2484,7 @@ struct TransferAccountSheet: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(account.accountName)
                         .font(.headline)
+                        .foregroundColor(.black)
                         .bold()
                     Text(account.accountType)
                         .font(.subheadline)

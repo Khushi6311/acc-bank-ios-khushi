@@ -104,7 +104,7 @@ class TokenManager {
         // Add Authorization header with stored access token
         if let accessToken = getToken() {
             request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-            print("🛡️ Authorization Header: Bearer \(accessToken)")
+            print("Authorization Header: Bearer \(accessToken)")
         }
 
         // Log full request body

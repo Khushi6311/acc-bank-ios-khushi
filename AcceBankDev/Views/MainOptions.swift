@@ -3,6 +3,8 @@ import SwiftUI
 struct MainOptionsView: View {
     @Environment(\.dismiss) var dismiss
     @State private var showAddAccountSheet = false
+    @State private var showAddContactSheet = false
+
     @State private var showAddPayeeSheet = false
     @State private var selectedPayees: [Payee] = []
     var body: some View {
@@ -28,7 +30,7 @@ struct MainOptionsView: View {
                                     .foregroundColor(.black)
                                     .font(.title2)
                                 
-                                Text("Add Account")
+                                Text("Add Contact")
                                     .foregroundColor(.black)
                                     .font(.headline)
                                 
@@ -38,10 +40,12 @@ struct MainOptionsView: View {
                             .background(Color(UIColor.systemGray6))
                             .cornerRadius(10)
                         }
-                        .sheet(isPresented: $showAddAccountSheet) {
+                        .sheet(isPresented: $showAddContactSheet) {
                             // Replace with your AddAccountFormView()
                             //Text("Add Account Form Placeholder")
-                            AddAccountFormView(accountManager: AccountManager())
+                            //AddContactFormView(accountManager: AccountManager())
+                            AddContactFormView(isPresented: .constant(false), contactManager: ContactManager())
+
 
                         }
 
@@ -79,7 +83,35 @@ struct MainOptionsView: View {
                                 }                        }
 
                         Divider().background(Color.gray.opacity(0.9)).padding(.horizontal, 20)
+                        Button(action: {
+                            showAddAccountSheet = true
+                        }) {
+                            HStack {
+                                Image(systemName: "building.columns.fill")
+                                    .foregroundColor(.black)
+                                    .font(.title2)
+                                
+                                Text("Add Account")
+                                    .foregroundColor(.black)
+                                    .font(.headline)
+                                
+                                Spacer()
+                            }
+                            .padding()
+                            .background(Color(UIColor.systemGray6))
+                            .cornerRadius(10)
+                        }
+                        .sheet(isPresented: $showAddAccountSheet) {
+                            // Replace with your AddAccountFormView()
+                            //Text("Add Account Form Placeholder")
+                            //AddContactFormView(accountManager: AccountManager())
+                            AddAccountFormView(accountManager: AccountManager())
 
+
+
+                        }
+
+                        Divider().background(Color.gray.opacity(0.9)).padding(.horizontal, 20)
                         Spacer()
                     }
                     .padding()

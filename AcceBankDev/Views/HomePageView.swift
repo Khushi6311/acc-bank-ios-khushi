@@ -6,20 +6,38 @@ struct HomePageView: View {
     @State private var bankAccounts: [BankAccount] = []
     @State private var selectedAccount: BankAccount?
     //let cardImages = ["Card", "Card2", "Card3"]
+//    var cardImages: [String] {
+//        switch username.lowercased() {
+//        case "sarahmckenzie":
+//            return ["SarahCard1"]
+//        case "michaelthompson":
+//            return ["MichaelCard1", "MichaelCard2"]
+//        default:
+//            return ["Card", "Card2", "Card3"]
+//        }
+//    }
     var cardImages: [String] {
-        switch username.lowercased() {
-        case "sarahmckenzie":
-            return ["SarahCard1"]
-        case "michaelthompson":
-            return ["MichaelCard1", "MichaelCard2"]
-        default:
-            return ["Card", "Card2", "Card3"]
-        }
+        let userImageMap: [String: [String]] = [
+            "michaelthompson": ["MichaelCard1", "MichaelCard2"],
+            "sarahmckenzie": ["SarahCard1", "SarahCard2"],
+            "emilyfraser": ["EmilyCard1", "EmilyCard2"],
+            "johnathanbrooks": ["JonathanCard1", "JonathanCard2"],
+            "haanahleblanc": ["HaanahCard1", "HaanahCard2"],
+            "danielrobertson": ["DanielCard1", "DanielCard2"],
+            "matthewoconnor": ["MatthewCard1", "MatthewCard2"],
+            "rachelsinclair": ["RachelCard1", "RachelCard2"],
+            "davidpelletier": ["DavidCard1", "DavidCard2"],
+            "gracemacdonald": ["GraceCard1", "GraceCard2"]
+        ]
+        
+        return userImageMap[username.lowercased()] ?? ["Card", "Card2", "Card3"]
     }
+
 
 
     @State private var showHistory = false
     @State private var selectedAccountForHistory: BankAccount? = nil
+    @State private var isLoading = true
 
     var body: some View {
         NavigationView{
@@ -62,15 +80,38 @@ struct HomePageView: View {
                         .padding(.top, 20)
                         
                         HStack {
+//                            RoundedRectangle(cornerRadius: 20)
+//                                .fill(Color.white)
+//                                .frame(width: geometry.size.width * 0.95, height: geometry.size.height * 0.55)
+//                                .overlay(
+//                                    VStack(spacing: 15) {
+//                                        accountTabsView
+//                                        accountCardView
+//                                    }
+//                                )
                             RoundedRectangle(cornerRadius: 20)
                                 .fill(Color.white)
                                 .frame(width: geometry.size.width * 0.95, height: geometry.size.height * 0.55)
                                 .overlay(
-                                    VStack(spacing: 15) {
-                                        accountTabsView
-                                        accountCardView
+                                    Group {
+                                        if isLoading {
+                                            VStack {
+                                                Spacer()
+                                                ProgressView("Loading Accounts...")
+                                                    .progressViewStyle(CircularProgressViewStyle(tint: .blue))
+                                                    .scaleEffect(1.2)
+                                                    .padding()
+                                                Spacer()
+                                            }
+                                        } else {
+                                            VStack(spacing: 15) {
+                                                accountTabsView
+                                                accountCardView
+                                            }
+                                        }
                                     }
                                 )
+
                         }
                         .padding(.top, 20)
                         .animation(.easeInOut(duration: 0.3), value: selectedAccount)
@@ -163,6 +204,7 @@ struct HomePageView: View {
                 DispatchQueue.main.async {
                     self.bankAccounts = accounts
                     self.selectedAccount = accounts.first
+                    self.isLoading = false 
                 }
             } catch {
                 print("Decoding error: \(error.localizedDescription)")

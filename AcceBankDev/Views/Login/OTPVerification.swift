@@ -157,6 +157,61 @@ struct OTPVerificationView: View {
             return
         }
 
+//        URLSession.shared.dataTask(with: request) { data, response, error in
+//            DispatchQueue.main.async {
+//                if let error = error {
+//                    errorMessage = "Network error: \(error.localizedDescription)"
+//                    return
+//                }
+//
+//                guard let data = data else {
+//                    errorMessage = "No data received"
+//                    return
+//                }
+//
+//                // Debug logs
+//                if let httpResponse = response as? HTTPURLResponse {
+//                    print("HTTP Status Code: \(httpResponse.statusCode)")
+//                }
+//                if let raw = String(data: data, encoding: .utf8) {
+//                    print(" Raw OTP response: \(raw)")
+//                }
+//
+////                do {
+////                    let result = try JSONDecoder().decode(OTPVerifyResponse.self, from: data)
+////                    //if result.status {
+////                    if result.status.lowercased() == "success" {
+////
+////                        print("OTP Verified Successfully")
+////                        isVerified = true
+////                    } else {
+////                        errorMessage = result.message ?? "OTP verification failed"
+////                        print("OTP verification failed: \(result.message ?? "Unknown error")")
+////                    }
+////                } catch {
+////                    errorMessage = "Invalid server response"
+////                    print("JSON decode error: \(error)")
+////                }
+//                
+//                do {
+//                    if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] {
+//                        print("Parsed response JSON: \(json)")
+//
+//                        if let status = json["status"] as? String, status.lowercased() == "success" {
+//                            isVerified = true
+//                        } else {
+//                            errorMessage = json["message"] as? String ?? "OTP verification failed"
+//                        }
+//                    } else {
+//                        errorMessage = "Unexpected response format"
+//                    }
+//                } catch {
+//                    errorMessage = "Failed to parse response"
+//                    print("Parsing error: \(error.localizedDescription)")
+//                }
+//
+//            }
+//        }.resume()
         URLSession.shared.dataTask(with: request) { data, response, error in
             DispatchQueue.main.async {
                 if let error = error {
@@ -169,38 +224,26 @@ struct OTPVerificationView: View {
                     return
                 }
 
-                // Debug logs
-                if let httpResponse = response as? HTTPURLResponse {
-                    print("HTTP Status Code: \(httpResponse.statusCode)")
-                }
-                if let raw = String(data: data, encoding: .utf8) {
-                    print(" Raw OTP response: \(raw)")
-                }
-
-//                do {
-//                    let result = try JSONDecoder().decode(OTPVerifyResponse.self, from: data)
-//                    //if result.status {
-//                    if result.status.lowercased() == "success" {
-//
-//                        print("OTP Verified Successfully")
-//                        isVerified = true
-//                    } else {
-//                        errorMessage = result.message ?? "OTP verification failed"
-//                        print("OTP verification failed: \(result.message ?? "Unknown error")")
-//                    }
-//                } catch {
-//                    errorMessage = "Invalid server response"
-//                    print("JSON decode error: \(error)")
-//                }
-                
                 do {
                     if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] {
                         print("Parsed response JSON: \(json)")
 
-                        if let status = json["status"] as? String, status.lowercased() == "success" {
-                            isVerified = true
+                        if let status = json["status"] as? String {
+                            if status.lowercased() == "success" {
+                                isVerified = true
+                            } else {
+                                if let message = json["message"] as? String {
+                                    if message.localizedCaseInsensitiveContains("token") {
+                                        errorMessage = "Invalid OTP"
+                                    } else {
+                                        errorMessage = message
+                                    }
+                                } else {
+                                    errorMessage = "OTP verification failed"
+                                }
+                            }
                         } else {
-                            errorMessage = json["message"] as? String ?? "OTP verification failed"
+                            errorMessage = "Unexpected server response"
                         }
                     } else {
                         errorMessage = "Unexpected response format"
@@ -209,9 +252,9 @@ struct OTPVerificationView: View {
                     errorMessage = "Failed to parse response"
                     print("Parsing error: \(error.localizedDescription)")
                 }
-
             }
         }.resume()
+
 
     }
 

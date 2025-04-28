@@ -20,6 +20,7 @@ struct DepositChequeView: View {
     @State private var tempChequeBackImage: UIImage?
 
     @State private var navigateToMoveMoney = false
+    @Environment(\.presentationMode) var presentationMode
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -27,7 +28,7 @@ struct DepositChequeView: View {
             // Top Bar
             HStack {
                 Button(action: {
-                    
+                    presentationMode.wrappedValue.dismiss() 
                 }) {
                     Image(systemName: "arrow.left")
                         .font(.title2)

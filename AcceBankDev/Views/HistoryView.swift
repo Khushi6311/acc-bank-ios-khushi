@@ -72,6 +72,11 @@ struct HistoryView: View {
             //  Section Content Based on Tab
             if selectedTab == "My accounts", let account = account {
                 VStack(spacing: 12) {
+                    AccountField(label: "Account Status", value: "Active")
+                        Divider()
+
+                        AccountField(label: "Joint Account", value: "No")
+                        Divider()
                     AccountField(label: "Account Name", value: account.accountName)
                     Divider()
                     AccountField(label: "Account Type", value: account.accountType)
@@ -79,6 +84,22 @@ struct HistoryView: View {
                     AccountField(label: "Account Number", value: account.accountNumber)
                     Divider()
                     AccountField(label: "Balance", value: account.balance)
+                    Divider()
+                    AccountField(label: "Available Funds", value: account.balance)
+                        Divider()
+                    AccountField(label: "Holds", value: "$0.00")
+                        Divider()
+
+                        AccountField(label: "Interest Rate", value: "0.00%")
+                        Divider()
+
+                        AccountField(label: "Authorized Limit", value: "$0.00")
+                        Divider()
+
+                        AccountField(label: "Transit Number", value: "50138")
+                        Divider()
+
+                        AccountField(label: "Institution Number", value: "889")
                 }
                 .padding()
                 .background(Color.white)
@@ -108,7 +129,11 @@ struct HistoryView: View {
                             .foregroundColor(.white)
                             .padding()
                             .frame(maxWidth: .infinity)
-                            .background(Color.blue)
+                            //.background(Color.blue)
+                            .background(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .fill(Constants.backgroundGradient)
+                            )
                             .cornerRadius(8)
                     }
                  
@@ -122,23 +147,34 @@ struct HistoryView: View {
 //                if isLoading {
 //                    ProgressView("Loading...")
 //                        .padding()
-//                } else {
+//                }
+//                
+//                else {
 //                    ScrollView {
 //                        VStack(spacing: 12) {
 //                            ForEach(transactions) { tx in
 //                                HStack(alignment: .top, spacing: 12) {
-//                                    Image(systemName: tx.icon)
+//    //                                Image(systemName: tx.icon)
+//    //                                    .font(.title2)
+//    //                                    .frame(width: 40, height: 40)
+//    //                                    .background(Color(UIColor.systemGray5))
+//    //                                    .clipShape(Circle())
+//                                    Image(systemName: (tx.transactionFrom == (account?.accountId ?? "")) ? "arrow.up.right" : "arrow.down.left")
 //                                        .font(.title2)
 //                                        .frame(width: 40, height: 40)
 //                                        .background(Color(UIColor.systemGray5))
 //                                        .clipShape(Circle())
 //
+//
 //                                    VStack(alignment: .leading, spacing: 4) {
 //                                        Text(tx.date)
 //                                            .font(.caption)
 //                                            .foregroundColor(.gray)
-//                                        Text(tx.name)
+//    //                                    Text(tx.name)
+//    //                                        .font(.headline)
+//                                        Text(getTransactionDisplayName(for: tx))
 //                                            .font(.headline)
+//
 //                                        Text(tx.type)
 //                                            .font(.subheadline)
 //                                            .foregroundColor(.gray)
@@ -146,189 +182,281 @@ struct HistoryView: View {
 //
 //                                    Spacer()
 //
+//    //                                VStack(alignment: .trailing) {
+//    //                                    Text(String(format: "$%.2f", tx.amount))
+//    //                                        .bold()
+//    //                                        .foregroundColor(
+//    //                                            (tx.transactionFrom == (account?.accountId ?? ""))
+//    //                                            ? .red
+//    //                                            : (tx.transactionTo == (account?.accountId ?? "") ? .green : .black)
+//    //                                        )
+//    //                                    Text(tx.status)
+//    //                                        .font(.caption)
+//    //                                        .foregroundColor(.gray)
+//    //                                }
 //                                    VStack(alignment: .trailing) {
-//                                        Text(String(format: "$%.2f", tx.amount))
-//                                            .bold()
+//                                        Text(
+//                                            (tx.transactionFrom == (account?.accountId ?? ""))
+//                                            ? "-$\(String(format: "%.2f", tx.amount))"
+//                                            : "+$\(String(format: "%.2f", tx.amount))"
+//                                        )
+//                                        .bold()
+//                                        .foregroundColor(
+//                                            (tx.transactionFrom == (account?.accountId ?? ""))
+//                                            ? .red
+//                                            : (tx.transactionTo == (account?.accountId ?? "") ? .green : .black)
+//                                        )
+//
 //                                        Text(tx.status)
 //                                            .font(.caption)
 //                                            .foregroundColor(.gray)
 //                                    }
+//
 //                                }
 //                                .padding()
 //                                .background(Color.white)
 //                                .cornerRadius(12)
 //                                .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
 //                            }
+//
 //                        }
 //                        .padding(.horizontal)
 //                    }
 //                }
+                
+                if isLoading {
+                    ProgressView("Loading...")
+                        .padding()
+                }
+                
+                else {
+                    ScrollView {
+                        VStack(spacing: 12) {
+                            ForEach(transactions) { tx in
+                                HStack(alignment: .top, spacing: 12) {
+    //                                Image(systemName: tx.icon)
+    //                                    .font(.title2)
+    //                                    .frame(width: 40, height: 40)
+    //                                    .background(Color(UIColor.systemGray5))
+    //                                    .clipShape(Circle())
+                                    Image(systemName: (tx.transactionFrom == (account?.accountId ?? "")) ? "arrow.up.right" : "arrow.down.left")
+                                        .font(.title2)
+                                        .frame(width: 40, height: 40)
+                                        .background(Color(UIColor.systemGray5))
+                                        .clipShape(Circle())
+
+
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text(tx.date)
+                                            .font(.caption)
+                                            .foregroundColor(.gray)
+    //                                    Text(tx.name)
+    //                                        .font(.headline)
+                                        Text(getTransactionDisplayName(for: tx))
+                                            .font(.headline)
+
+                                        Text(tx.type)
+                                            .font(.subheadline)
+                                            .foregroundColor(.gray)
+                                    }
+
+                                    Spacer()
+
+    //                                VStack(alignment: .trailing) {
+    //                                    Text(String(format: "$%.2f", tx.amount))
+    //                                        .bold()
+    //                                        .foregroundColor(
+    //                                            (tx.transactionFrom == (account?.accountId ?? ""))
+    //                                            ? .red
+    //                                            : (tx.transactionTo == (account?.accountId ?? "") ? .green : .black)
+    //                                        )
+    //                                    Text(tx.status)
+    //                                        .font(.caption)
+    //                                        .foregroundColor(.gray)
+    //                                }
+                                    VStack(alignment: .trailing) {
+                                        Text(
+                                            (tx.transactionFrom == (account?.accountId ?? ""))
+                                            ? "-$\(String(format: "%.2f", tx.amount))"
+                                            : "+$\(String(format: "%.2f", tx.amount))"
+                                        )
+                                        .bold()
+                                        .foregroundColor(
+                                            (tx.transactionFrom == (account?.accountId ?? ""))
+                                            ? .red
+                                            : (tx.transactionTo == (account?.accountId ?? "") ? .green : .black)
+                                        )
+
+                                        Text(tx.status)
+                                            .font(.caption)
+                                            .foregroundColor(.gray)
+                                    }
+
+                                }
+                                .padding()
+                                .background(Color.white)
+                                .cornerRadius(12)
+                                .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
+                            }
+
+                        }
+                        .padding(.horizontal)
+                    }
+                }
+
             }
 
 
             // Transactions List
-            if isLoading {
-                ProgressView("Loading...")
-                    .padding()
-            } else {
-                ScrollView {
-                    VStack(spacing: 12) {
-                        ForEach(transactions) { tx in
-                            HStack(alignment: .top, spacing: 12) {
-                                Image(systemName: tx.icon)
-                                    .font(.title2)
-                                    .frame(width: 40, height: 40)
-                                    .background(Color(UIColor.systemGray5))
-                                    .clipShape(Circle())
-
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(tx.date)
-                                        .font(.caption)
-                                        .foregroundColor(.gray)
-                                    Text(tx.name)
-                                        .font(.headline)
-                                    Text(tx.type)
-                                        .font(.subheadline)
-                                        .foregroundColor(.gray)
-                                }
-
-                                Spacer()
-
-                                VStack(alignment: .trailing) {
-                                    Text(String(format: "$%.2f", tx.amount))
-                                        .bold()
-                                    Text(tx.status)
-                                        .font(.caption)
-                                        .foregroundColor(.gray)
-                                }
-                            }
-                            .padding()
-                            .background(Color.white)
-                            .cornerRadius(12)
-                            .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
-                        }
-                    }
-                    .padding(.horizontal)
-                }
-            }
-
+           
             Spacer()
         }
         .navigationBarBackButtonHidden(true)
     }
+    func getTransactionDisplayName(for transaction: Transaction) -> String {
+        let loggedInAccountId = account?.accountId ?? ""
+
+        if transaction.transactionFrom == loggedInAccountId {
+            // Logged-in user is Sender
+            if let toName = transaction.transactionToCustomerName, !toName.isEmpty {
+                return "To \(toName)"
+            } else if let toAcc = transaction.toAccountNumber, !toAcc.isEmpty {
+                return "To \(toAcc)"
+            } else {
+                return "To Recipient"
+            }
+        } else if transaction.transactionTo == loggedInAccountId {
+            // Logged-in user is Receiver
+            if let fromName = transaction.transactionFromCustomerName, !fromName.isEmpty {
+                return "From \(fromName)"
+            } else if !transaction.fromAccountNumber.isEmpty {
+                return "From \(transaction.fromAccountNumber)"
+            } else {
+                return "From Sender"
+            }
+        } else {
+            return "Transfer"
+        }
+    }
+
 
     // MARK: API Call
     //func fetchTransactionHistory(for accountId: String) {
     func fetchTransactionHistory(for accountId: String) {
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd"
-        let shouldSendNullStartDate = false // or true based on your logic
-        let shouldSendNullEndDate = false 
-//        let body: [String: String] = [
-//            "accountId": account!.accountId,
-//            "startDate": dateFormatter.string(from: startDate),
-//            "endDate": dateFormatter.string(from: endDate)
-//        ]
-        var body: [String: Any] = [
-            "accountId": accountId,
-            //"startDate": shouldSendNullStartDate ? NSNull() : dateFormatter.string(from: startDate),
-            //"endDate": shouldSendNullEndDate ? NSNull() : dateFormatter.string(from: endDate)
-        ]
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "yyyy-MM-dd"
+            
+        let body: [String: Any] = [
+                "accountId": accountId
+            ]
+     
+            guard let token = TokenManager.shared.getToken() else {
+                print("No token found")
+                return
+            }
+     
+            guard let url = URL(string: AppConfig.TransactionHistoryURL) else {
+                print("Invalid URL")
+                return
+            }
+     
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+     
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.setValue("application/json", forHTTPHeaderField: "Accept")
+     
+            request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+            print("Account id: \(accountId)")
+            print("Requesting Transaction History")
+            print("URL: \(url.absoluteString)")
+            print("Token: Bearer \(token)")
+            print("Body: \(String(data: request.httpBody ?? Data(), encoding: .utf8) ?? "None")")
+     
+            isLoading = true
+            URLSession.shared.dataTask(with: request) { data, response, error in
+                DispatchQueue.main.async {
+                    isLoading = false
+                }
+     
+                if let error = error {
+                    print("API Error: \(error.localizedDescription)")
+                    return
+                }
+     
+                guard let httpResponse = response as? HTTPURLResponse else {
+                    print("Invalid response object")
+                    return
+                }
+     
+                guard (200...299).contains(httpResponse.statusCode) else {
+                    print("Server responded with status code \(httpResponse.statusCode)")
+                    return
+                }
+     
+                guard let data = data else {
+                    print("Empty data")
+                    return
+                }
+     
+                if let raw = String(data: data, encoding: .utf8) {
+                    print("Raw Response: \(raw)")
+                }
+     
+                do {
+                    let decoder = JSONDecoder()
+                    
+                    // Step 1: Decode only BasicApiResponse first
+                    struct BasicApiResponse: Codable {
+                        let status: String
+                        let message: String?
+                        let statusCode: Int?
+                    }
+     
+                    let basic = try decoder.decode(BasicApiResponse.self, from: data)
+     
+                    if basic.status.lowercased() == "success" {
+                        // Step 2: Decode full transaction data
+                        struct TransactionAPIResponse: Codable {
+                            let status: String
+                            let data: [Transaction]
+                        }
+     
+                        let decoded = try decoder.decode(TransactionAPIResponse.self, from: data)
+     
+                        DispatchQueue.main.async {
+                            let formatter = DateFormatter()
+                            formatter.locale = Locale(identifier: "en_US_POSIX")
+                            formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS"
 
-        guard let token = TokenManager.shared.getToken() else {
-            print("No token found")
-            return
+                            let filtered = decoded.data.filter { tx in
+                                guard let txDate = formatter.date(from: tx.createdOn) else {
+                                    print("Failed to parse date for transaction \(tx.transactionId)")
+                                    return false
+                                }
+                                return txDate >= self.startDate && txDate <= self.endDate
+                            }
+
+
+                            self.transactions = filtered
+
+                            print("Showing \(filtered.count) filtered transactions")
+                            print("Decoded \(decoded.data.count) transactions")
+                        }
+
+                    } else {
+                        // Step 3: API returned Failed
+                        print("No transactions found. Message: \(basic.message ?? "Unknown Error")")
+                        DispatchQueue.main.async {
+                            self.transactions = [] // Clear list if failed
+                        }
+                    }
+                } catch {
+                    print("Decoding error: \(error.localizedDescription)")
+                }
+            }.resume()
         }
-
-        guard let url = URL(string:AppConfig.TransactionHistoryURL) else {
-            print("Invalid URL")
-            return
-        }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-
-        // Add Bearer token in headers
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("application/json", forHTTPHeaderField: "Accept")
-
-//        // Add accountId in JSON body
-//        let body: [String: String] = [
-//            //"accountId": account.accountId
-//            "accountId": account!.accountId
-//
-//            //"accountId": accountId.lowercased()
-//        ]
-        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
-        print("Account id :\(accountId)")
-        // Print debug info
-        print("Requesting Transaction History")
-        print("URL: \(url.absoluteString)")
-        print("Token: Bearer \(token)")
-        print("Body: \(String(data: request.httpBody ?? Data(), encoding: .utf8) ?? "None")")
-
-        // Make the request
-        isLoading = true
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            DispatchQueue.main.async {
-                isLoading = false
-            }
-
-            if let error = error {
-                print(" API Error: \(error.localizedDescription)")
-                return
-            }
-
-            guard let httpResponse = response as? HTTPURLResponse else {
-                print("Invalid response object")
-                return
-            }
-
-            guard (200...299).contains(httpResponse.statusCode) else {
-                print("Server responded with status code \(httpResponse.statusCode)")
-                return
-            }
-
-            guard let data = data else {
-                print("Empty data")
-                return
-            }
-
-            if let raw = String(data: data, encoding: .utf8) {
-                print("Raw Response: \(raw)")
-            }
-
-            // TODO: Decode response into [Transaction]
-            do {
-                       struct TransactionAPIResponse: Codable {
-                           let status: String
-                           let data: [Transaction]
-                       }
-
-                       let decoded = try JSONDecoder().decode(TransactionAPIResponse.self, from: data)
-
-                       DispatchQueue.main.async {
-                           //self.transactions = decoded.data
-                           let formatter = DateFormatter()
-                           formatter.dateFormat = "yyyy-MM-dd"
-
-                           let filtered = decoded.data.filter { tx in
-                               guard let txDate = formatter.date(from: tx.date) else { return false }
-                               return txDate >= startDate && txDate <= endDate
-                           }
-
-                           self.transactions = filtered
-                           print("Showing \(filtered.count) filtered transactions")
-
-                           print("Decoded \(decoded.data.count) transactions")
-                       }
-
-                   } catch {
-                       print("Decoding error: \(error.localizedDescription)")
-                   }
-        }.resume()
-    }
 
 }
 
@@ -392,36 +520,119 @@ struct AccountField: View {
 //        return isSelfTransfer ? "Internal" : "Processed"
 //    }
 //}
+//struct Transaction: Identifiable, Codable {
+//    var id: UUID { transactionId }
+//
+//    let transactionId: UUID
+//    let transactionFrom: String
+//    let transactionTo: String
+//    let createdOn: String
+//    let amount: Double
+//    let note: String?
+//    let transactionType: String?
+//    let isSelfTransfer: Bool
+//
+//    var icon: String {
+//        (transactionType ?? "").lowercased() == "credit" ? "arrow.down.right" : "arrow.up.right"
+//    }
+//
+//    var date: String {
+//        String(createdOn.prefix(10))
+//    }
+//
+//    var name: String {
+//        note ?? ""
+//    }
+//
+//    var type: String {
+//        transactionType ?? "Transfer"
+//    }
+//
+//    var status: String {
+//        isSelfTransfer ? "Internal" : "Processed"
+//    }
+//}
 struct Transaction: Identifiable, Codable {
-    var id: UUID { transactionId }
+    var id: String { transactionId } // Change to String
 
-    let transactionId: UUID
-    let transactionFrom: String
-    let transactionTo: String
-    let createdOn: String
-    let amount: Double
-    let note: String?
-    let transactionType: String?
-    let isSelfTransfer: Bool
+        let transactionId: String // Change from UUID to String
+        let transactionFrom: String
+        let transactionTo: String?
+        let createdOn: String
+        let amount: Double
+        let note: String?
+        let transactionType: String?
+        let isSelfTransfer: Bool
+        let fromAccountNumber: String
+        let toAccountNumber: String?
+        let transactionFromCustomerName: String?
+        let transactionToCustomerName: String?
+        let isCredit: Bool
+        let fromAccountType: String
+        let toAccountType: String?
+        // (optional, if you need from name too)
 
     var icon: String {
         (transactionType ?? "").lowercased() == "credit" ? "arrow.down.right" : "arrow.up.right"
     }
 
     var date: String {
-        String(createdOn.prefix(10))
-    }
+            let inputFormatter = DateFormatter()
+            inputFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS"
+            inputFormatter.locale = Locale(identifier: "en_US_POSIX")
+            inputFormatter.timeZone = TimeZone(secondsFromGMT: 0)
 
+            if let parsedDate = inputFormatter.date(from: createdOn) {
+                let outputFormatter = DateFormatter()
+                outputFormatter.dateFormat = "MMMM d, yyyy"
+                outputFormatter.locale = Locale(identifier: "en_US_POSIX")
+                return outputFormatter.string(from: parsedDate)
+            } else {
+                return createdOn
+            }
+        }
+
+
+
+//    var name: String {
+//        // New: If self transfer show "Self Transfer", else show "To {CustomerName}"
+//        if isSelfTransfer {
+//            return "Self Transfer"
+//        } else {
+//            return "To \(transactionToCustomerName ?? "Recipient")"
+//        }
+//    }
     var name: String {
-        note ?? ""
+        if transactionFromCustomerName == transactionToCustomerName {
+            return "Self Transfer"
+        } else {
+            if let toName = transactionToCustomerName, !toName.isEmpty {
+                return "To \(toName)"
+            } else if let toAcc = toAccountNumber {
+                return "To \(toAcc)"
+            } else {
+                return "To Recipient"
+            }
+        }
     }
 
+
+
+//    var type: String {
+//        // New: Self Transfer or Normal Transfer
+//        return isSelfTransfer ? "Self Transfer" : "Transfer"
+//    }
     var type: String {
-        transactionType ?? "Transfer"
+        if let txType = transactionType, !txType.isEmpty {
+            return txType
+        } else {
+            return "Transfer"
+        }
     }
+
 
     var status: String {
-        isSelfTransfer ? "Internal" : "Processed"
+        isSelfTransfer ? "Completed" : "Completed"
     }
 }
 

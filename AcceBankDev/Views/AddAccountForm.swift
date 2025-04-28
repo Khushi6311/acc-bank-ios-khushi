@@ -48,7 +48,7 @@ struct AddAccountFormView: View {
 //                            .overlay(RoundedRectangle(cornerRadius: 8).stroke(accountNameError ? Color.red : Color.clear, lineWidth: 1))
                         if accountNameError {
                             //Text("Required field.")
-                            Text(NSLocalizedString("error_required_field", comment: "Required field"))
+                            Text(NSLocalizedString("error_required_account_name", comment: "Required field"))
 
                                 .font(.footnote)
                                 .foregroundColor(.red)
@@ -105,7 +105,7 @@ struct AddAccountFormView: View {
 
                         if accountTypeError {
                             //Text("Required field.")
-                            Text(NSLocalizedString("error_required_field", comment: "Required field"))
+                            Text(NSLocalizedString("error_required_account_type", comment: "Required field"))
 
                                 .font(.footnote)
                                 .foregroundColor(.red)
@@ -113,20 +113,20 @@ struct AddAccountFormView: View {
 
                         // Account Number
                         //TextField("Account Number", text: $accountNumber)
-                        TextField(NSLocalizedString("account_number", comment: "Account Name"), text: $accountNumber)
-
-                            .padding()
-                            .keyboardType(.numberPad)
-                            .background(Color(.systemGray6))
-                            .cornerRadius(8)
-//                            .overlay(RoundedRectangle(cornerRadius: 8).stroke(accountNumberError ? Color.red : Color.clear, lineWidth: 1))
-                        if accountNumberError {
-                            //Text("Required field.")
-                            Text(NSLocalizedString("error_required_field", comment: "Required field"))
-
-                                .font(.footnote)
-                                .foregroundColor(.red)
-                        }
+//                        TextField(NSLocalizedString("account_number", comment: "Account Name"), text: $accountNumber)
+//
+//                            .padding()
+//                            .keyboardType(.numberPad)
+//                            .background(Color(.systemGray6))
+//                            .cornerRadius(8)
+////                            .overlay(RoundedRectangle(cornerRadius: 8).stroke(accountNumberError ? Color.red : Color.clear, lineWidth: 1))
+//                        if accountNumberError {
+//                            //Text("Required field.")
+//                            Text(NSLocalizedString("error_required_account_number", comment: "Required field"))
+//
+//                                .font(.footnote)
+//                                .foregroundColor(.red)
+//                        }
 
                         // Balance
                         //TextField("Balance", text: Binding(
@@ -144,7 +144,7 @@ struct AddAccountFormView: View {
 //                            .overlay(RoundedRectangle(cornerRadius: 8).stroke(balanceError ? Color.red : Color.clear, lineWidth: 1))
                         if balanceError {
                             //Text("Required field.")
-                            Text(NSLocalizedString("error_required_field", comment: "Required field"))
+                            Text(NSLocalizedString("error_required_amount", comment: "Required field"))
 
                                 .font(.footnote)
                                 .foregroundColor(.red)
@@ -273,13 +273,22 @@ struct AddAccountFormView: View {
 
 
     private func validateFields() -> Bool {
-        accountNameError = accountName.isEmpty
         accountTypeError = accountType.isEmpty
-        accountNumberError = accountNumber.isEmpty
-        balanceError = balance.isEmpty
-
-        return !(accountNameError || accountTypeError || accountNumberError || balanceError)
+        accountNameError = accountName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        accountNumberError = accountNumber.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        
+        let sanitizedAmount = balance.replacingOccurrences(of: "$", with: "").trimmingCharacters(in: .whitespacesAndNewlines)
+        if sanitizedAmount.isEmpty {
+            balanceError = true
+        } else if Double(sanitizedAmount) == nil {
+            balanceError = true
+        } else {
+            balanceError = false
+        }
+        
+        return !(accountTypeError || accountNameError || accountNumberError || balanceError)
     }
+
 
     // MARK: - API Call before used stored (keychain token)
 //    func fetchAccountTypes() {

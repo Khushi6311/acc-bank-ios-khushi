@@ -26,7 +26,7 @@ struct BottomNavigationBar: View {
                 Button(action: {
                     selectedTab = 1 // Switch to MoveMoneyView
                 }) {
-                    Image(systemName: "creditcard")
+                    Image(systemName: "dollarsign.bank.building")//dollarsign.bank.buildingcreditcard
                         .font(.system(size: 28))
                         .foregroundColor(selectedTab == 1 ? .white : .gray)
                 }
@@ -49,11 +49,21 @@ struct BottomNavigationBar: View {
                 Spacer()
 
                 Button(action: { selectedTab = 3 }) {
-                    Image(systemName: "dollarsign.bank.building")
+                    //Image(systemName: "square.and.pencil")
+                    VStack {
+                        ZStack {
+                            Image(systemName: "banknote")
+                                .font(.system(size: 30))
+                                .foregroundColor(.gray)
+                            Image(systemName: "pencil")
+                                .font(.system(size: 25))
+                                .foregroundColor(.gray)
+                                .offset(x: 12, y: 12) // move pencil to bottom right corner
+                        }
                         .font(.system(size: 28))
                         .foregroundColor(selectedTab == 3 ? .white : .gray)
+                    }
                 }
-
                 Spacer()
 
                 Button(action: { selectedTab = 4 }) {

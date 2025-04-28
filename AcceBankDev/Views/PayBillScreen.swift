@@ -18,6 +18,7 @@ struct ToAccount: Codable {
     var StartDate: String
     var EndDate: String
     var Memo: String
+    let TransactionType: String
 }
 
 //below struct for showing multiple field of multiple payee
@@ -94,6 +95,8 @@ struct PayBillScreen: View {
     @State private var showAmountError = false
     @State private var showDateError = false
     @State private var showStartDateError = false
+    @State private var showPayFromError = false
+
     @State private var showEndDateError = false
     @State private var startDate = Date()
     @State private var endDate = Date()
@@ -134,7 +137,9 @@ struct PayBillScreen: View {
                 HStack(spacing: 0)  {
 
                     HStack(spacing: 0) {
-                            Button(action: { selectedPaymentType = "One-time Payment"
+                            Button(action: {
+                                //accountManager.selectedAccount = nil
+                                selectedPaymentType = "One-time Payment"
                                 
                                
 }) {
@@ -157,7 +162,9 @@ struct PayBillScreen: View {
                                     .cornerRadius(30)
                             }
 
-                            Button(action: { selectedPaymentType = "Recurring Payment"
+                            Button(action: { 
+                                //accountManager.selectedAccount = nil
+                                selectedPaymentType = "Recurring Payment"
                                 
 }) {
                                 //Text("Recurring")
@@ -214,7 +221,7 @@ struct PayBillScreen: View {
                                                showBillConfirmationSheet: $showBillConfirmationSheet,
                                                showAccountError: $showAccountError,
                                                showContactError: $showContactError,
-                                               showAmountError: $showAmountError,
+                                showAmountError: $showAmountError, showPayFromError: $showPayFromError,
                                                showDateError: $showDateError,
                                                viewModel: viewModel,                    // Pass PayeeViewModel
                                                selectedPayees: $selectedPayees,           // Pass selected payee
@@ -246,7 +253,8 @@ struct PayBillScreen: View {
                                 isTransferFromSheetPresented: $isTransferFromSheetPresented,
                                 showAccountError: $showBillConfirmationSheet,
                                 showContactError: $showAccountError,
-                                showAmountError: $showContactError,
+                                showAmountError: $showContactError, showPayFromError: $showPayFromError,
+                                
                                 showStartDateError: $showAmountError,
                                 showEndDateError: $showStartDateError,
                                 showBillConfirmationSheet: $showEndDateError,
@@ -303,10 +311,13 @@ struct PayBillScreen: View {
                     showAddContactSheet = false
                 }
             }
-
-    }
+//            .onAppear {
+//                // Reset selected account when screen opens
+//                accountManager.selectedAccount = nil}
+   }
     
 }
+   
 
 
 //one time payment form
@@ -326,6 +337,8 @@ struct OneTimePaymentForm: View {
     @Binding var showAccountError:Bool
     @Binding var showContactError:Bool
     @Binding var showAmountError:Bool
+    @Binding var showPayFromError:Bool
+
     @Binding var showDateError:Bool
     @ObservedObject var viewModel: PayeeViewModel
     @Binding var selectedPayees: [Payee]
@@ -346,28 +359,45 @@ struct OneTimePaymentForm: View {
                 .font(.subheadline)
                 .foregroundColor(.gray)
                 .frame(maxWidth: .infinity, alignment: .leading)
+            if showPayFromError {
+                Text(NSLocalizedString("error_pay_from_required", comment: ""))
+                    .font(.caption)
+                    .foregroundColor(.red)
+            }
 
             Button(action: { isTransferFromSheetPresented = true }) {
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(accountManager.selectedAccount?.accountName ?? NSLocalizedString("select_account", comment: ""))
+                        if let account = selectedFromAccount {
+                            Text(account.accountName)
+                                .font(.headline)
+                                .bold()
+                                .foregroundColor(.black)
+
+                            Text(account.accountType)
+                                .font(.subheadline)
+                                .foregroundColor(.gray)
+
+                            Text(account.accountNumber)
+                                .font(.subheadline)
+                                .foregroundColor(.gray)
+                        } else {
+                            Text(NSLocalizedString("select_account", comment: ""))
+                                .font(.headline)
+                                .bold()
+                                .foregroundColor(.black)
+                        }
+                    }
+
+                    Spacer()
+
+                    if let account = selectedFromAccount {
+                        Text(account.balance)
                             .font(.headline)
                             .bold()
                             .foregroundColor(.black)
-
-                        Text(accountManager.selectedAccount?.accountType ?? "")
-                            .font(.subheadline)
-                            .foregroundColor(.gray)
-
-                        Text(accountManager.selectedAccount?.accountNumber ?? "")
-                            .font(.subheadline)
-                            .foregroundColor(.gray)
                     }
-                    Spacer()
-                    Text(accountManager.selectedAccount?.balance ?? "")
-                        .font(.headline)
-                        .bold()
-                        .foregroundColor(.black)
+
                     Image(systemName: "chevron.down")
                         .foregroundColor(.black)
                 }
@@ -427,7 +457,7 @@ struct OneTimePaymentForm: View {
 selectedPayees: $selectedPayees, showPayeeSheet: $showPayeeSheet)
 
             }
-            FieldErrorView(message: NSLocalizedString("error_required_field", comment: "Payee is required"), show: $showContactError)
+            FieldErrorView(message: NSLocalizedString("error_required_payee_field", comment: "Payee is required"), show: $showContactError)
 
 
 //            FieldErrorView(message: NSLocalizedString("error_required_field", comment: "Amount is required"), show: $showContactError)
@@ -470,7 +500,7 @@ selectedPayees: $selectedPayees, showPayeeSheet: $showPayeeSheet)
                         UIApplication.shared.endEditing()
                         showDatePicker = false
                     }
-                FieldErrorView(message: NSLocalizedString("error_required_field", comment: "Amount is required"), show: $showAmountError)
+                FieldErrorView(message: NSLocalizedString("error_required_payee_amount_field", comment: "Amount is required"), show: $showAmountError)
 
                 DateField(title: NSLocalizedString("date", comment: "date"),
                           dateText: $formattedDate) {
@@ -561,6 +591,7 @@ selectedPayees: $selectedPayees, showPayeeSheet: $showPayeeSheet)
                     showAmountError = result.showAmountError
                     showDateError = result.showDateError
                     showContactError = result.showContactError
+                    
 
                     if result.balanceExceededError {
                         bannerErrorMessage = "Payment failed. This transfer amount exceeds your account balance."
@@ -604,6 +635,8 @@ selectedPayees: $selectedPayees, showPayeeSheet: $showPayeeSheet)
                 )
             }
             .onAppear {
+                //accountManager.selectedAccount = nil
+
                 let today = Calendar.current.startOfDay(for: Date())
                 if selectedDate < today {
                     selectedDate = today
@@ -638,6 +671,8 @@ struct AddPayeeFormView: View {
     @State private var showPayeeError = false
     @State private var showAccountError = false
     @State private var payeeName = ""
+    @State private var showPayeeNameError = false
+    @State private var showPayeeTypeError = false
 
     let payeeTypes = [
         "CRA – GST/HST", "CRA – Payroll",
@@ -671,6 +706,12 @@ struct AddPayeeFormView: View {
                        .padding()
                        .background(Color(.systemGray6))
                        .cornerRadius(10)
+                
+                if showPayeeNameError {
+                    Text(NSLocalizedString("error_payee_name_required", comment: "Payee name required"))
+                            .foregroundColor(.red)
+                            .font(.caption)
+                    }
                }
                .padding(.horizontal)
             // Payee Dropdown with Search
@@ -727,30 +768,33 @@ struct AddPayeeFormView: View {
                     .cornerRadius(8)
                     .shadow(radius: 5)
                 }
+                if showPayeeTypeError {
+                    Text(NSLocalizedString("error_payee_type_required", comment: "Payee type required"))
+                            .foregroundColor(.red)
+                            .font(.caption)
+                    }
             }
             .padding(.horizontal)
 
-            if showPayeeError {
-                Text("Please select a payee")
-                    .foregroundColor(.red)
-                    .font(.caption)
-                    .padding(.horizontal)
-            }
-
-            // Account Number Field
-            TextField("Account Number", text: $accountNumber)
-                .keyboardType(.numberPad)
-                .padding()
-                .background(Color(.systemGray6))
-                .cornerRadius(8)
-                .padding(.horizontal)
-
-            if showAccountError {
-                Text("Account number is required")
-                    .foregroundColor(.red)
-                    .font(.caption)
-                    .padding(.horizontal)
-            }
+            
+            VStack(alignment: .leading,spacing:4){
+                // Account Number Field
+                TextField("Account Number", text: $accountNumber)
+                    .keyboardType(.numberPad)
+                    .padding()
+                    .background(Color(.systemGray6))
+                    .cornerRadius(8)
+                    //.padding(.horizontal)
+                
+                if showAccountError {
+                    Text(NSLocalizedString("error_account_number_required", comment: "Account number required"))
+                        .foregroundColor(.red)
+                        .font(.caption)
+                        
+                    
+                }
+                    
+            }.padding(.horizontal)
 
             // Save Button
             Button(action: {
@@ -841,18 +885,44 @@ struct AddPayeeFormView: View {
 
 
     private func validateAndSave() {
-        showPayeeError = selectedPayee.isEmpty && payeeName.isEmpty
-        showAccountError = accountNumber.trimmingCharacters(in: .whitespaces).isEmpty
+        // Reset previous errors
+        showPayeeNameError = false
+        showPayeeTypeError = false
+        showAccountError = false
 
-        guard !showPayeeError, !showAccountError else { return }
+        var isValid = true
+
+        if payeeName.trimmingCharacters(in: .whitespaces).isEmpty {
+            showPayeeNameError = true
+            isValid = false
+        }
+
+        if selectedPayee.isEmpty {
+            showPayeeTypeError = true
+            isValid = false
+        }
+
+        if accountNumber.trimmingCharacters(in: .whitespaces).isEmpty {
+            showAccountError = true
+            isValid = false
+        }
+
+        guard isValid else { return }
+
+        // Save logic
         savePayeeToAPI()
 
         let finalPayeeName = !payeeName.isEmpty ? payeeName : selectedPayee
-        let newPayee = Payee(payeeId: UUID().uuidString, payeeName: finalPayeeName, payeeNumber: accountNumber, payeeTypeName: selectedPayee)
+        let newPayee = Payee(
+            payeeId: UUID().uuidString,
+            payeeName: finalPayeeName,
+            payeeNumber: accountNumber,
+            payeeTypeName: selectedPayee
+        )
         onSave(newPayee)
         dismiss()
-        
     }
+
 
 }
 
@@ -1293,6 +1363,7 @@ struct RecurringPaymentForm: View {
     @Binding var showAccountError: Bool
     @Binding var showContactError: Bool
     @Binding var showAmountError: Bool
+    @Binding var showPayFromError: Bool
     @Binding var showStartDateError: Bool
     @Binding var showEndDateError: Bool
     @Binding var showBillConfirmationSheet: Bool
@@ -1317,26 +1388,69 @@ struct RecurringPaymentForm: View {
                 .font(.subheadline)
                 .foregroundColor(.gray)
                 .frame(maxWidth: .infinity, alignment: .leading)
+            if showPayFromError {
+                Text(NSLocalizedString("error_pay_from_required", comment: ""))
+                    .font(.caption)
+                    .foregroundColor(.red)
+            }
 
+//            Button(action: { isTransferFromSheetPresented = true }) {
+//                HStack {
+//                    VStack(alignment: .leading, spacing: 2) {
+//                        //Text(accountManager.selectedAccount?.accountName ?? "Select Account")
+//                        Text(NSLocalizedString("select_account", comment: ""))
+//
+//                            .font(.headline)
+//                            .bold()
+//                            .foregroundColor(.black)
+//                        Text(accountManager.selectedAccount?.accountType ?? "")
+//                            .font(.subheadline)
+//                            .foregroundColor(.gray)
+//                        Text(accountManager.selectedAccount?.accountNumber ?? "")
+//                            .font(.subheadline)
+//                            .foregroundColor(.gray)
+//                    }
+//                    Spacer()
+//                    Text(accountManager.selectedAccount?.balance ?? "")
+//                        .font(.headline)
+//                        .bold()
+//                        .foregroundColor(.black)
+//                    Image(systemName: "chevron.down")
+//                        .foregroundColor(.black)
+//                }
             Button(action: { isTransferFromSheetPresented = true }) {
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(accountManager.selectedAccount?.accountName ?? "Select account")
+                        if let account = selectedFromAccount {
+                            Text(account.accountName)
+                                .font(.headline)
+                                .bold()
+                                .foregroundColor(.black)
+
+                            Text(account.accountType)
+                                .font(.subheadline)
+                                .foregroundColor(.gray)
+
+                            Text(account.accountNumber)
+                                .font(.subheadline)
+                                .foregroundColor(.gray)
+                        } else {
+                            Text(NSLocalizedString("select_account", comment: ""))
+                                .font(.headline)
+                                .bold()
+                                .foregroundColor(.black)
+                        }
+                    }
+
+                    Spacer()
+
+                    if let account = selectedFromAccount {
+                        Text(account.balance)
                             .font(.headline)
                             .bold()
                             .foregroundColor(.black)
-                        Text(accountManager.selectedAccount?.accountType ?? "")
-                            .font(.subheadline)
-                            .foregroundColor(.gray)
-                        Text(accountManager.selectedAccount?.accountNumber ?? "")
-                            .font(.subheadline)
-                            .foregroundColor(.gray)
                     }
-                    Spacer()
-                    Text(accountManager.selectedAccount?.balance ?? "")
-                        .font(.headline)
-                        .bold()
-                        .foregroundColor(.black)
+
                     Image(systemName: "chevron.down")
                         .foregroundColor(.black)
                 }
@@ -1371,7 +1485,7 @@ struct RecurringPaymentForm: View {
                 PayeeListView(viewModel:viewModel, selectedPayees: $selectedPayees, showPayeeSheet: $showPayeeSheet)
             }
             //9
-            FieldErrorView(message: NSLocalizedString("error_required_field", comment: "Payee is required"), show: $showContactError)
+            FieldErrorView(message: NSLocalizedString("error_required_payee_field", comment: "Payee is required"), show: $showContactError)
 
             Button(action: { showAddContactSheet = true
             }) {
@@ -1414,7 +1528,7 @@ struct RecurringPaymentForm: View {
                     .onTapGesture {
                         focusedField = nil
                     }
-                FieldErrorView(message: NSLocalizedString("error_required_field", comment: "Amount is required"), show: $showAmountError)
+                FieldErrorView(message: NSLocalizedString("error_required_payee_amount_field", comment: "Amount is required"), show: $showAmountError)
 
                 //Text("Select frequency")
                 Text(NSLocalizedString("select_frequency", comment: ""))
@@ -1449,7 +1563,7 @@ struct RecurringPaymentForm: View {
                     isSelectingStartDate = false
                     showDatePicker.toggle()
                 }
-                FieldErrorView(message: NSLocalizedString("error_required_field", comment: "Amount is required"), show: $showEndDateError)
+                FieldErrorView(message: NSLocalizedString("error_required_end_date_field", comment: "Amount is required"), show: $showEndDateError)
                 
                 TextField("Enter memo (optional)", text: $memo)
                     .padding()
@@ -1591,6 +1705,8 @@ struct RecurringPaymentForm: View {
             }
         }
         .onAppear {
+            //accountManager.selectedAccount = nil
+
             // Set default start date and its formatted text if empty
             if formattedStartDate == nil || formattedStartDate?.isEmpty == true {
                 selectedStartDate = Calendar.current.startOfDay(for: Date())
@@ -1718,6 +1834,7 @@ struct MultiRecurringPayeeDetailView: View {
         }
         .padding(.vertical, 10)
         .onAppear {
+            
             // Set default start & end dates if not already set
             if detail.startDate == nil {
                 detail.startDate = Date()
@@ -1747,6 +1864,7 @@ struct RecurringPaymentFormValidator {
         frequency: String
     ) -> (
         showAccountError: Bool,
+        showPayFromError: Bool,
         showContactError: Bool,
         showAmountError: Bool,
         showStartDateError: Bool,
@@ -1755,7 +1873,9 @@ struct RecurringPaymentFormValidator {
         isFormValid: Bool,
         syncedDetails: [PayeePaymentDetails]
     ) {
-        let showAccountError = selectedFromAccount == nil
+        let showAccountError = selectedFromAccount == nil // (old check — API)
+        let showPayFromError = selectedFromAccount == nil // (new check — UI field required)
+
         let showContactError = selectedPayees.isEmpty
         let showAmountError = amount.trimmingCharacters(in: .whitespaces).isEmpty
         let showStartDateError = startDate?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true
@@ -1784,10 +1904,11 @@ struct RecurringPaymentFormValidator {
             ]
         }
 
-        let isFormValid = !showAccountError && !showContactError && !showAmountError && !showStartDateError && !showEndDateError && !balanceExceededError
+        let isFormValid = !showAccountError && !showPayFromError && !showContactError && !showAmountError && !showStartDateError && !showEndDateError && !balanceExceededError
 
         return (
             showAccountError,
+            showPayFromError,
             showContactError,
             showAmountError,
             showStartDateError,
@@ -1803,6 +1924,7 @@ struct RecurringPaymentFormValidator {
         payeeDetails: [PayeeRecurringDetails]
     ) -> (
         showAccountError: Bool,
+        showPayFromError: Bool,
         balanceExceededError: Bool,
         updatedDetails: [PayeeRecurringDetails],
         isFormValid: Bool
@@ -1832,23 +1954,26 @@ struct RecurringPaymentFormValidator {
         }
 
         var balanceExceededError = false
-        let showAccountError = selectedFromAccount == nil
+        let showAccountError = selectedFromAccount == nil // (old check — for backend)
+        let showPayFromError = selectedFromAccount == nil // (new check — for UI field)
 
         if let account = selectedFromAccount,
            let balance = Double(account.balance.replacingOccurrences(of: "$", with: "").replacingOccurrences(of: ",", with: "")) {
             balanceExceededError = totalAmount > balance
         }
 
-        let isFormValid = isValid && !showAccountError && !balanceExceededError
+        let isFormValid = isValid && !showAccountError && !showPayFromError && !balanceExceededError
 
         return (
             showAccountError,
+            showPayFromError,
             balanceExceededError,
             updatedDetails,
             isFormValid
         )
     }
 }
+
 
 
 //select account sheet common for both the sheet
@@ -1864,6 +1989,7 @@ struct BillAccountSelectionSheet: View {
                 Text(NSLocalizedString("transfer_from", comment: ""))
                 
                     .font(.headline)
+                    .foregroundColor(.black)
                     .bold()
                 Spacer()
                 Button(action: {
@@ -2106,7 +2232,8 @@ struct BillConfirmationSheet: View {
                 Frequency: $0.frequency.capitalized,
                 StartDate: formatter.string(from: $0.startDate ?? Date()),
                 EndDate: formatter.string(from: $0.endDate ?? Date()),
-                Memo: $0.memo ?? ""
+                Memo: $0.memo ?? "",
+                TransactionType: "Bill Payment"
             )
         }
 
@@ -2312,7 +2439,8 @@ struct RecurringBillConfirmationSheet: View {
                 Frequency: detail.frequency.capitalized,
                 StartDate: formatter.string(from: detail.startDate ?? Date()),
                 EndDate: formatter.string(from: detail.endDate ?? Date()),
-                Memo: detail.memo ?? ""
+                Memo: detail.memo ?? "",
+                TransactionType: "Bill Payment"
             )
         }
 
@@ -2401,9 +2529,12 @@ struct BillSendSheet: View {
     var payeeDetails: [PayeePaymentDetails] = []
 
     var isRecurring: Bool = false
+    @StateObject var viewModel = PayeeViewModel()
 
     @State private var navigateToMainView = false
     @Environment(\.presentationMode) var presentationMode
+    @State private var navigateToPayBillScreen = false
+    @Environment(\.dismiss) var dismiss
 
     var body: some View {
         ScrollView {
@@ -2471,6 +2602,30 @@ struct BillSendSheet: View {
                 .padding(.horizontal)
                 .padding(.bottom, 20)
             }
+            Button(action: {
+                navigateToPayBillScreen = true
+            }) {
+                Text(NSLocalizedString("continue_with_new_transfer", comment: "Continue with new transfer button"))
+                    .font(.headline)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    //.background(Color.colorBlue) // or .blue
+                    .background(
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(Constants.backgroundGradient)
+                    )
+
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
+            }
+            .fullScreenCover(isPresented: $navigateToPayBillScreen) {
+                PayBillScreen(
+                    account: fromAccount,
+                    viewModel: viewModel,
+                    dismiss: _dismiss // pass dismiss environment (NOT a closure!)
+                )
+            }
+
         }
         .padding()
     }
@@ -2596,6 +2751,8 @@ struct BillDetailRow: View {
         }
     }
 }
+
+//selection of transfer from to 
 struct PayBillScreen_Previews: PreviewProvider {
     static var previews: some View {
         let viewModel = PayeeViewModel()

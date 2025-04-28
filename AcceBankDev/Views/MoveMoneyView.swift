@@ -440,7 +440,7 @@ struct MoveMoneyView: View {
             case .transferMoney:
                 return NSLocalizedString("transfer_money", comment: "")
             case .manageContacts:
-                return NSLocalizedString("manage_contacts", comment: "")
+                return NSLocalizedString("add_contact", comment: "")//manage_contacts
             case .manageAccounts:
                 return NSLocalizedString("manage_accounts", comment: "")
             case .requestMoney:

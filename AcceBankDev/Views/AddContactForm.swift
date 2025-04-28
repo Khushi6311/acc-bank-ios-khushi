@@ -13,7 +13,7 @@ struct AddContactFormView: View {
     var onContactCreated: ((Contact) -> Void)? = nil // for when contact save form transfer money screen
     @State private var name = ""
     @State private var nickname = ""
-    @State private var language = ""
+    @State private var language = "English"
 
 
     @State private var email = ""
@@ -41,6 +41,13 @@ struct AddContactFormView: View {
     @State private var accountNumber = ""
     @State private var accountNumberError = false
     @State private var showLanguageDropdown = false
+    
+    @State private var nameErrorMessage: String?
+    @State private var emailErrorMessage: String?
+    @State private var mobilePhoneErrorMessage: String?
+    @State private var accountNumberErrorMessage: String?
+    @State private var transferMethodError = false
+
     let languageOptions = ["English", "Français"]
 
     // Country Code Options
@@ -77,11 +84,14 @@ struct AddContactFormView: View {
                         .padding()
                         .background(Color(.systemGray6))
                         .cornerRadius(8)
-                        //.overlay(RoundedRectangle(cornerRadius: 8).stroke(nameError ? Color.red : Color.clear, lineWidth: 1))
-                    if nameError {
-                        //Text("Required field.")error_required_field,error_invalid_email
-                        Text(NSLocalizedString("error_required_field", comment: ""))
-
+//                        .overlay(RoundedRectangle(cornerRadius: 8).stroke(nameError ? Color.red : Color.clear, lineWidth: 1))
+                    
+//                        .overlay(
+//                                RoundedRectangle(cornerRadius: 8)
+//                                    .stroke(nameErrorMessage != nil ? Color.red : Color.clear, lineWidth: 1)
+//                            )
+                    if let error = nameErrorMessage {
+                        Text(error)
                             .font(.footnote)
                             .foregroundColor(.red)
                     }
@@ -90,24 +100,7 @@ struct AddContactFormView: View {
                         .padding()
                         .background(Color(.systemGray6))
                         .cornerRadius(8)
-                        //.overlay(RoundedRectangle(cornerRadius: 8).stroke(nameError ? Color.red : Color.clear, lineWidth: 1))
                     
-                    
-                    TextField(NSLocalizedString("account_number", comment: ""), text: $accountNumber)
-                        .keyboardType(.numberPad)
-                        .padding()
-                        .background(Color(.systemGray6))
-                        .cornerRadius(8)
-                        //.overlay(RoundedRectangle(cornerRadius: 8).stroke(accountNumberError ? Color.red : Color.clear, lineWidth: 1))
-
-                    if accountNumberError {
-                        Text(NSLocalizedString("error_required_field", comment: ""))
-                            .font(.footnote)
-                            .foregroundColor(.red)
-                    }
-//                    Text("Preferred Language")
-//                        .font(.subheadline)
-//                        .foregroundColor(.gray)
 
                     Button(action: {
                         withAnimation {
@@ -164,11 +157,16 @@ struct AddContactFormView: View {
                         .background(Color(.systemGray6))
                         .cornerRadius(8)
                         //.overlay(RoundedRectangle(cornerRadius: 8).stroke(emailError ? Color.red : Color.clear, lineWidth: 1))
-                    if emailError {
-                        Text(email.isEmpty ? "Required field." : "Invalid email format.")//
-                            .font(.footnote)
-                            .foregroundColor(.red)
-                    }
+//                        .overlay(
+//                                RoundedRectangle(cornerRadius: 8)
+//                                    .stroke(emailErrorMessage != nil ? Color.red : Color.clear, lineWidth: 1)
+//                            )
+
+                        if let error = emailErrorMessage {
+                            Text(error)
+                                .font(.footnote)
+                                .foregroundColor(.red)
+                        }
         
                     // Mobile Field with Country Code
                     HStack {
@@ -199,6 +197,10 @@ struct AddContactFormView: View {
                             .background(Color(.systemGray6))
                             .cornerRadius(8)
                             //.overlay(RoundedRectangle(cornerRadius: 8).stroke(mobilePhoneError ? Color.red : Color.clear, lineWidth: 1))
+//                            .overlay(
+//                                    RoundedRectangle(cornerRadius: 8)
+//                                        .stroke(mobilePhoneErrorMessage != nil ? Color.red : Color.clear, lineWidth: 1)
+//                                )
 //                                .onChange(of: mobilePhone) { newValue in
 //                                    mobilePhone = formatPhoneNumber(newValue)
 //                                }
@@ -229,8 +231,8 @@ struct AddContactFormView: View {
 
                     }
                     
-                    if mobilePhoneError {
-                        Text(mobilePhone.isEmpty ? "Required field." : "Invalid phone number format.")
+                    if let error = mobilePhoneErrorMessage {
+                        Text(error)
                             .font(.footnote)
                             .foregroundColor(.red)
                     }
@@ -241,7 +243,12 @@ struct AddContactFormView: View {
                     Toggle(NSLocalizedString("send_transfers_by_email", comment: ""), isOn: $sendByEmail)
                     Toggle(NSLocalizedString("send_transfers_by_mobile", comment: ""), isOn: $sendByMobile)
 
-                    
+                    if transferMethodError {
+                        Text(NSLocalizedString("error_select_transfer_method", comment: ""))
+                            .font(.footnote)
+                            .foregroundColor(.red)
+                    }
+
                     // Security Details
                     //TextField("Security question", text: $securityQuestion)
 //                    TextField(NSLocalizedString("security_question", comment: ""), text: $securityQuestion)
@@ -273,11 +280,16 @@ struct AddContactFormView: View {
                     //Spacer()
                     // Review Contact Button with Validation
                     Button(action: {
+//                        if validateFields() {
+//                            showConfirmationSheet = true
+//                        } else {
+//                            showError = true
+//                        }
                         if validateFields() {
-                            showConfirmationSheet = true
-                        } else {
-                            showError = true
-                        }
+                               DispatchQueue.main.async {
+                                   showConfirmationSheet = true
+                               }
+                           }
                     }) {
                         //Text("Review Contact")
                         Text(NSLocalizedString("review_contact", comment: ""))
@@ -318,17 +330,61 @@ struct AddContactFormView: View {
     }
     
     // Function to Validate Fields
+//    func validateFields() -> Bool {
+//        nameError = name.isEmpty
+//        emailError = email.isEmpty || !isValidEmail(email)
+//        mobilePhoneError = mobilePhone.isEmpty || mobilePhone.count < 10
+//        accountNumberError = accountNumber.isEmpty
+//
+//        //securityAnswerError = securityAnswer.isEmpty
+//        //reEnterSecurityAnswerError = securityAnswer != reEnterSecurityAnswer
+//        
+//        return !(nameError || emailError || mobilePhoneError || securityAnswerError || reEnterSecurityAnswerError || accountNumberError)
+//    }
+    
     func validateFields() -> Bool {
-        nameError = name.isEmpty
-        emailError = email.isEmpty || !isValidEmail(email)
-        mobilePhoneError = mobilePhone.isEmpty || mobilePhone.count < 10
-        accountNumberError = accountNumber.isEmpty
+        var isValid = true
 
-        //securityAnswerError = securityAnswer.isEmpty
-        //reEnterSecurityAnswerError = securityAnswer != reEnterSecurityAnswer
-        
-        return !(nameError || emailError || mobilePhoneError || securityAnswerError || reEnterSecurityAnswerError || accountNumberError)
+        if name.isEmpty {
+            nameErrorMessage = NSLocalizedString("error_name_required", comment: "")
+            isValid = false
+        } else {
+            nameErrorMessage = nil
+        }
+
+        if email.isEmpty {
+            emailErrorMessage = NSLocalizedString("error_email_required", comment: "")
+            isValid = false
+        } else if !isValidEmail(email) {
+            emailErrorMessage = NSLocalizedString("error_invalid_email", comment: "")
+            isValid = false
+        } else {
+            emailErrorMessage = nil
+        }
+
+        if mobilePhone.isEmpty {
+            mobilePhoneErrorMessage = NSLocalizedString("error_phone_required", comment: "")
+            isValid = false
+        } else {
+            mobilePhoneErrorMessage = nil
+        }
+
+//        if accountNumber.isEmpty {
+//            accountNumberErrorMessage = NSLocalizedString("error_account_required", comment: "")
+//            isValid = false
+//        } else {
+//            accountNumberErrorMessage = nil
+//        }
+        if !sendByEmail && !sendByMobile {
+                transferMethodError = true
+                isValid = false
+            } else {
+                transferMethodError = false
+            }
+        return isValid
     }
+
+
 //        func isValidEmail(_ email: String) -> Bool {
 //                let emailRegex = #"^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$"#
 //                return email.range(of: emailRegex, options: .regularExpression, range: nil, locale: nil) != nil
@@ -463,7 +519,7 @@ struct ContactConfirmationView: View {
                    // DetailRow(title: "Security answer", value: "*******") // Hide security answer
                     DetailRow(title: NSLocalizedString("name", comment: ""), value: name)
                     DetailRow(title: NSLocalizedString("email", comment: ""), value: email)
-                    DetailRow(title: NSLocalizedString("account_number", comment: ""), value: accountNumber)
+//                    DetailRow(title: NSLocalizedString("account_number", comment: ""), value: accountNumber)
                     DetailRow(title: NSLocalizedString("mobile_phone", comment: ""), value: mobilePhone)
 
                     DetailRow(

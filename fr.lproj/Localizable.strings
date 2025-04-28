@@ -338,3 +338,31 @@
 //history page
 "accounts"="Account";
 "history"="History";
+
+//28 april
+"continue_with_new_transfer"="Continuer avec un nouveau transfert";
+"error_name_required" = "Le nom est requis.";
+"error_email_required" = "L'adresse e-mail est requise.";
+"error_invalid_email" = "Format d'e-mail invalide.";
+"error_phone_required" = "Le numéro de téléphone est requis.";
+"error_account_required" = "Le numéro de compte est requis.";
+"error_select_transfer_method" = "Veuillez sélectionner au moins une méthode de transfert.";
+
+
+//add account
+"error_required_account_type" = "Le type de compte est requis.";
+"error_required_account_name" = "Le nom du compte est requis.";
+"error_required_account_number" = "Le numéro de compte est requis.";
+"error_required_amount" = "Le montant est requis et doit être un nombre valide.";
+
+//paybill
+"error_required_payee_field"="Pay To is required ";
+"error_required_payee_amount_field"="Amount is required";
+"error_pay_from_required"="Pay From is required ";
+"error_required_end_date_field"="End date is required";
+
+//add payee
+"error_payee_name_required" = "Le nom du bénéficiaire est requis.";
+"error_payee_type_required" = "Le type de bénéficiaire est requis.";
+"error_account_number_required" = "Le numéro de compte est requis.";
+

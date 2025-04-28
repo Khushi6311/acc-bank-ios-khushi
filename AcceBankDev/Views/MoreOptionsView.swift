@@ -52,29 +52,29 @@ struct MoreOptionsView: View {
                         }
                         Divider().background(Color.gray.opacity(0.9)).padding(.horizontal, 20)
                         // Add the History button below
-                        Button(action: {
-                            print("History tapped")
-                            // Navigate to HistoryView if you have one
-                            // navigation logic goes here
-                        }) {
-                            HStack {
-                                Image(systemName: "clock.arrow.circlepath")
-                                    .foregroundColor(.black)
-                                    .font(.title2)
-                                
-                                Text(NSLocalizedString("history", comment: "History")) // Use NSLocalizedString if needed
-                                    .foregroundColor(.black)
-                                    .font(.headline)
-                                
-                                Spacer()
-                            }
-                            .padding()
-                            .background(Color(UIColor.systemGray6))
-                            .cornerRadius(10)
-                        }
+//                        Button(action: {
+//                            print("History tapped")
+//                            // Navigate to HistoryView if you have one
+//                            // navigation logic goes here
+//                        }) {
+//                            HStack {
+//                                Image(systemName: "clock.arrow.circlepath")
+//                                    .foregroundColor(.black)
+//                                    .font(.title2)
+//                                
+//                                Text(NSLocalizedString("history", comment: "History")) // Use NSLocalizedString if needed
+//                                    .foregroundColor(.black)
+//                                    .font(.headline)
+//                                
+//                                Spacer()
+//                            }
+//                            .padding()
+//                            .background(Color(UIColor.systemGray6))
+//                            .cornerRadius(10)
+//                        }
                        
 
-                        Divider().background(Color.gray.opacity(0.9)).padding(.horizontal, 20)
+                        //Divider().background(Color.gray.opacity(0.9)).padding(.horizontal, 20)
                         
                         Spacer()
                     }

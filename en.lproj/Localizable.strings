@@ -118,7 +118,7 @@
 "search"="Search";
 "enter_transfer_amount"="Enter transfer amount";
 "message_optional"="Message(Optional)";
-"select_account"="Select Contact";
+"select_account"="Select Account";
 "send_transfers_by_email"="Send transfers by Email";
 "send_transfers_by_mobile"="Send transfers by Mobile phone";
 
@@ -316,3 +316,40 @@
 //history page
 "accounts"="Account";
 "history"="History";
+
+
+//28 april
+"continue_with_new_transfer"="Continue with new transfer";
+"error_name_required" = "Please enter the contact's name.";
+"error_email_required" = "Please enter a valid email address.";
+"error_invalid_email" = "Invalid email format.";
+"error_phone_required" = "Please enter a valid phone number. (10 digit validation)";
+"error_account_required" = "Account number is required.";
+"error_select_transfer_method" = "Please select at least one transfer method.";
+
+
+//add account
+"error_required_account_type" = "Please select an account type.";
+"error_required_account_name"= "Please enter the account name.";
+"error_required_account_number" = "Account Number is required.";
+"error_required_amount" = "Please enter a valid amount greater than $0.";
+
+
+//paybill
+"error_required_payee_field"="Please select a payee to pay to.";
+"error_required_payee_amount_field"="Please enter a valid amount greater than $0.";
+"error_pay_from_required"="1. Please select an account to pay from.";
+"error_required_end_date_field"="Please select a payment date.";
+
+
+//add payee
+"error_payee_name_required" = "Please enter the payee name.";
+"error_payee_type_required" = "Please select a payee type.";
+"error_account_number_required" = "Please enter the account number.";
+
+//transfer from
+
+"error_required_transfer_from_field"="Please select an account to transfer from.";
+"error_required_transfer_to_field"="Please select an account to transfer to.";
+"error_required_transfer_memo_field"="Please enter memo details";
+"error_required_transfer_contact_field"="Please select an recipient to transfer money.";
