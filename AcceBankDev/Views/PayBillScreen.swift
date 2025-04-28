@@ -1236,9 +1236,7 @@ struct MultiPayeeDetailView: View {
 
 //show list of payee from json from bottom sheet
 struct PayeeListView: View {
-    //@ObservedObject var viewModel = PayeeViewModel()
     @ObservedObject var viewModel: PayeeViewModel
-
     @Binding var selectedPayees: [Payee]
     @Binding var showPayeeSheet: Bool
     @State private var searchText = ""
@@ -1254,8 +1252,8 @@ struct PayeeListView: View {
 
     var body: some View {
         VStack {
+            // Header: Select Payee and Search Bar
             HStack {
-                //Text("Select Payee").font(.headline).bold()
                 Text(NSLocalizedString("select_payee", comment: "Label for selecting payee"))
                     .font(.headline)
                     .bold()
@@ -1269,48 +1267,69 @@ struct PayeeListView: View {
             .padding(.horizontal)
             .padding(.top)
 
-            //TextField("Search", text: $searchText)
+            // Search Bar
             TextField(NSLocalizedString("search", comment: "Placeholder for search input"), text: $searchText)
-
                 .padding(10)
                 .background(Color(.systemGray6))
                 .cornerRadius(10)
                 .padding(.horizontal)
 
-            ScrollView {
-                VStack(spacing: 10) {
-                    ForEach(filteredPayees) { payee in
-                        Button(action: {
-                            if selectedPayees.contains(where: { $0.id == payee.id }) {
-                                selectedPayees.removeAll { $0.id == payee.id }
-                            } else {
-                                selectedPayees.append(payee)
-                            }
-                        }) {
-                            HStack {
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(payee.name).font(.headline).bold().foregroundColor(.black)
-                                    Text("Account: \(payee.accountNumber)").font(.subheadline).foregroundColor(.gray)
-                                    Text("Bank: \(payee.bank)").font(.subheadline).foregroundColor(.gray)
-                                }
-                                Spacer()
+            // Display Payees or No Payee Found Message
+            if filteredPayees.isEmpty {
+                           // Show "No payee found" message if filtered payees array is empty
+                           VStack {
+                               Spacer()
+                               Text(NSLocalizedString("no_payee_found", comment: "Message displayed when no payees are found"))
+                                   .font(.subheadline)
+                                   .foregroundColor(.gray)
+                                   .padding()
+                                   .frame(maxWidth: .infinity, alignment: .center) // Center the message
+                               Spacer()
+                           }
+                           .padding(.top, 30)
+            } else {
+                ScrollView {
+                    VStack(spacing: 10) {
+                        ForEach(filteredPayees) { payee in
+                            Button(action: {
                                 if selectedPayees.contains(where: { $0.id == payee.id }) {
-                                    Image(systemName: "checkmark.square.fill").foregroundColor(.blue)
+                                    selectedPayees.removeAll { $0.id == payee.id }
                                 } else {
-                                    Image(systemName: "square").foregroundColor(.gray)
+                                    selectedPayees.append(payee)
                                 }
+                            }) {
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(payee.name)
+                                            .font(.headline)
+                                            .bold()
+                                            .foregroundColor(.black)
+                                        Text("Account: \(payee.accountNumber)")
+                                            .font(.subheadline)
+                                            .foregroundColor(.gray)
+                                        Text("Bank: \(payee.bank)")
+                                            .font(.subheadline)
+                                            .foregroundColor(.gray)
+                                    }
+                                    Spacer()
+                                    if selectedPayees.contains(where: { $0.id == payee.id }) {
+                                        Image(systemName: "checkmark.square.fill")
+                                            .foregroundColor(.blue)
+                                    } else {
+                                        Image(systemName: "square")
+                                            .foregroundColor(.gray)
+                                    }
+                                }
+                                .padding()
+                                .background(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(selectedPayees.contains(where: { $0.id == payee.id }) ? Color.blue.opacity(0.2) : Color(UIColor.systemGray6))
+                                )
                             }
-                            .padding()
-//                            .background(RoundedRectangle(cornerRadius: 12).fill(Color(UIColor.systemGray6)))
-                            .background(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(selectedPayees.contains(where: { $0.id == payee.id }) ? Color.blue.opacity(0.2) : Color(UIColor.systemGray6))
-                            )
-
                         }
                     }
+                    .padding()
                 }
-                .padding()
             }
         }
         .onAppear {
@@ -1318,10 +1337,8 @@ struct PayeeListView: View {
         }
         .presentationDetents([.medium, .large])
     }
-        
-
 }
-    
+
 
 
 

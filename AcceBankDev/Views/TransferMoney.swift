@@ -2320,14 +2320,12 @@ struct ContactSelectionSheet: View {
             return contactManager.contacts.filter { $0.name.lowercased().contains(searchText.lowercased()) }
         }
     }
-    
+
     var body: some View {
         VStack {
             // Header
             HStack {
-                //Text("Select Contact")
                 Text(NSLocalizedString("select_recipient", comment: ""))
-
                     .font(.headline)
                     .bold()
                 Spacer()
@@ -2338,7 +2336,8 @@ struct ContactSelectionSheet: View {
                 }
             }
             .padding()
-        
+
+            // Search Bar and Add Contact Button
             HStack(spacing: 10) {
                 TextField(NSLocalizedString("search", comment: ""), text: $searchText)
                     .padding(10)
@@ -2356,70 +2355,76 @@ struct ContactSelectionSheet: View {
                         .font(.title2)
                         .foregroundColor(.white)
                         .padding(10)
-//                        .background(Color.black)
-//                        .cornerRadius(8)
                         .background(Color.colorBlue)
                         .clipShape(Circle())
                 }
             }
             .padding(.horizontal)
 
-            
-            // Contact List (Filtered)
-            ScrollView {
-                VStack(spacing: 10) {
-                    ForEach(filteredContacts) { contact in
-                        Button(action: {
-                            selectedContact = contact
-                            isPresented = false
-                        }) {
-                            HStack {
-                                VStack(alignment: .leading, spacing: 4) {
-                                    //  Show only name
-                                    Text(contact.name)
-                                        .font(.headline)
-                                        .bold()
-                                        .bold()
-                                        .foregroundColor(.black)
-                                    if let accountNumber = contact.accountNumber, !accountNumber.isEmpty {
-                                        Text("Account Number: \(accountNumber)")
-                                            .font(.subheadline)
-                                            .foregroundColor(.gray)
+            // Check if filtered contacts are empty
+            if filteredContacts.isEmpty {
+                // Show "No contact found" message if there are no contacts
+                VStack {
+                    Spacer()
+                    Text(NSLocalizedString("no_contact_found", comment: "Message displayed when no contacts are found"))
+                        .font(.subheadline)
+                        .foregroundColor(.gray)
+                        .padding()
+                        .frame(maxWidth: .infinity, alignment: .center) // Center the message
+                    Spacer()
+                }
+            } else {
+                // Contact List (Filtered)
+                ScrollView {
+                    VStack(spacing: 10) {
+                        ForEach(filteredContacts) { contact in
+                            Button(action: {
+                                selectedContact = contact
+                                isPresented = false
+                            }) {
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        // Show only name
+                                        Text(contact.name)
+                                            .font(.headline)
+                                            .bold()
+                                            .foregroundColor(.black)
+                                        if let accountNumber = contact.accountNumber, !accountNumber.isEmpty {
+                                            Text("Account Number: \(accountNumber)")
+                                                .font(.subheadline)
+                                                .foregroundColor(.gray)
+                                        }
+                                    }
+                                    Spacer()
+
+                                    // Show checkmark if selected
+                                    if selectedContact?.id == contact.id {
+                                        Image(systemName: "checkmark.circle.fill")
+                                            .foregroundColor(.blue)
                                     }
                                 }
-                                Spacer()
-                                
-                                // Show checkmark if selected
-                                if selectedContact?.id == contact.id {
-                                    Image(systemName: "checkmark.circle.fill")
-                                        .foregroundColor(.blue)
-                                }
-                                
+                                .padding()
+                                .background(selectedContact?.id == contact.id ? Color.blue.opacity(0.2) : Color(.systemGray6))
+                                .cornerRadius(10)
                             }
-                            .padding()
-                            .background(selectedContact?.id == contact.id ? Color.blue.opacity(0.2) : Color(.systemGray6))
-                            .cornerRadius(10)
                         }
                     }
+                    .padding()
                 }
-                .padding()
             }
-            //.frame(maxHeight: .infinity) // Ensures ScrollView expands fully
-            .scrollIndicators(.hidden)
         }
         .fullScreenCover(isPresented: $showAddContactForm) {
             AddContactFormView(
                 isPresented: $showAddContactForm,
                 contactManager: contactManager,
                 onContactCreated: { contact in
-                            selectedContact = contact // pre-select new contact
-                        }
-                
+                    selectedContact = contact // pre-select new contact
+                }
             )
         }
         .onAppear {
-                    contactManager.fetchContactsFromAPI()
-                }
+            contactManager.fetchContactsFromAPI()
+        }
         .padding(.horizontal)
         .presentationDetents([.medium, .large])
     }

@@ -353,3 +353,7 @@
 "error_required_transfer_to_field"="Please select an account to transfer to.";
 "error_required_transfer_memo_field"="Please enter memo details";
 "error_required_transfer_contact_field"="Please select an recipient to transfer money.";
+
+
+"no_payee_found"="No payee found";
+"no_contact_found"="No contact found";

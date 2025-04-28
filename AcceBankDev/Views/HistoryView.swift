@@ -144,89 +144,17 @@ struct HistoryView: View {
                 .shadow(radius: 4)
                 .padding(.horizontal)
                 
+
+                
 //                if isLoading {
 //                    ProgressView("Loading...")
 //                        .padding()
-//                }
-//                
-//                else {
-//                    ScrollView {
-//                        VStack(spacing: 12) {
-//                            ForEach(transactions) { tx in
-//                                HStack(alignment: .top, spacing: 12) {
-//    //                                Image(systemName: tx.icon)
-//    //                                    .font(.title2)
-//    //                                    .frame(width: 40, height: 40)
-//    //                                    .background(Color(UIColor.systemGray5))
-//    //                                    .clipShape(Circle())
-//                                    Image(systemName: (tx.transactionFrom == (account?.accountId ?? "")) ? "arrow.up.right" : "arrow.down.left")
-//                                        .font(.title2)
-//                                        .frame(width: 40, height: 40)
-//                                        .background(Color(UIColor.systemGray5))
-//                                        .clipShape(Circle())
-//
-//
-//                                    VStack(alignment: .leading, spacing: 4) {
-//                                        Text(tx.date)
-//                                            .font(.caption)
-//                                            .foregroundColor(.gray)
-//    //                                    Text(tx.name)
-//    //                                        .font(.headline)
-//                                        Text(getTransactionDisplayName(for: tx))
-//                                            .font(.headline)
-//
-//                                        Text(tx.type)
-//                                            .font(.subheadline)
-//                                            .foregroundColor(.gray)
-//                                    }
-//
-//                                    Spacer()
-//
-//    //                                VStack(alignment: .trailing) {
-//    //                                    Text(String(format: "$%.2f", tx.amount))
-//    //                                        .bold()
-//    //                                        .foregroundColor(
-//    //                                            (tx.transactionFrom == (account?.accountId ?? ""))
-//    //                                            ? .red
-//    //                                            : (tx.transactionTo == (account?.accountId ?? "") ? .green : .black)
-//    //                                        )
-//    //                                    Text(tx.status)
-//    //                                        .font(.caption)
-//    //                                        .foregroundColor(.gray)
-//    //                                }
-//                                    VStack(alignment: .trailing) {
-//                                        Text(
-//                                            (tx.transactionFrom == (account?.accountId ?? ""))
-//                                            ? "-$\(String(format: "%.2f", tx.amount))"
-//                                            : "+$\(String(format: "%.2f", tx.amount))"
-//                                        )
-//                                        .bold()
-//                                        .foregroundColor(
-//                                            (tx.transactionFrom == (account?.accountId ?? ""))
-//                                            ? .red
-//                                            : (tx.transactionTo == (account?.accountId ?? "") ? .green : .black)
-//                                        )
-//
-//                                        Text(tx.status)
-//                                            .font(.caption)
-//                                            .foregroundColor(.gray)
-//                                    }
-//
-//                                }
-//                                .padding()
-//                                .background(Color.white)
-//                                .cornerRadius(12)
-//                                .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
-//                            }
-//
-//                        }
-//                        .padding(.horizontal)
-//                    }
-//                }
-                
-                if isLoading {
-                    ProgressView("Loading...")
-                        .padding()
+                if transactions.isEmpty {
+                        // Show "No transactions found" message when there are no transactions
+                        Text("No transactions found")
+                            .font(.headline)
+                            .foregroundColor(.gray)
+                            .padding()
                 }
                 
                 else {

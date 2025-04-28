@@ -366,3 +366,13 @@
 "error_payee_type_required" = "Le type de bénéficiaire est requis.";
 "error_account_number_required" = "Le numéro de compte est requis.";
 
+//transfer from
+
+"error_required_transfer_from_field"="Please select an account to transfer from.";
+"error_required_transfer_to_field"="Please select an account to transfer to.";
+"error_required_transfer_memo_field"="Please enter memo details";
+"error_required_transfer_contact_field"="Please select an recipient to transfer money.";
+
+
+"no_payee_found"="No payee found";
+"no_contact_found"="No contact found";
