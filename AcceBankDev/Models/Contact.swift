@@ -8,7 +8,8 @@
 import Foundation
 
 struct Contact: Identifiable, Codable, Equatable {
-    var id = UUID()
+    //var id = UUID()
+    var id: String 
     var name: String
     var email: String
     var mobilePhone: String

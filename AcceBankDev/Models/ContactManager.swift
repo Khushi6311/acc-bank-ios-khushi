@@ -94,7 +94,8 @@ class ContactManager: ObservableObject {
 
     private let apiURL = AppConfig.GetContactListURL
 
-    func fetchContactsFromAPI() {
+    //func fetchContactsFromAPI() {
+    func fetchContactsFromAPI(completion: (() -> Void)? = nil) {
         print("🌐 Initiating contact fetch from API...")
 
         guard let token = TokenManager.shared.getToken() else {
@@ -139,6 +140,7 @@ class ContactManager: ObservableObject {
                 let decoded = try JSONDecoder().decode(ContactApiResponse<[Contact]>.self, from: data)
                 DispatchQueue.main.async {
                     self.contacts = decoded.data
+                    completion?()
                 }
                 print("✅ Contacts loaded successfully from API.")
             } catch {

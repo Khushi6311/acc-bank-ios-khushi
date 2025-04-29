@@ -24,6 +24,9 @@ class TokenManager {
     private let refreshTokenKey = "refresh_token"
     private let contactIdKey = "contact_id"
 
+    // Add these inside TokenManager
+    var firstName: String = ""
+    var lastName: String = ""
 
 
     private init() {}
@@ -652,7 +655,14 @@ struct LoginView: View {
                             if let contactId = contactId {
                                 TokenManager.shared.saveContactId(contactId)
                             }
+                            // ✅ Save full name
+                            if let firstName = json["firstName"] as? String {
+                                TokenManager.shared.firstName = firstName
+                            }
 
+                            if let lastName = json["lastName"] as? String {
+                                TokenManager.shared.lastName = lastName
+                            }
                             if !UserDefaults.standard.bool(forKey: "FaceIDEnabled") {
                                 showFaceIDPrompt = true
                             } else {

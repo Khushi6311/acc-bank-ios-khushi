@@ -48,7 +48,8 @@ struct BottomNavigationBar: View {
 
                 Spacer()
 
-                Button(action: { selectedTab = 3 }) {
+                Button(action: { selectedTab = 3
+                }) {
                     //Image(systemName: "square.and.pencil")
                     VStack {
                         ZStack {

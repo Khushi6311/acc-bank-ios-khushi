@@ -17,6 +17,8 @@ struct AddAccountFormView: View {
     @State private var showAccountTypeDropdown = false
     @State private var accountTypeOptions: [AccountTypeOption] = []
     @State private var selectedAccountTypeLabel = ""
+    @State private var showSuccessMessage = false
+    @State private var dismissAfterDelay = false
 
     var body: some View {
         NavigationStack {
@@ -174,6 +176,18 @@ struct AddAccountFormView: View {
                     .padding(.top, 20)
                 }
                 .padding(.horizontal, 20)
+                if showSuccessMessage {
+                    withAnimation {
+                        Text("Account Added Successfully!")
+                            .font(.headline)
+                            .foregroundColor(.green)
+                            .padding()
+                            .transition(.move(edge: .top))
+                            .zIndex(1)
+                    }
+                }
+
+
             }
             .onAppear {
                 fetchAccountTypes()
@@ -247,7 +261,19 @@ struct AddAccountFormView: View {
                 do {
                     let decoded = try JSONDecoder().decode(GenericAPIResponse.self, from: data)
                     print("Account saved: \(decoded.message)")
-                    presentationMode.wrappedValue.dismiss()
+                    //showSuccessMessage = true
+                    DispatchQueue.main.async {
+                        showSuccessMessage = true
+
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2.2) {
+                            presentationMode.wrappedValue.dismiss()
+                        }
+                    }
+
+//                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+//                        presentationMode.wrappedValue.dismiss()
+//                    }
+                    //presentationMode.wrappedValue.dismiss()
                 } catch {
                     print("Decoding error: \(error.localizedDescription)")
                     
@@ -275,7 +301,7 @@ struct AddAccountFormView: View {
     private func validateFields() -> Bool {
         accountTypeError = accountType.isEmpty
         accountNameError = accountName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-        accountNumberError = accountNumber.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        //accountNumberError = accountNumber.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         
         let sanitizedAmount = balance.replacingOccurrences(of: "$", with: "").trimmingCharacters(in: .whitespacesAndNewlines)
         if sanitizedAmount.isEmpty {

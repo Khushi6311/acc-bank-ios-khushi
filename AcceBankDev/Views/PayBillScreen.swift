@@ -30,7 +30,7 @@ struct PayeePaymentDetails: Identifiable {
     var startDate: Date? = nil    // for recurring
     var endDate: Date? = nil
     var frequency: String = "monthly"
-    
+    var transactionId: String?
 //var memo: String = ""
     var memo: String? = nil
 
@@ -557,7 +557,9 @@ selectedPayees: $selectedPayees, showPayeeSheet: $showPayeeSheet)
 
 
         Button(action: {
+            
             if selectedPayees.count > 1 {
+                
                     let result = OneTimePaymentFormValidator.validateMultiplePayees(
                         selectedFromAccount: selectedFromAccount,
                         payeeDetails: payeePaymentDetails
@@ -673,6 +675,7 @@ struct AddPayeeFormView: View {
     @State private var payeeName = ""
     @State private var showPayeeNameError = false
     @State private var showPayeeTypeError = false
+    @State private var showSuccessMessage = false
 
     let payeeTypes = [
         "CRA – GST/HST", "CRA – Payroll",
@@ -799,6 +802,7 @@ struct AddPayeeFormView: View {
             // Save Button
             Button(action: {
                 validateAndSave()
+                
             }) {
                 Text("Save Account")
                     .frame(maxWidth: .infinity)
@@ -808,6 +812,14 @@ struct AddPayeeFormView: View {
                     .cornerRadius(10)
             }
             .padding(.horizontal)
+            if showSuccessMessage {
+                Text("Payee Added Successfully!")
+                    .font(.headline)
+                    .foregroundColor(.black)
+                    .padding()
+                    .transition(.slide)
+                    .zIndex(1)
+            }
 
             Spacer()
         }
@@ -870,7 +882,8 @@ struct AddPayeeFormView: View {
                 if httpResponse.statusCode == 200 || httpResponse.statusCode == 201 {
                     print("Payee added successfully")
                     DispatchQueue.main.async {
-                        dismiss()
+                        //dismiss()
+                        showSuccessMessage = true
                     }
                 } else {
                     print("Server responded with status code: \(httpResponse.statusCode)")
@@ -919,8 +932,17 @@ struct AddPayeeFormView: View {
             payeeNumber: accountNumber,
             payeeTypeName: selectedPayee
         )
-        onSave(newPayee)
-        dismiss()
+        //onSave(newPayee)
+        //dismiss()
+        showSuccessMessage = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            dismiss()
+        }
+
+            // Then dismiss after a delay
+//            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+//                dismiss()
+//            }
     }
 
 
@@ -2085,6 +2107,7 @@ struct BillConfirmationSheet: View {
     var selectedPayees: [Payee] = []
     var payeeDetails: [PayeePaymentDetails] = []
     var memo: String? = nil // For single payee
+    @State private var transactionId: String? = nil
 
     @State private var navigateToSummary = false
     @Environment(\.presentationMode) var presentationMode
@@ -2207,6 +2230,7 @@ struct BillConfirmationSheet: View {
                 date: date,
                 selectedPayees: selectedPayees,
                 payeeDetails: payeeDetails,
+                transactionId: transactionId,
                 isRecurring: false
             )
         }
@@ -2288,6 +2312,35 @@ struct BillConfirmationSheet: View {
                     print("Response Body:\n\(raw)")
                 }
 
+            
+                if let data = data {
+                    do {
+                        // Here: Create a struct for decoding
+                        struct ApiResponse: Codable {
+                            let status: String
+                            let data: TransactionData
+                        }
+                        struct TransactionData: Codable {
+                            let toAccountNumbers: [ToAccountResponse]
+                        }
+
+                        struct ToAccountResponse: Codable {
+                            let transactionNumber: String
+                        }
+
+                        let decoded = try JSONDecoder().decode(ApiResponse.self, from: data)
+                        
+                        DispatchQueue.main.async {
+                            self.transactionId = decoded.data.toAccountNumbers.first?.transactionNumber
+                            self.navigateToSummary = true
+                        }
+                    } catch {
+                        print("Decoding error: \(error)")
+                        DispatchQueue.main.async {
+                            self.navigateToSummary = true // Even if decoding fails, show summary
+                        }
+                    }
+                }
             }.resume()
         } catch {
             print("Encoding error: \(error)")
@@ -2302,7 +2355,7 @@ struct RecurringBillConfirmationSheet: View {
     var selectedPayees: [Payee] = []
     var payeeDetails: [PayeePaymentDetails] = [] // contains amount, startDate, endDate, frequency
     var memo: String?
-
+    @State private var transactionId: String? = nil
     @State private var navigateToSummary = false
     @Environment(\.presentationMode) var presentationMode
 
@@ -2418,6 +2471,7 @@ struct RecurringBillConfirmationSheet: View {
                 date: "",   // Optional
                 selectedPayees: selectedPayees,
                 payeeDetails: payeeDetails,
+                transactionId: transactionId,
                 isRecurring: true
             )
         }
@@ -2498,9 +2552,33 @@ struct RecurringBillConfirmationSheet: View {
                     print("Response Body:\n\(raw)")
                 }
 
-                DispatchQueue.main.async {
-                    navigateToSummary = true
-                }
+                if let data = data {
+                                   do {
+                                       struct ApiResponse: Codable {
+                                           let status: String
+                                           let data: TransactionData
+                                       }
+                                       struct TransactionData: Codable {
+                                           let toAccountNumbers: [ToAccountResponse]
+                                       }
+
+                                       struct ToAccountResponse: Codable {
+                                           let transactionNumber: String
+                                       }
+
+                                       let decoded = try JSONDecoder().decode(ApiResponse.self, from: data)
+                                       
+                                       DispatchQueue.main.async {
+                                           self.transactionId = decoded.data.toAccountNumbers.first?.transactionNumber
+                                           self.navigateToSummary = true
+                                       }
+                                   } catch {
+                                       print("Decoding error: \(error)")
+                                       DispatchQueue.main.async {
+                                           self.navigateToSummary = true
+                                       }
+                                   }
+                               }
 
             }.resume()
         } catch {
@@ -2544,7 +2622,7 @@ struct BillSendSheet: View {
     var date: String
     var selectedPayees: [Payee] = []
     var payeeDetails: [PayeePaymentDetails] = []
-
+    var transactionId: String? = nil 
     var isRecurring: Bool = false
     @StateObject var viewModel = PayeeViewModel()
 
@@ -2581,6 +2659,12 @@ struct BillSendSheet: View {
                         .frame(maxWidth: .infinity, alignment: .center)
 
                     Divider()
+                    if let txnId = transactionId {
+                        BillDetailRow(
+                            title: NSLocalizedString("transaction_id", comment: ""),
+                            value: txnId
+                        )
+                    }
 
                     BillDetailRow(
                         title: NSLocalizedString("pay_from", comment: ""),
@@ -2650,9 +2734,12 @@ struct BillSendSheet: View {
 private struct RecurringPayeeSummaryView: View {
     var selectedPayees: [Payee]
     var payeeDetails: [PayeePaymentDetails]
-
+    var transactionId: String?
     var body: some View {
         if selectedPayees.count == 1, let detail = payeeDetails.first {
+            if let txnId = transactionId {
+                            BillDetailRow(title: NSLocalizedString("transaction_id", comment: ""), value: txnId)
+                        }
 //            BillDetailRow(title: "Pay to", value: detail.payee.name, bold: true)
 //            BillDetailRow(title: "Amount", value: detail.amount)
 //            BillDetailRow(title: "Start Date", value: formatted(detail.startDate))
@@ -2667,6 +2754,9 @@ private struct RecurringPayeeSummaryView: View {
         } else {
             ForEach(payeeDetails) { detail in
                 VStack(alignment: .leading, spacing: 8) {
+                    if let txnId = detail.transactionId {
+                                    BillDetailRow(title: NSLocalizedString("transaction_id", comment: ""), value: txnId)
+                                }
 //                    BillDetailRow(title: "Pay to", value: "\(detail.payee.name) - \(detail.payee.accountNumber)", bold: true)
 //                    BillDetailRow(title: "Amount", value: detail.amount)
 //                    BillDetailRow(title: "Start Date", value: formatted(detail.startDate))

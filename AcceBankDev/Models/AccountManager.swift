@@ -206,7 +206,11 @@ struct BankAccount: Identifiable, Codable, Equatable {
 class AccountManager: ObservableObject {
     @Published var accounts: [BankAccount] = []
     @Published var selectedAccount: BankAccount?
-
+    init(clearSelectedAccount: Bool = false) {
+            if clearSelectedAccount {
+                selectedAccount = nil
+            }
+        }
     init() {
         // Call API directly instead of loading from local JSON
         fetchAccounts()
@@ -247,7 +251,7 @@ class AccountManager: ObservableObject {
                 let decoded = try JSONDecoder().decode(BankAccountAPIResponse.self, from: data)
                 DispatchQueue.main.async {
                     self.accounts = decoded.data
-                    self.selectedAccount = decoded.data.first
+                    //self.selectedAccount = decoded.data.first
                     print("✅ Loaded \(decoded.data.count) accounts from API")
                 }
             } catch {

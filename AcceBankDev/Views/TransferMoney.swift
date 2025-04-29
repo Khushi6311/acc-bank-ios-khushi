@@ -51,9 +51,10 @@ struct TransferMoneyScreen: View {
     @State private var showRecurringDateError: Bool = false
     
     @FocusState private var focusedField: FieldFocus?
+    @State private var transactionId: String = ""
 
     @State private var bankAccounts: [BankAccount] = []
-
+    @StateObject private var contactManager = ContactManager() // Declare here one time
     var body: some View {
         //ScrollView {
             VStack (spacing: 0){
@@ -206,7 +207,7 @@ struct TransferMoneyScreen: View {
                             //isAnotherMemberSelected: $showConfirmationSheet, // new
                             selectedContact: $selectedContact,             // new
                             //showConfirmationSheet: $isAnotherMemberSelected
-                            showConfirmationSheet: $showConfirmationSheet 
+                            showConfirmationSheet: $showConfirmationSheet, transactionId: $transactionId
                             
                             
                         )
@@ -240,7 +241,8 @@ struct TransferMoneyScreen: View {
                             endDateText: $endDateText,
                             isContactSheetPresented: $isContactSheetPresented,
                             showConfirmationSheet: $showConfirmationSheet,
-                            isAnotherMemberSelected: $isAnotherMemberSelected
+                            isAnotherMemberSelected: $isAnotherMemberSelected, transactionId:$transactionId,
+                            contactManager: contactManager
                             
                         )
                     }
@@ -332,7 +334,8 @@ func sendTransferAPI(
         startDate: Date?,
         endDate: Date?,
         selectedFrequency: String?,
-        isAnotherMemberSelected: Bool
+        isAnotherMemberSelected: Bool,
+        completion: @escaping (String?) -> Void
     ) {
         guard let from = fromAccount else {
             print("Missing from account")
@@ -340,9 +343,13 @@ func sendTransferAPI(
         }
 
         // Safely extract `toId` based on transfer type
+//        guard let toId = isAnotherMemberSelected
+//            ? selectedContact?.id.uuidString // Use .id here
+//            : toAccount?.accountId else {
         guard let toId = isAnotherMemberSelected
-            ? selectedContact?.id.uuidString // Use .id here
+            ? selectedContact?.id
             : toAccount?.accountId else {
+
             print("Missing to account or contact")
             return
         }
@@ -416,7 +423,20 @@ func sendTransferAPI(
                 if let data = data, let body = String(data: data, encoding: .utf8) {
                     print("Response Body:\n\(body)")
                 }
-
+                if let data = data {
+                               do {
+                                   let decodedResponse = try JSONDecoder().decode(TransferResponse.self, from: data)
+                                   if decodedResponse.status == "Success" {
+                                                   DispatchQueue.main.async {
+                                                       completion(decodedResponse.data.transactionId)  // 🔥 send TransactionId back!
+                                                   }
+                                   } else {
+                                       print("Transfer failed with status: \(decodedResponse.status)")
+                                   }
+                               } catch {
+                                   print("JSON Decoding Error: \(error)")
+                               }
+                           }
             }.resume()
 
         } catch {
@@ -529,7 +549,7 @@ struct MyAccountsTransferForm: View {
     @Binding var showConfirmationSheet: Bool
     //@StateObject private var accountManager = AccountManager()
     @State private var transferToSheetKey = UUID()
-
+    @Binding var transactionId: String
     var body: some View {
         ScrollViewReader { proxy in
             ScrollView {
@@ -956,8 +976,7 @@ struct MyAccountsTransferForm: View {
                             startDateText: $startDateText,
                             endDateText: $endDateText,
                             isAnotherMemberSelected: $isAnotherMemberSelected,
-                            selectedContact: $selectedContact,// Add this
-
+                            transactionId: $transactionId, selectedContact: $selectedContact,
                             onConfirm: {
                                         sendTransferAPI(
                                             fromAccount: selectedFromAccount,
@@ -970,7 +989,14 @@ struct MyAccountsTransferForm: View {
                                             endDate: endDate,
                                             selectedFrequency: selectedFrequency,
                                             isAnotherMemberSelected: isAnotherMemberSelected
-                                        )
+                                        ){ transactionId in
+                                            if let transactionId = transactionId {
+                                                self.transactionId = transactionId  // Save it
+                                                //navigateToSummary = true
+                                            } else {
+                                                print("❌ Failed to get transactionId")
+                                            }
+                                        }
                                     }
                         )
     //
@@ -1237,9 +1263,12 @@ struct AnotherMemberTransferForm: View {
     @Binding var isContactSheetPresented: Bool // Ensure this exists
     @Binding var showConfirmationSheet: Bool
     @Binding var isAnotherMemberSelected: Bool
+    @Binding var transactionId: String
 
-    @StateObject private var contactManager = ContactManager()
-       
+    @ObservedObject var contactManager: ContactManager
+// ✅ At the top
+ // Use same ContactManager
+
     var body: some View {
         
         VStack(spacing: 15) {
@@ -1606,6 +1635,7 @@ struct AnotherMemberTransferForm: View {
                     startDateText: $startDateText,
                     endDateText: $endDateText,
                     isAnotherMemberSelected: $isAnotherMemberSelected,
+                    transactionId: $transactionId,
                     selectedContact: $selectedContact,
                     onConfirm: {
                                 sendTransferAPI(
@@ -1619,7 +1649,14 @@ struct AnotherMemberTransferForm: View {
                                     endDate: endDate,
                                     selectedFrequency: selectedFrequency,
                                     isAnotherMemberSelected: isAnotherMemberSelected
-                                )
+                                ) { transactionId in
+                                    if let transactionId = transactionId {
+                                        self.transactionId = transactionId  // ✅ update your @State transactionId
+                                        //navigateToSummary = true            // ✅ Navigate to Summary sheet
+                                    } else {
+                                        print("❌ Failed to get transaction ID")
+                                    }
+                                }
                             }// Add this
 
                     
@@ -1765,6 +1802,7 @@ struct ConfirmationSheet: View {
         @Binding var startDateText: String?
         @Binding var endDateText: String?
         @Binding var isAnotherMemberSelected: Bool
+    @Binding var transactionId: String
     @Binding var selectedContact: Contact?
     var onConfirm: () -> Void
 
@@ -1955,125 +1993,19 @@ struct ConfirmationSheet: View {
         .fullScreenCover(isPresented: $navigateToSummary) {
                     SummarySheet(
                         fromAccount: fromAccount,
-                        toAccount: toAccount,
-                        amount: amount,
-                        dateText: dateText ?? "N/A",
-                        memo: memo,
-                        //transactionId: transactionId,
-                        isAnotherMemberSelected: isAnotherMemberSelected,   //
-                        selectedContact: selectedContact,
-                        isRecurring: isRecurring,                          //
-                                selectedFrequency: selectedFrequency,
-                                startDateText: startDateText,                      //
-                                endDateText: endDateText
+                            toAccount: toAccount,
+                            amount: amount,
+                            dateText: dateText ?? "N/A",
+                            memo: memo,
+                            transactionId: transactionId, // ✅ Correct binding
+                            isAnotherMemberSelected: isAnotherMemberSelected, // ✅ Correct
+                            selectedContact: selectedContact, // ✅ Correct
+                            isRecurring: isRecurring,
+                            selectedFrequency: selectedFrequency,
+                            startDateText: startDateText,
+                            endDateText: endDateText
                     )
                 }
-    }
-    func sendTransferAPI(
-        fromAccount: BankAccount?,
-        toAccount: BankAccount?,
-        selectedContact: Contact?,
-        amount: String,
-        memo: String,
-        isRecurring: Bool,
-        startDate: Date?,
-        endDate: Date?,
-        selectedFrequency: String?,
-        isAnotherMemberSelected: Bool
-    ) {
-        guard let from = fromAccount else {
-            print("Missing from account")
-            return
-        }
-
-        // Safely extract `toId` based on transfer type
-//        guard let toId = isAnotherMemberSelected
-//            ? selectedContact?.accountNumber
-//            : toAccount?.accountNumber else {
-//            print("Missing to account or contact")
-//            return
-//        }
-        guard let toId = isAnotherMemberSelected
-            ? selectedContact?.id.uuidString // ✅ Use .id here
-            : toAccount?.accountId else {
-            print("❌ Missing to account or contact")
-            return
-        }
-
-
-        let fromId = from.accountId
-
-        // Clean the entered amount string
-        let cleanAmount = Double(
-            amount
-                .replacingOccurrences(of: "$", with: "")
-                .replacingOccurrences(of: ",", with: "")
-                .trimmingCharacters(in: .whitespaces)
-        ) ?? 0.0
-
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd"
-
-        // Create request body
-        var requestBody: [String: Any] = [
-            "Note": memo,
-            "IsSelfTransfer": true,
-            "AccountNumberFrom": fromId,
-            "AccountNumberTo": toId,
-            "Amount": cleanAmount,
-            "Currency": "CAD"
-        ]
-
-        if isRecurring {
-            if let start = startDate, let end = endDate, let frequency = selectedFrequency {
-                requestBody["StartDate"] = dateFormatter.string(from: start)
-                requestBody["EndDate"] = dateFormatter.string(from: end)
-                requestBody["Frequency"] = frequency.capitalized
-            }
-        } else {
-            if let start = startDate {
-                requestBody["StartDate"] = dateFormatter.string(from: start)
-            }
-        }
-
-        // Prepare URL and headers
-        guard let url = URL(string:AppConfig.TransferMoneyURL),
-              let token = TokenManager.shared.getToken() else {
-            print("Invalid URL or missing token")
-            return
-        }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-
-        do {
-            let jsonData = try JSONSerialization.data(withJSONObject: requestBody, options: [])
-            request.httpBody = jsonData
-
-            print("Transfer API Request:")
-            print(String(data: jsonData, encoding: .utf8) ?? "")
-
-            URLSession.shared.dataTask(with: request) { data, response, error in
-                if let error = error {
-                    print("API Error: \(error.localizedDescription)")
-                    return
-                }
-
-                if let response = response as? HTTPURLResponse {
-                    print("Response Code: \(response.statusCode)")
-                }
-
-                if let data = data, let body = String(data: data, encoding: .utf8) {
-                    print("Response Body:\n\(body)")
-                }
-
-            }.resume()
-
-        } catch {
-            print("JSON Encoding Error: \(error.localizedDescription)")
-        }
     }
 
 }
@@ -2090,24 +2022,35 @@ struct TransferRequest: Codable {
 }
 
 struct SummarySheet: View { //SummarySheet
-    var fromAccount: BankAccount?
-    var toAccount: BankAccount?
-    var amount: String
-    var dateText: String
-    var memo: String
+//    var fromAccount: BankAccount?
+//    var toAccount: BankAccount?
+//    var amount: String
+//    var dateText: String
+//    var memo: String
     //var transactionId: String
     
-    var isAnotherMemberSelected: Bool //  Add this
-     var selectedContact: Contact?
+    //var isAnotherMemberSelected: Bool //  Add this
+     //var selectedContact: Contact?
     
-    var isRecurring: Bool                          // New
-        var selectedFrequency: String?                 // New
-        var startDateText: String?                     // New
-        var endDateText: String?
+    //var isRecurring: Bool                          // New
+//        var selectedFrequency: String?                 // New
+//        var startDateText: String?                     // New
+//        var endDateText: String?
     @State private var navigateToMainView = false
     @State private var navigateToTransferMoney = false
-
-
+    //var transactionId: String
+    var fromAccount: BankAccount?
+       var toAccount: BankAccount?
+       var amount: String
+       var dateText: String
+       var memo: String
+       var transactionId: String // <- required
+       var isAnotherMemberSelected: Bool
+       var selectedContact: Contact?
+       var isRecurring: Bool
+       var selectedFrequency: String?
+       var startDateText: String?
+       var endDateText: String?
     @Environment(\.presentationMode) var presentationMode
 
     var body: some View {
@@ -2139,6 +2082,15 @@ struct SummarySheet: View { //SummarySheet
                     .frame(maxWidth: .infinity, alignment: .center)
 
                 Divider()
+                
+                
+                PaymentDetailRow(
+                        title: "Transaction ID",
+                        value: transactionId,  // Show transaction id
+                        bold: true
+                    )
+
+                    Divider()
 //25 march
                 PaymentDetailRow(
                     title: NSLocalizedString("transfer_from", comment: "Label for the source account in transfer details"),
@@ -2417,14 +2369,34 @@ struct ContactSelectionSheet: View {
             AddContactFormView(
                 isPresented: $showAddContactForm,
                 contactManager: contactManager,
-                onContactCreated: { contact in
-                    selectedContact = contact // pre-select new contact
+                onContactCreated: { _ in
+                    contactManager.fetchContactsFromAPI {
+                        searchText = "" // Clear search text if you want
+                    }
                 }
             )
         }
+
+//        .onAppear {
+//            contactManager.fetchContactsFromAPI()
+//        }
+//        .onAppear {
+//            if contactManager.contacts.isEmpty {
+//                contactManager.fetchContactsFromAPI()
+//            }
+//        }
         .onAppear {
-            contactManager.fetchContactsFromAPI()
+            if contactManager.contacts.isEmpty {
+                contactManager.fetchContactsFromAPI {
+                    if let selected = selectedContact,
+                       !contactManager.contacts.contains(where: { $0.id == selected.id }) {
+                        selectedContact = nil // If not found in refreshed list, clear it
+                    }
+                }
+            }
         }
+
+
         .padding(.horizontal)
         .presentationDetents([.medium, .large])
     }
@@ -2612,6 +2584,17 @@ private func formatDate(_ date: Date) -> String {
     }
 
 
+struct TransferResponse: Codable {
+    let status: String
+    let data: TransferData
+}
+
+struct TransferData: Codable {
+    let transactionId: String
+    enum CodingKeys: String, CodingKey {
+            case transactionId = "TransactionId"
+        }
+}
 
 
 struct TransferMoneyScreen_Previews: PreviewProvider {

@@ -385,13 +385,17 @@ struct AddContactFormView: View {
     }
 
 
-//        func isValidEmail(_ email: String) -> Bool {
-//                let emailRegex = #"^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$"#
-//                return email.range(of: emailRegex, options: .regularExpression, range: nil, locale: nil) != nil
-//            }
+
+//    func isValidEmail(_ email: String) -> Bool {
+//        //let emailRegex = #"^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$"#
+//        let emailRegex = #"^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.(com|net|org|in|edu)$"#
+//
+//        return email.range(of: emailRegex, options: [.regularExpression, .caseInsensitive]) != nil
+//    }
+    //28
     func isValidEmail(_ email: String) -> Bool {
-        //let emailRegex = #"^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$"#
-        let emailRegex = #"^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.(com|net|org|in|edu)$"#
+        // Regex to check if email contains @ and ends with .com
+        let emailRegex = #"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.(com)$"#
 
         return email.range(of: emailRegex, options: [.regularExpression, .caseInsensitive]) != nil
     }
@@ -649,9 +653,33 @@ struct ContactConfirmationView: View {
 
                 if httpResponse.statusCode == 200 || httpResponse.statusCode == 201 {
                     print("Contact saved successfully to API.")
+//                    DispatchQueue.main.async {
+//                        showSuccessScreen = true
+//                    }
                     DispatchQueue.main.async {
+                        let newContact = Contact(
+                            //id: UUID(),
+                            id: UUID().uuidString,  
+                            name: name,
+                            email: email,
+                            mobilePhone: mobilePhone,
+                            sendByEmail: sendByEmail,
+                            sendByMobile: sendByMobile,
+                            nickname: nickname,
+                            language: language
+                            //accountNumber: accountNumber
+                        )
+                        onContactCreated?(newContact) // Pass it to AddContactFormView
+                        //isPresented = false // Dismiss the confirmation screen (and eventually the full screen)
                         showSuccessScreen = true
+//                        withAnimation {
+//                                showSuccessScreen = true
+//                            }
+//                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+//                                isPresented = false
+//                            }
                     }
+
                 } else {
                     print("API returned non-success status code: \(httpResponse.statusCode)")
                 }

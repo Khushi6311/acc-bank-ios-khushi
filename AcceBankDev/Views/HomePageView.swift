@@ -38,6 +38,8 @@ struct HomePageView: View {
     @State private var showHistory = false
     @State private var selectedAccountForHistory: BankAccount? = nil
     @State private var isLoading = true
+    var firstName: String = ""
+    var lastName: String = ""
 
     var body: some View {
         NavigationView{
@@ -65,7 +67,11 @@ struct HomePageView: View {
                             .padding(.top, -geometry.size.height * 0.05)
                         
                         VStack(spacing: 1) {
-                            Text(String(format: NSLocalizedString("welcome_text", comment: ""), username))
+//                            Text(String(format: NSLocalizedString("welcome_text", comment: ""), username))
+                            Text("Welcome \(TokenManager.shared.firstName) \(TokenManager.shared.lastName)")
+                                .font(.system(size: 18, weight: .bold))
+                                .foregroundColor(.white)
+
                                 .font(.system(size: 18, weight: .bold))
                                 .foregroundColor(.white)
                             

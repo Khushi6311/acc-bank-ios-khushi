@@ -11,7 +11,9 @@ struct DepositChequeView: View {
     @State private var amount: String = ""
     @State private var showAccountSheet = false
     @State private var showConfirmationSheet = false
-    @StateObject private var accountManager = AccountManager()
+    //@StateObject private var accountManager = AccountManager()
+    @StateObject private var accountManager = AccountManager(clearSelectedAccount: true)
+
 
     @State private var chequeFrontImage: UIImage?
     @State private var chequeBackImage: UIImage?
@@ -65,6 +67,10 @@ struct DepositChequeView: View {
                 Spacer()
             }
         }
+        
+        .onAppear {
+                accountManager.fetchAccounts() // Add this line
+            }
         .ignoresSafeArea(.keyboard)
         .padding()
         .sheet(isPresented: $showConfirmationSheet) {
@@ -72,7 +78,8 @@ struct DepositChequeView: View {
 
             ChequeConfirmationSheet(
                 amount: amount,
-                chequeFrontImage: $chequeFrontImage,
+                selectedAccount: accountManager.selectedAccount,
+                transactionId: "TXN-123456", chequeFrontImage: $chequeFrontImage,
                 chequeBackImage: $chequeBackImage
             ) {
                 showConfirmationSheet = false
@@ -223,6 +230,7 @@ struct Step1View: View {
                     .cornerRadius(10)
             }
         }
+        
     }
     private func validateAndContinue() {
            showAmountError = amount.trimmingCharacters(in: .whitespaces).isEmpty
@@ -244,7 +252,7 @@ struct Step2View: View {
     @Binding var chequeFrontImage: UIImage?
         @Binding var chequeBackImage: UIImage?
         var onContinue: () -> Void
-
+    var selectedAccount: BankAccount?
         @State private var showCameraFront = false
         @State private var showCameraBack = false
         @State private var showFrontError = false
@@ -283,11 +291,11 @@ struct Step2View: View {
             .sheet(isPresented: $showCameraFront) {
                             CameraPicker(image: $chequeFrontImage)
                         }
-            if showBackError {
-                           Text("Cheque back photo is required.")
-                               .font(.caption)
-                               .foregroundColor(.red)
-                       }
+//            if showBackError {
+//                           Text("Cheque back photo is required.")
+//                               .font(.caption)
+//                               .foregroundColor(.red)
+//                       }
 
             Button(action: {
                 // Camera logic
@@ -308,11 +316,11 @@ struct Step2View: View {
         .sheet(isPresented: $showCameraBack) {
                        CameraPicker(image: $chequeBackImage)
                    }
-        if showBackError {
-                       Text("Cheque back photo is required.")
-                           .font(.caption)
-                           .foregroundColor(.red)
-                   }
+//        if showBackError {
+//                       Text("Cheque back photo is required.")
+//                           .font(.caption)
+//                           .foregroundColor(.red)
+//                   }
         
             Button(action: {
                 //onContinue()
@@ -353,6 +361,8 @@ struct Step2View: View {
 
 struct ChequeConfirmationSheet: View {
     var amount: String
+    var selectedAccount: BankAccount?   // Pass selected account
+        var transactionId: String
     @Binding var chequeFrontImage: UIImage?
     @Binding var chequeBackImage: UIImage?
     var onConfirm: () -> Void
@@ -382,12 +392,26 @@ struct ChequeConfirmationSheet: View {
 
             // Info Fields
             Group {
+                if let account = selectedAccount {
+                        Text("Deposit to")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                        Text("\(account.accountType) (\(account.accountNumber))")
+                            .font(.body)
+                        Divider()
+                    }
 //                Text("Deposit to")
 //                    .font(.caption)
 //                    .foregroundColor(.gray)
 //                Text(depositTo)
 //                    .font(.body)
-
+                Text("Transaction ID")
+                    .font(.caption)
+                    .foregroundColor(.gray)
+                Divider()
+                Text(transactionId)
+                    .font(.body)
+                Divider()
                 Text("Deposit date")
                     .font(.caption)
                     .foregroundColor(.gray)
@@ -451,6 +475,8 @@ struct ChequeConfirmationSheet: View {
             .sheet(isPresented: $showConfirmation) {
                     ChequeConfirmationSheet(
                         amount: amount,
+                        selectedAccount: selectedAccount,
+                        transactionId: "TXN-123456",
                         chequeFrontImage: $chequeFrontImage,
                         chequeBackImage: $chequeBackImage,
                         onConfirm: {
@@ -464,7 +490,7 @@ struct ChequeConfirmationSheet: View {
             .fullScreenCover(isPresented: $showSummary) {  //.sheet before full screen 
                     ChequeSummarySheet(
                         amount: amount,
-                        date: DateFormatter.localizedString(from: Date(), dateStyle: .long, timeStyle: .none)
+                        date: DateFormatter.localizedString(from: Date(), dateStyle: .long, timeStyle: .none), selectedAccount: selectedAccount, transactionId:"TXN-123456"
                     )
                 }
         }
@@ -481,14 +507,15 @@ struct ChequeSummarySheet: View {
     var amount: String
     var date: String
     @State private var navigateToMainView = false
-
+    var selectedAccount: BankAccount?
+       var transactionId: String
     var body: some View {
         VStack(spacing: 24) {
             // Success Message Banner (optional)
             HStack {
                 Image(systemName: "checkmark.circle.fill")
                     .foregroundColor(.white)
-                Text("Payment Sent")
+                Text("Cheque Deposit Successful")
                     .foregroundColor(.white)
                     .font(.subheadline)
                     .bold()
@@ -501,13 +528,32 @@ struct ChequeSummarySheet: View {
 
             // Card-style summary box
             VStack(alignment: .leading, spacing: 16) {
-                Text("Payment Summary")
+                Text("Cheque Deposit Summary")
                     .font(.headline)
                     .bold()
                     .frame(maxWidth: .infinity, alignment: .center)
 
                 Divider()
+                if let account = selectedAccount {
+                    HStack {
+                        Text("Deposit to")
+                            .foregroundColor(.gray)
+                            .font(.caption)
+                        Text("\(account.accountType) (\(account.accountNumber))")
+                            .font(.body)
+                    }
+                }
 
+                Divider()
+
+                HStack {
+                    Text("Transaction ID")
+                        .foregroundColor(.gray)
+                        .font(.caption)
+                    Text(transactionId)
+                        .font(.body)
+                }
+                Divider()
                 HStack {
                     Text("Deposit date")
                         .foregroundColor(.gray)
