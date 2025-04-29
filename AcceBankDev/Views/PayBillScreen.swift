@@ -33,6 +33,7 @@ struct PayeePaymentDetails: Identifiable {
     var transactionId: String?
 //var memo: String = ""
     var memo: String? = nil
+    var transactionNumber: String? = nil
 
        var showMemoError: Bool = false
     var showAmountError: Bool = false
@@ -359,12 +360,12 @@ struct OneTimePaymentForm: View {
                 .font(.subheadline)
                 .foregroundColor(.gray)
                 .frame(maxWidth: .infinity, alignment: .leading)
-            if showPayFromError {
-                Text(NSLocalizedString("error_pay_from_required", comment: ""))
-                    .font(.caption)
-                    .foregroundColor(.red)
-            }
-
+//            if showPayFromError {
+//                Text(NSLocalizedString("error_pay_from_required", comment: ""))
+//                    .font(.caption)
+//                    .foregroundColor(.red)
+//            }
+            
             Button(action: { isTransferFromSheetPresented = true }) {
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
@@ -401,11 +402,12 @@ struct OneTimePaymentForm: View {
                     Image(systemName: "chevron.down")
                         .foregroundColor(.black)
                 }
-                
+               
                 .padding()
                 .background(Color(.systemGray6))
                 .cornerRadius(10)
-            
+               
+
 
                 .sheet(isPresented: $isTransferFromSheetPresented) {
                     BillAccountSelectionSheet(
@@ -415,6 +417,7 @@ struct OneTimePaymentForm: View {
                     )
                 }
             }
+            FieldErrorView(message: NSLocalizedString("error_required_account_field", comment: "Payee is required"), show: $showAccountError)
 //            FieldErrorView(message: "Please select an account", show: $showAccountError)
 
             // Payee
@@ -1497,6 +1500,7 @@ struct RecurringPaymentForm: View {
                 .background(Color(.systemGray6))
                 .cornerRadius(10)
             }
+            FieldErrorView(message: NSLocalizedString("error_required_account_field", comment: "Payee is required"), show: $showAccountError)
             .sheet(isPresented: $isTransferFromSheetPresented) {
                 BillAccountSelectionSheet(accountManager: accountManager, isPresented: $isTransferFromSheetPresented, selectedFromAccount: $selectedFromAccount)
             }
@@ -2337,7 +2341,7 @@ struct BillConfirmationSheet: View {
                     } catch {
                         print("Decoding error: \(error)")
                         DispatchQueue.main.async {
-                            self.navigateToSummary = true // Even if decoding fails, show summary
+                            self.navigateToSummary = true //Even if decoding fails, show summary
                         }
                     }
                 }

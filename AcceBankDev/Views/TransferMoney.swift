@@ -428,7 +428,9 @@ func sendTransferAPI(
                                    let decodedResponse = try JSONDecoder().decode(TransferResponse.self, from: data)
                                    if decodedResponse.status == "Success" {
                                                    DispatchQueue.main.async {
-                                                       completion(decodedResponse.data.transactionId)  // 🔥 send TransactionId back!
+                                                       completion(decodedResponse.data.transactionNumber)
+
+                                                      /* completion(decodedResponse.data.transactionId) */ // send TransactionId back!
                                                    }
                                    } else {
                                        print("Transfer failed with status: \(decodedResponse.status)")
@@ -556,11 +558,15 @@ struct MyAccountsTransferForm: View {
                 
                 VStack(spacing: 15) {
                     // Error message for insufficient funds
-                    if showInsufficientFundsError {
-                        //                ErrorMessageView(text: "Payment failed. This transfer amount exceeds your transaction limit.")//transaction_limit_exceeded
-                        ErrorMessageView(text: NSLocalizedString("error_transaction_limit", comment: "Shown when transfer amount exceeds allowed limit"))
-                        
+                    // Only show red error if transfer from account is selected properly
+//                  if showInsufficientFundsError {
+//                    ErrorMessageView(text: NSLocalizedString("error_transaction_limit", comment: ""))
+//                }
+
+                    if showInsufficientFundsError && selectedFromAccount != nil {
+                        ErrorMessageView(text: NSLocalizedString("error_transaction_limit", comment: ""))
                     }
+
                     Text(NSLocalizedString("transfer_from", comment: ""))
                         .font(.subheadline)
                         .foregroundColor(.gray)
@@ -575,11 +581,12 @@ struct MyAccountsTransferForm: View {
 //                    }
                     AccountSelectionButton(title: NSLocalizedString("transfer_from", comment: ""), account: $selectedFromAccount) {
                         if allAccounts.isEmpty {
-                            print("⏳ Accounts still loading... Try again in a moment.")
+                            print("Accounts still loading... Try again in a moment.")
                             return
                         }
                         isTransferFromSheetPresented = true
                         showTransferFromError = false
+                        showInsufficientFundsError = false
                     }
 
                     //            .sheet(isPresented: $isTransferFromSheetPresented) {
@@ -931,11 +938,14 @@ struct MyAccountsTransferForm: View {
                     
                     Button(action: {
                         //validateFields()
+                        showInsufficientFundsError = false
+
                         let result = TransferFormValidator.validate(
+                            
                                selectedFromAccount: selectedFromAccount,
                                selectedToAccount: selectedToAccount,
                                amount: amount,
-                               memo: memo,
+                               //memo: memo,
                                dateText: dateText,
                                startDateText: startDateText,
                                endDateText: endDateText,
@@ -945,7 +955,7 @@ struct MyAccountsTransferForm: View {
                            showTransferFromError = result.showTransferFromError
                            showTransferToError = result.showTransferToError
                            showAmountError = result.showAmountError
-                           showMemoError = result.showMemoError
+                           //showMemoError = result.showMemoError
                            showDateError = result.showDateError
                            showRecurringDateError = result.showRecurringDateError
                            showInsufficientFundsError = result.showInsufficientFundsError
@@ -1080,7 +1090,7 @@ struct TransferFormValidator {
         selectedContact: Contact? = nil, // <-- Add this line
 
         amount: String,
-        memo: String,
+        //memo: String,
         dateText: String?,
         startDateText: String?,
         endDateText: String?,
@@ -1089,7 +1099,7 @@ struct TransferFormValidator {
         showTransferFromError: Bool,
         showTransferToError: Bool,
         showAmountError: Bool,
-        showMemoError: Bool,
+        //showMemoError: Bool,
         showDateError: Bool,
         showRecurringDateError: Bool,
         showInsufficientFundsError: Bool,
@@ -1105,12 +1115,12 @@ struct TransferFormValidator {
         let showTransferToError = selectedToAccount == nil && selectedContact == nil
 
         let showAmountError = amount.trimmingCharacters(in: .whitespaces).isEmpty
-        let showMemoError = memo.trimmingCharacters(in: .whitespaces).isEmpty
+        //let showMemoError = memo.trimmingCharacters(in: .whitespaces).isEmpty
         let showInsufficientFundsError = enteredAmount > availableBalance
         
         let isFormValid = !showTransferToError &&
                           !showAmountError &&
-                          !showMemoError &&
+                          //!showMemoError &&
                           !showInsufficientFundsError &&
                           !showDateError &&
                           !showRecurringDateError &&
@@ -1120,7 +1130,7 @@ struct TransferFormValidator {
             showTransferFromError,
             showTransferToError,
             showAmountError,
-            showMemoError,
+            //showMemoError,
             showDateError,
             showRecurringDateError,
             showInsufficientFundsError,
@@ -1266,19 +1276,21 @@ struct AnotherMemberTransferForm: View {
     @Binding var transactionId: String
 
     @ObservedObject var contactManager: ContactManager
-// ✅ At the top
+// At the top
  // Use same ContactManager
 
     var body: some View {
         
         VStack(spacing: 15) {
             // Error message for insufficient funds
-            if showInsufficientFundsError {
-//                ErrorMessageView(text: "Payment failed. This transfer amount exceeds your transaction limit.")
-                ErrorMessageView(text: NSLocalizedString("error_transaction_limit", comment: "Shown when transfer amount exceeds allowed limit"))
-
+//            if showInsufficientFundsError {
+////                ErrorMessageView(text: "Payment failed. This transfer amount exceeds your transaction limit.")
+//                ErrorMessageView(text: NSLocalizedString("error_transaction_limit", comment: "Shown when transfer amount exceeds allowed limit"))
+//
+//            }
+            if showInsufficientFundsError && selectedFromAccount != nil {
+                ErrorMessageView(text: NSLocalizedString("error_transaction_limit", comment: ""))
             }
-
             // **Transfer From Account Selection**
 //            AccountSelectionButton(title: "Transfer From", account: $selectedFromAccount) {
 //                isTransferFromSheetPresented.toggle()
@@ -1293,6 +1305,7 @@ struct AnotherMemberTransferForm: View {
             ) {
                 isTransferFromSheetPresented.toggle()
                 showTransferFromError = false
+                showInsufficientFundsError = false
 
             }
 
@@ -1579,10 +1592,10 @@ struct AnotherMemberTransferForm: View {
                     }
 
 
-            if showMemoError {
-                //ErrorMessage(text: "This field is required")
-                ErrorMessage(text: NSLocalizedString("error_required_transfer_memo_field", comment: "Validation error for empty field"))
-            }
+//            if showMemoError {
+//                //ErrorMessage(text: "This field is required")
+//                ErrorMessage(text: NSLocalizedString("error_required_transfer_memo_field", comment: "Validation error for empty field"))
+//            }
             Button(action: {
                 //validateFields()
                 
@@ -1592,7 +1605,7 @@ struct AnotherMemberTransferForm: View {
 
                        //selectedToAccount: selectedToAccount,
                        amount: amount,
-                       memo: memo,
+                       //memo: memo,
                        dateText: dateText,
                        startDateText: startDateText,
                        endDateText: endDateText,
@@ -1602,7 +1615,7 @@ struct AnotherMemberTransferForm: View {
                    showTransferFromError = result.showTransferFromError
                    showTransferToError = result.showTransferToError
                    showAmountError = result.showAmountError
-                   showMemoError = result.showMemoError
+                   //showMemoError = result.showMemoError
                    showDateError = result.showDateError
                    showRecurringDateError = result.showRecurringDateError
                    showInsufficientFundsError = result.showInsufficientFundsError
@@ -1652,7 +1665,7 @@ struct AnotherMemberTransferForm: View {
                                 ) { transactionId in
                                     if let transactionId = transactionId {
                                         self.transactionId = transactionId  // ✅ update your @State transactionId
-                                        //navigateToSummary = true            // ✅ Navigate to Summary sheet
+                                        //navigateToSummary = true            // Navigate to Summary sheet
                                     } else {
                                         print("❌ Failed to get transaction ID")
                                     }
@@ -1997,9 +2010,9 @@ struct ConfirmationSheet: View {
                             amount: amount,
                             dateText: dateText ?? "N/A",
                             memo: memo,
-                            transactionId: transactionId, // ✅ Correct binding
-                            isAnotherMemberSelected: isAnotherMemberSelected, // ✅ Correct
-                            selectedContact: selectedContact, // ✅ Correct
+                            transactionId: transactionId, // Correct binding
+                            isAnotherMemberSelected: isAnotherMemberSelected, // Correct
+                            selectedContact: selectedContact, // Correct
                             isRecurring: isRecurring,
                             selectedFrequency: selectedFrequency,
                             startDateText: startDateText,
@@ -2591,8 +2604,11 @@ struct TransferResponse: Codable {
 
 struct TransferData: Codable {
     let transactionId: String
+    let transactionNumber: String
     enum CodingKeys: String, CodingKey {
             case transactionId = "TransactionId"
+        case transactionNumber = "TransactionNumber"
+
         }
 }
 

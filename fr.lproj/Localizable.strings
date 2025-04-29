@@ -376,3 +376,4 @@
 
 "no_payee_found"="No payee found";
 "no_contact_found"="No contact found";
+"error_required_account_field"="Please select an account to pay from.";
