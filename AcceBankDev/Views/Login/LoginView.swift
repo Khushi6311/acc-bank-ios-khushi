@@ -483,12 +483,17 @@ struct LoginView: View {
         
         .alert(isPresented: $showFaceIDPrompt) {
                     Alert(
-                        title: Text("Enable Face ID?"),
-                        message: Text("Would you like to use Face ID for future logins?"),
-                        primaryButton: .default(Text("Yes")) {
+//                        title: Text("Enable Face ID?"),
+//                        message: Text("Would you like to use Face ID for future logins?"),
+                        title: Text(NSLocalizedString("face_id_title", comment: "face id ")),
+                        message: Text(NSLocalizedString("face_id_message",comment: "message for asking")),
+
+                        //primaryButton: .default(Text("Yes"))
+                        primaryButton: .default(Text(NSLocalizedString("yes_button", comment: ""))){
                             authenticateWithFaceID()
                         },
-                        secondaryButton: .cancel(Text("No")) {
+                        //secondaryButton: .cancel(Text("No"))
+                        secondaryButton: .cancel(Text(NSLocalizedString("no_button", comment: ""))){
                             UserDefaults.standard.set(false, forKey: "FaceIDEnabled") // Don't show Face ID next time
                             //navigateToWelcome = true
                             navigateToOTP=true
@@ -516,7 +521,7 @@ struct LoginView: View {
 
         if let jsonData = try? JSONSerialization.data(withJSONObject: requestBody, options: .prettyPrinted),
            let jsonString = String(data: jsonData, encoding: .utf8) {
-            print("📦 Face ID Login Request:\n\(jsonString)")
+            print("Face ID Login Request:\n\(jsonString)")
         }
 
         request.httpBody = try? JSONSerialization.data(withJSONObject: requestBody)
@@ -609,7 +614,7 @@ struct LoginView: View {
 
         if let jsonData = try? JSONSerialization.data(withJSONObject: requestBody, options: .prettyPrinted),
            let jsonString = String(data: jsonData, encoding: .utf8) {
-            print("📦 Request Body:\n\(jsonString)")
+            print("Request Body:\n\(jsonString)")
         }
 
         request.httpBody = try? JSONSerialization.data(withJSONObject: requestBody)
@@ -655,7 +660,7 @@ struct LoginView: View {
                             if let contactId = contactId {
                                 TokenManager.shared.saveContactId(contactId)
                             }
-                            // ✅ Save full name
+                            // Save full name
                             if let firstName = json["firstName"] as? String {
                                 TokenManager.shared.firstName = firstName
                             }
@@ -723,12 +728,16 @@ struct LoginView: View {
 
                         authenticateWithSavedCredentials(username: storedUsername, password: storedPassword)
                     } else {
-                        errorMessage = "Face ID setup failed. Please try again."
+                        //errorMessage = "Face ID setup failed. Please try again."
+                        errorMessage = NSLocalizedString("face_id_failed", comment: "")
+
                     }
                 }
             }
         } else {
-            errorMessage = "Face ID is not available on this device."
+            //errorMessage = "Face ID is not available on this device."
+            errorMessage = NSLocalizedString("face_id_unavailable_error", comment: "")
+
         }
     }
 

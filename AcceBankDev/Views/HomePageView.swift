@@ -68,7 +68,9 @@ struct HomePageView: View {
                         
                         VStack(spacing: 1) {
 //                            Text(String(format: NSLocalizedString("welcome_text", comment: ""), username))
-                            Text("Welcome \(TokenManager.shared.firstName) \(TokenManager.shared.lastName)")
+//                            Text("Welcome \(TokenManager.shared.firstName) \(TokenManager.shared.lastName)")
+                            Text(String(format: NSLocalizedString("welcome_text", comment: "Welcome message with user's name"), TokenManager.shared.firstName, TokenManager.shared.lastName))
+
                                 .font(.system(size: 18, weight: .bold))
                                 .foregroundColor(.white)
 
@@ -103,7 +105,9 @@ struct HomePageView: View {
                                         if isLoading {
                                             VStack {
                                                 Spacer()
-                                                ProgressView("Loading Accounts...")
+                                                //ProgressView("Loading Accounts...")
+                                                ProgressView(NSLocalizedString("loading_accounts", comment: "Shown while accounts are loading"))
+
                                                     .progressViewStyle(CircularProgressViewStyle(tint: .blue))
                                                     .scaleEffect(1.2)
                                                     .padding()
@@ -300,8 +304,9 @@ struct HomePageView: View {
 
     @ViewBuilder
     var accountCardView: some View {
-        if selectedAccount?.accountType == "Spending (Chequing)" {
+        //if selectedAccount?.accountType == "Spending (Chequing)" {
         //if selectedAccount?.accountCategoryName.contains("Chequing") == true {
+        if selectedAccount?.accountType == NSLocalizedString("account_type_chequing", comment: "") {
 
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 15) {
@@ -314,7 +319,9 @@ struct HomePageView: View {
             .frame(height: 190)
             .transition(.opacity)
             .padding(.bottom, 20)
-        } else if selectedAccount?.accountType == "Savings" {
+        //} else if selectedAccount?.accountType == "Savings" {
+        } else if selectedAccount?.accountType == NSLocalizedString("account_type_savings", comment: "") {
+
             if cardImages.indices.contains(1) {
                 CreditCardView(imageName: cardImages[1])
                     .frame(height: 190)
@@ -360,22 +367,60 @@ struct AccountListView: View {
     var isSelected: Bool
     var onViewDetails: () -> Void
     //for different icons
-    var resolvedIcon: String {
+    
+    //code without  chnage for languag
+//    var resolvedIcon: String {
+//        switch title.lowercased() {
+//        case let text where text.contains("loan"):
+//            return "dollarsign.circle"
+//        case let text where text.contains("mortgage"):
+//            return "house.fill"
+//        case let text where text.contains("savings"):
+//            return "banknote.fill"
+//        case let text where text.contains("chequing"):
+//            return "wallet.pass"
+//        case let text where text.contains("term deposit"):
+//            return "clock.arrow.circlepath" // Or "calendar" if better fit
+//        default:
+//            return icon
+//        }
+//    }
+    // Localized resolved icon logic
+       var resolvedIcon: String {
+           let lowerTitle = title.lowercased()
+
+           if lowerTitle.contains(NSLocalizedString("account_type_loan", comment: "").lowercased()) {
+               return "dollarsign.circle"
+           } else if lowerTitle.contains(NSLocalizedString("account_type_mortgage", comment: "").lowercased()) {
+               return "house.fill"
+           } else if lowerTitle.contains(NSLocalizedString("account_type_savings", comment: "").lowercased()) {
+               return "banknote.fill"
+           } else if lowerTitle.contains(NSLocalizedString("account_type_chequing", comment: "").lowercased()) {
+               return "wallet.pass"
+           } else if lowerTitle.contains(NSLocalizedString("account_type_term_deposit", comment: "").lowercased()) {
+               return "clock.arrow.circlepath"
+           }
+
+           return icon // fallback
+       }
+
+    var localizedTitle: String {
         switch title.lowercased() {
-        case let text where text.contains("loan"):
-            return "dollarsign.circle"
-        case let text where text.contains("mortgage"):
-            return "house.fill"
-        case let text where text.contains("savings"):
-            return "banknote.fill"
-        case let text where text.contains("chequing"):
-            return "wallet.pass"
-        case let text where text.contains("term deposit"):
-            return "clock.arrow.circlepath" // Or "calendar" if better fit
+        case let t where t.contains("chequing"):
+            return NSLocalizedString("account_type_chequing", comment: "")
+        case let t where t.contains("loan"):
+            return NSLocalizedString("account_type_loan", comment: "")
+        case let t where t.contains("savings"):
+            return NSLocalizedString("account_type_savings", comment: "")
+        case let t where t.contains("mortgage"):
+            return NSLocalizedString("account_type_mortgage", comment: "")
+        case let t where t.contains("term deposit"):
+            return NSLocalizedString("account_type_term_deposit", comment: "")
         default:
-            return icon
+            return title // fallback to API title if no match
         }
     }
+
 
     var body: some View {
         VStack(spacing: 8) {
@@ -411,7 +456,9 @@ struct AccountListView: View {
             }
 
             // Account title and number
-            Text("\(title) \(number)")
+            //Text("\(title) \(number)")
+            Text("\(localizedTitle) \(number)")
+
                 .font(.subheadline)
                 .multilineTextAlignment(.center)
                 .foregroundColor(.black)
@@ -428,7 +475,9 @@ struct AccountListView: View {
                             print("View Details tapped for \(title)")
                             // Add your navigation or action here
                         }) {
-                            Text("View Details")
+                            //Text("View Details")
+                            Text(NSLocalizedString("view_details", comment: ""))
+
                                 .font(.caption)
                                 .foregroundColor(Color.colorBlue)
                                 .underline()

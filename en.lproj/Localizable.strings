@@ -5,29 +5,76 @@
   Created by MCT on 27/02/25.
   
 */
+
+
+// General UI Elements
+"close_button" = "Close";
+
+//^^^^^^^^^^^^^^^^^^^^
+
+
 "registration_success" = "You have successfully registered.";
-//below is for LoginView file
+//below is for LoginView file 1. LoginView*******************
 "quote_of_the_day" = "QUOTE OF THE DAY";
-"money_quote" = "Money isn’t everything,\n but everything needs \nmoney.";
-"username_placeholder" = "Username or card number";
-"password_placeholder" = "Password";
 "keep_me_logged_in" = "Keep me logged in";
 "register" = "Register";
 "sign_in" = "Sign In";
 "incorrect_password" = "Incorrect password. Please try again.";
-"enable_face_id" = "Enable Face ID?";
-"face_id_description" = "Would you like to use Face ID for future logins?";
-"face_id_yes" = "Yes";
-"face_id_no" = "No";
-"use_face_id" = "Use Face ID";
+"face_id_title" = "Enable Face ID?";
+"face_id_message" = "Would you like to use Face ID for future logins?";
+"yes_button" = "Yes";
+"no_button" = "No";
+"face_id_unavailable_error" = "Face ID is not available on this device.";
 "face_id_failed" = "Face ID setup failed. Please try again.";
-"face_id_not_available" = "Face ID is not available on this device.";
 "login_using_faceid" = "Login using Face ID";
 "user_not_found" = "User not found.";
 //^^^^^^^^^^^^^^^^^^^^^^^
 
+
+//2. OTP screen
+"enter_otp_instruction"="Enter the OTP sent to your phone/email";
+"verify_otp"="Verify OTP";
+"otp_length_error" = "Please enter a 6-digit OTP.";
+"invalid_verification_url" = "Invalid verification URL.";
+"failed_to_encode" = "Failed to encode OTP data.";
+"network_error_prefix" = "Network error: ";
+"no_data_received" = "No data received.";
+"unexpected_response_format" = "Unexpected response format.";
+"otp_invalid" = "Invalid OTP.";
+"otp_verification_failed" = "OTP verification failed.";
+"unexpected_server_response" = "Unexpected server response.";
+"parse_error" = "Failed to parse response.";
+"amount"="Amount";
+
+
+//this below is for 3. HomePageView
+"welcome_text" = "Welcome %@ to";
+"bank_name" = "Acceinfo Bank";
+"greeting_text" = "Good Morning";
+"savings" = "Savings";
+"balance"="Balance";
+"chequing" = "Chequing";
+"loan" = "Loan";
+"investments" = "Investments";
+"crypto" = "Crypto";
+"money_quote" = "Money isn’t everything, but everything needs money.";
+"good_afternoon" = "Good Afternoon";
+"good_evening" = "Good Evening";
+"loading_accounts" = "Loading Accounts...";
+"account_type_chequing" = "Spending (Chequing)";
+"account_type_savings" = "Savings";
+"account_type_loan"= "Loan";
+"account_type_mortgage" = "Mortgage";
+"account_type_savings" = "Savings";
+"account_type_chequing" = "Spending (Chequing)";
+"account_type_term_deposit" = "Term Deposit";
+"view_details" = "View Details";
+
+//^^^^^^^^^^^^^^^^
+
+
 //below is for MoveMoneyView file
-// Move Money Screen
+// 4.Move Money Screen
 "move_money_title" = "Move money";
 "transfers_option" = "Transfers";
 "transfers_options_subtitle"="OWN BANK ACCOUNTS";
@@ -39,14 +86,6 @@
 "scheduled_transfers_option"="SEND MONEY TO YOUR CLIENT";
 "manage_recipient"="Manage Recipient";
 "transfer_money"="Transfer Money";
-
-// Payments Bottom Sheet
-"payments_title" = "Payments";
-"pay_bills" = "Pay bills";
-"transfer_accounts" = "Transfer between accounts";
-"scheduled_payments" = "Manage scheduled payments";
-"payment_settings" = "Payment settings";
-
 // Transfer Options Bottom Sheet
 "send_money" = "Send money";
 "request_money" = "Request money";
@@ -57,10 +96,16 @@
 "profile_settings" = "Profile settings";
 "pending"="Pending";
 "profile_setting"="Profile settings";
-// General UI Elements
-"close_button" = "Close";
+//^^^^
+// Payments Bottom Sheet
+"payments_title" = "Payments";
+"pay_bills" = "Pay bills";
+"transfer_accounts" = "Transfer between accounts";
+"scheduled_payments" = "Manage scheduled payments";
+"payment_settings" = "Payment settings";
+//^^^^
 
-//^^^^^^^^^^^^^^^^^^^^
+
 
 
 //below is for SendMoneyScreenView file
@@ -158,22 +203,6 @@
 "password_number_error" = "Password must contain at least one number.";
 "password_special_character_error" = "Password must contain at least one special character (@$!%*?&).";
 
-//this below is for HomePageView
-"welcome_text" = "Welcome %@ to";
-"bank_name" = "Acceinfo Bank";
-"greeting_text" = "Good Morning";
-"savings" = "Savings";
-"balance"="Balance";
-"chequing" = "Chequing";
-"loan" = "Loan";
-"investments" = "Investments";
-"crypto" = "Crypto";
-"quote_of_the_day" = "QUOTE OF THE DAY";
-"money_quote" = "Money isn’t everything, but everything needs money.";
-"good_afternoon" = "Good Afternoon";
-"good_evening" = "Good Evening";
-
-//^^^^^^^^^^^^^^^^
 
 //#########new MoveMoney files data
 "move_money_title" = "Move Money";
@@ -306,11 +335,7 @@
 "account_number"="Account Number";
 //"required_field" = "Required field.";
 
-//OTP screen
-"enter_otp_instruction"="Enter the OTP sent to your phone/email";
-"verify_otp"="Verify OTP";
 
-"amount"="Amount";
 
 
 //history page

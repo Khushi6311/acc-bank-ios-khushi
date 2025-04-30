@@ -6,29 +6,66 @@
   
 */
 "registration_success" = "Vous vous êtes inscrit avec succès.";
-//below is for LoginView file
+//below is for 1.LoginView file
 "quote_of_the_day" = "CITATION DU JOUR";
-"money_quote" = "L'argent n'est pas tout,\n mais tout a besoin d'argent.";
-"username_placeholder" = "Nom d'utilisateur ou numéro de carte";
-"password_placeholder" = "Mot de passe";
 "keep_me_logged_in" = "Rester connecté";
 "register" = "S'inscrire";
 "sign_in" = "Se connecter";
 "incorrect_password" = "Mot de passe incorrect. Veuillez réessayer.";
-"enable_face_id" = "Activer Face ID?";
-"face_id_description" = "Voulez-vous utiliser Face ID pour les futures connexions ?";
-"face_id_yes" = "Oui";
-"face_id_no" = "Non";
-"use_face_id" = "Utiliser Face ID";
+
+"face_id_title" = "Activer Face ID ?";
+"face_id_message" = "Souhaitez-vous utiliser Face ID pour vos prochaines connexions ?";
+"face_id_unavailable_error" = "Face ID n'est pas disponible sur cet appareil.";
+
+"yes_button" = "Oui";
+"no_button" = "Non";
+
+
 "face_id_failed" = "L'activation de Face ID a échoué. Veuillez réessayer.";
-"face_id_not_available" = "Face ID n'est pas disponible sur cet appareil.";
 "login_using_faceid" = "Connexion avec Face ID";
 "user_not_found" = "Utilisateur non trouvé.";
 //^^^^^^^^^^^^^^^^^^^
+//2.OTP screen
+"enter_otp_instruction"="Saisissez l'OTP envoyé sur votre téléphone/e-mail";
+"verify_otp"="Vérifier OTP";
+"otp_length_error" = "Veuillez entrer un code OTP de 6 chiffres.";
+"invalid_verification_url" = "URL de vérification invalide.";
+"failed_to_encode" = "Échec de l'encodage des données OTP.";
+"network_error_prefix" = "Erreur réseau : ";
+"no_data_received" = "Aucune donnée reçue.";
+"unexpected_response_format" = "Format de réponse inattendu.";
+"otp_invalid" = "OTP invalide.";
+"otp_verification_failed" = "Échec de la vérification OTP.";
+"unexpected_server_response" = "Réponse inattendue du serveur.";
+"parse_error" = "Échec de l'analyse de la réponse.";
+"amount"="Montante";
+////3.this below is for HomePageView
+"welcome_text" = "Bienvenue %@ à";
+"bank_name" = "Acceinfo Banque";
+"greeting_text" = "Bonjour";
+"savings" = "Épargne";
+"balance"="Équilibre";
 
+"chequing" = "Compte courant";
+"loan" = "Prêt";
+"investments" = "Investissements";
+"crypto" = "Crypto";
+"money_quote" = "L'argent n'est pas tout, mais tout a besoin d'argent.";
+"good_afternoon" = "Bon après-midi";
+"good_evening" = "Bonsoir";
+"loading_accounts" = "Chargement des comptes...";
+"account_type_chequing" = "Dépenses (Chèque)";
+"account_type_savings" = "Épargne";
+"account_type_loan" = "Prêt";
+"account_type_mortgage" = "Hypothèque";
+"account_type_savings" = "Épargne";
+"account_type_chequing" = "Compte chèque";
+"account_type_term_deposit" = "Dépôt à terme";
+"view_details" = "Voir les détails";
 
+//^^^^^^^^^
 //below is for MoveMoneyView file
-// Move Money Screen
+// 4.Move Money Screen
 "move_money_title" = "Déplacer de l'argent";
 "transfers_option" = "Transferts";
 "interac_transfer" = "Interac e-Transfert®";
@@ -50,7 +87,7 @@
 "transfer_history" = "Historique";
 "auto_deposit" = "Paramètres de dépôt automatique";
 "profile_settings" = "Paramètres du profil";
-
+//^^^^
 // General UI Elements
 "close_button" = "Fermer";
 ///^^^^^^^^^^^^^^^^^^
@@ -154,23 +191,7 @@
 "password_number_error" = "Le mot de passe doit contenir au moins un chiffre.";
 "password_special_character_error" = "Le mot de passe doit contenir au moins un caractère spécial (@$!%*?&).";
 
-////this below is for HomePageView
-"welcome_text" = "Bienvenue %@ à";
-"bank_name" = "Acceinfo Banque";
-"greeting_text" = "Bonjour";
-"savings" = "Épargne";
-"balance"="Équilibre";
 
-"chequing" = "Compte courant";
-"loan" = "Prêt";
-"investments" = "Investissements";
-"crypto" = "Crypto";
-"quote_of_the_day" = "CITATION DU JOUR";
-"money_quote" = "L'argent n'est pas tout, mais tout a besoin d'argent.";
-"good_afternoon" = "Bon après-midi";
-"good_evening" = "Bonsoir";
-
-//^^^^^^^^^
 
 //#########new MoveMoney files data
 "move_money_title" = "Transférer de l'argent";
@@ -328,11 +349,7 @@
 "save_account" = "Enregistrer le compte";
 "account_number"="Numéro de compte";
 
-//OTP screen
-"enter_otp_instruction"="Saisissez l'OTP envoyé sur votre téléphone/e-mail";
-"verify_otp"="Vérifier OTP";
 
-"amount"="Montante";
 
 
 //history page
@@ -368,12 +385,11 @@
 
 //transfer from
 
-"error_required_transfer_from_field"="Please select an account to transfer from.";
-"error_required_transfer_to_field"="Please select an account to transfer to.";
-"error_required_transfer_memo_field"="Please enter memo details";
-"error_required_transfer_contact_field"="Please select an recipient to transfer money.";
+"error_required_transfer_from_field" = "Veuillez sélectionner un compte source pour le transfert.";
+"error_required_transfer_to_field" = "Veuillez sélectionner un compte de destination pour le transfert.";
+"error_required_transfer_memo_field" = "Veuillez saisir les détails du mémo.";
+"error_required_transfer_contact_field" = "Veuillez sélectionner un destinataire pour transférer de l'argent.";
 
-
-"no_payee_found"="No payee found";
-"no_contact_found"="No contact found";
-"error_required_account_field"="Please select an account to pay from.";
+"no_payee_found" = "Aucun bénéficiaire trouvé.";
+"no_contact_found" = "Aucun contact trouvé.";
+"error_required_account_field" = "Veuillez sélectionner un compte pour effectuer le paiement.";

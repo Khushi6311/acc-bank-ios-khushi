@@ -243,7 +243,16 @@ struct HistoryView: View {
     }
     func getTransactionDisplayName(for transaction: Transaction) -> String {
         let loggedInAccountId = account?.accountId ?? ""
-
+        //30 april
+        if transaction.transactionType == "Bill Payment" {
+                if let fromName = transaction.transactionFromCustomerName, !fromName.isEmpty {
+                    return fromName
+                } else if !transaction.fromAccountNumber.isEmpty {
+                    return transaction.fromAccountNumber
+                } else {
+                    return "Sender"
+                }
+            }
         if transaction.transactionFrom == loggedInAccountId {
             // Logged-in user is Sender
             if let toName = transaction.transactionToCustomerName, !toName.isEmpty {

@@ -163,7 +163,7 @@ struct PayBillScreen: View {
                                     .cornerRadius(30)
                             }
 
-                            Button(action: { 
+                            Button(action: {
                                 //accountManager.selectedAccount = nil
                                 selectedPaymentType = "Recurring Payment"
                                 
@@ -633,7 +633,7 @@ selectedPayees: $selectedPayees, showPayeeSheet: $showPayeeSheet)
                     amount: amount,
                     date: formattedDate ?? "",
                     selectedPayees: selectedPayees,
-                    payeeDetails: payeePaymentDetails,
+                    payeeDetails: $payeePaymentDetails,
                     memo:memo
 
                     
@@ -1416,7 +1416,7 @@ struct RecurringPaymentForm: View {
     @FocusState private var focusedField: FieldFocus?
     @State private var bannerErrorMessage: String?
     @State private var memo: String = ""
-
+    @State private var tempConvertedDetails: [PayeePaymentDetails] = []
     var body: some View {
         VStack(spacing: 15) {
             if let message = bannerErrorMessage {
@@ -1500,11 +1500,11 @@ struct RecurringPaymentForm: View {
                 .background(Color(.systemGray6))
                 .cornerRadius(10)
             }
-            FieldErrorView(message: NSLocalizedString("error_required_account_field", comment: "Payee is required"), show: $showAccountError)
+            
             .sheet(isPresented: $isTransferFromSheetPresented) {
                 BillAccountSelectionSheet(accountManager: accountManager, isPresented: $isTransferFromSheetPresented, selectedFromAccount: $selectedFromAccount)
             }
-
+            FieldErrorView(message: NSLocalizedString("error_required_account_field", comment: "Payee is required"), show: $showAccountError)
             Button(action: { showPayeeSheet = true }) {
                 HStack {
 //                    Text(selectedPayees.isEmpty ? "Select payee(s)" : selectedPayees.map { $0.name }.joined(separator: ", "))
@@ -1654,6 +1654,18 @@ struct RecurringPaymentForm: View {
 
                     if result.isFormValid {
                         bannerErrorMessage = nil
+                        tempConvertedDetails = payeeRecurringDetails.map {
+                                                    PayeePaymentDetails(
+                                                        payee: $0.payee,
+                                                        amount: $0.amount,
+                                                        date: $0.startDate,
+                                                        startDate: $0.startDate,
+                                                        endDate: $0.endDate,
+                                                        frequency: $0.frequency,
+                                                        memo: $0.memo
+                                                    )
+                                                }
+                        
                         showBillConfirmationSheet = true
                     }
                 } else {
@@ -1686,6 +1698,17 @@ struct RecurringPaymentForm: View {
 
                     if result.isFormValid {
                         bannerErrorMessage = nil
+                        tempConvertedDetails = [
+                                                   PayeePaymentDetails(
+                                                       payee: selectedPayees[0],
+                                                       amount: amount,
+                                                       date: selectedStartDate,
+                                                       startDate: selectedStartDate,
+                                                       endDate: selectedEndDate,
+                                                       frequency: selectedFrequency,
+                                                       memo: memo
+                                                   )
+                                               ]
                         showBillConfirmationSheet = true
                     }
                 }
@@ -1704,38 +1727,45 @@ struct RecurringPaymentForm: View {
             .padding(.top, 20)
             .padding(.horizontal, 5)
 
+//            .sheet(isPresented: $showBillConfirmationSheet) {
+//                RecurringBillConfirmationSheet(
+//                    fromAccount: selectedFromAccount,
+//                    selectedPayees: selectedPayees,
+//                    payeeDetails: selectedPayees.count == 1
+//                        ? [
+//                            PayeePaymentDetails(
+//                                payee: selectedPayees[0],
+//                                amount: amount,
+//                                date: selectedStartDate, // only used for display
+//                                startDate: selectedStartDate,
+//                                endDate: selectedEndDate,
+//                                frequency: selectedFrequency,
+//                                memo:memo
+//                            )
+//                          ]
+//                        : payeeRecurringDetails.map {
+//                            PayeePaymentDetails(
+//                                payee: $0.payee,
+//                                amount: $0.amount,
+//                                date: $0.startDate,
+//                                startDate: $0.startDate,
+//                                endDate: $0.endDate,
+//                                frequency: $0.frequency,
+//                                memo: $0.memo
+//                            )
+//                          }
+//                )
+//            }
+
+
             .sheet(isPresented: $showBillConfirmationSheet) {
-                RecurringBillConfirmationSheet(
-                    fromAccount: selectedFromAccount,
-                    selectedPayees: selectedPayees,
-                    payeeDetails: selectedPayees.count == 1
-                        ? [
-                            PayeePaymentDetails(
-                                payee: selectedPayees[0],
-                                amount: amount,
-                                date: selectedStartDate, // only used for display
-                                startDate: selectedStartDate,
-                                endDate: selectedEndDate,
-                                frequency: selectedFrequency,
-                                memo:memo
-                            )
-                          ]
-                        : payeeRecurringDetails.map {
-                            PayeePaymentDetails(
-                                payee: $0.payee,
-                                amount: $0.amount,
-                                date: $0.startDate,
-                                startDate: $0.startDate,
-                                endDate: $0.endDate,
-                                frequency: $0.frequency,
-                                memo: $0.memo
-                            )
-                          }
-                )
-            }
-
-
-            
+                        RecurringBillConfirmationSheet(
+                            fromAccount: selectedFromAccount,
+                            selectedPayees: selectedPayees,
+                            payeeDetails: $tempConvertedDetails, // Bound state array
+                            memo: memo
+                        )
+                    }
         }
         .padding(.horizontal, 20)
         .onChange(of: selectedPayees) { oldValue,newValue in
@@ -2109,11 +2139,14 @@ struct BillConfirmationSheet: View {
     var amount: String
     var date: String
     var selectedPayees: [Payee] = []
-    var payeeDetails: [PayeePaymentDetails] = []
+    //var payeeDetails: [PayeePaymentDetails] = []
+    @Binding var payeeDetails: [PayeePaymentDetails]
+
     var memo: String? = nil // For single payee
     @State private var transactionId: String? = nil
-
+    @State private var transactionIds: [String] = []
     @State private var navigateToSummary = false
+
     @Environment(\.presentationMode) var presentationMode
 
     var body: some View {
@@ -2213,7 +2246,19 @@ struct BillConfirmationSheet: View {
 
             Button(action: {
                 if let fromAccount = fromAccount {
-                        sendPayBillRequest(fromAccount: fromAccount, payees: payeeDetails)
+                        //sendPayBillRequest(fromAccount: fromAccount, payees: payeeDetails)
+                    sendPayBillRequest(
+                        fromAccount: fromAccount,
+                        payeeDetails: payeeDetails, // correct type
+                        setUpdatedDetails: { updatedDetails in
+                            self.payeeDetails = updatedDetails
+                        },
+                        onComplete: {
+                            self.navigateToSummary = true
+                        }
+                    )
+
+
                     }
                 navigateToSummary = true
             }) {
@@ -2248,43 +2293,176 @@ struct BillConfirmationSheet: View {
     }
     
     //fpr API
-    func sendPayBillRequest(fromAccount: BankAccount, payees: [PayeePaymentDetails]) {
+//    func sendPayBillRequest(
+//        fromAccount: BankAccount,
+//        //payees: [PayeePaymentDetails],
+//        payees: [Payee],
+//        //setTransactionIds: @escaping ([String]) -> Void,
+//        setUpdatedDetails: @escaping ([PayeePaymentDetails]) -> Void,
+//
+//        onComplete: @escaping () -> Void
+//    ) {
+//        guard let token = TokenManager.shared.getToken() else {
+//            print("No token found")
+//            return
+//        }
+//
+//        print("Raw Payee Amounts:")
+//        payees.forEach { payee in
+//            print("Payee: \(payee.name), Amount: default or unknown")
+//        }
+//
+//
+//        let formatter = DateFormatter()
+//        formatter.dateFormat = "yyyy-MM-dd"
+//
+//        let toAccounts = payees.map {
+//            return ToAccount(
+//                AccountNumberTo: $0.accountNumber,
+//                Amount: 0.0, // Set default amount or get from another source
+//                Currency: "CAD",
+//                Frequency: "OneTime",
+//                StartDate: formatter.string(from: Date()),
+//                EndDate: formatter.string(from: Date()),
+//                Memo: "",
+//                TransactionType: "Bill Payment"
+//            )
+//        }
+//
+//
+//        let requestBody = PayBillRequest(AccountNumberFrom: fromAccount.accountId, ToAccountNumbers: toAccounts)
+//
+//        guard let url = URL(string: AppConfig.PayBillURL) else {
+//            print("Invalid URL")
+//            return
+//        }
+//
+//        var request = URLRequest(url: url)
+//        request.httpMethod = "POST"
+//        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+//        request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+//
+//        do {
+//            let jsonData = try JSONEncoder().encode(requestBody)
+//            request.httpBody = jsonData
+//
+//            if let jsonString = String(data: jsonData, encoding: .utf8) {
+//                print("Request JSON:\n\(jsonString)")
+//            }
+//
+//            URLSession.shared.dataTask(with: request) { data, response, error in
+//                if let error = error {
+//                    print("API Error: \(error.localizedDescription)")
+//                    return
+//                }
+//
+//                if let response = response as? HTTPURLResponse {
+//                    print("Response Code: \(response.statusCode)")
+//                }
+//
+//                if let data = data, let raw = String(data: data, encoding: .utf8) {
+//                    print("Response Body:\n\(raw)")
+//                }
+//
+//                if let data = data {
+//                    do {
+//                        // Structs for decoding
+//                        struct ApiResponse: Codable {
+//                            let status: String
+//                            let data: TransactionData
+//                        }
+//                        struct TransactionData: Codable {
+//                            let toAccountNumbers: [ToAccountResponse]
+//                        }
+//                        struct ToAccountResponse: Codable {
+//                            let transactionNumber: String
+//                        }
+//
+//                        let decoded = try JSONDecoder().decode(ApiResponse.self, from: data)
+//
+//                        let trxIds = decoded.data.toAccountNumbers.map { $0.transactionNumber }
+//
+//                        // Combine payees and their corresponding transaction IDs
+//                        let zippedResults = zip(payees, trxIds)
+//
+//                        DispatchQueue.main.async {
+//                            for (payee, trxId) in zippedResults {
+//                                print("✅ Payee: \(payee.name), Transaction ID: \(trxId)")
+//                            }
+//
+//                            //setTransactionIds(trxIds)
+////                            let updatedPayeeDetails: [PayeePaymentDetails] = zip(payees, trxIds).map { (payee, trxId) in
+////                                PayeePaymentDetails(
+////                                    payee: payee,
+////                                    amount: "2",        // or actual amount
+////                                    date: Date(),       // or actual date
+////                                    transactionId: trxId
+////                                )
+////                            }
+//                            let updatedPayeeDetails: [PayeePaymentDetails] = zip(payeeDetails, trxIds).map { (detail, trxId) in
+//                                var updated = detail
+//                                updated.transactionId = trxId
+//                                return updated
+//                            }
+//
+//
+//                            self.payeeDetails = updatedPayeeDetails
+//
+//                            onComplete()
+//                        }
+//
+//                    } catch {
+//                        print("Decoding error: \(error)")
+//                        DispatchQueue.main.async {
+//                            onComplete()
+//                        }
+//                    }
+//                }
+//            }.resume()
+//        } catch {
+//            print("Encoding error: \(error)")
+//        }
+//    }
+
+    func sendPayBillRequest(
+        fromAccount: BankAccount,
+        payeeDetails: [PayeePaymentDetails],
+        setUpdatedDetails: @escaping ([PayeePaymentDetails]) -> Void,
+        onComplete: @escaping () -> Void
+    ) {
         guard let token = TokenManager.shared.getToken() else {
             print("No token found")
             return
         }
+
         print("Raw Payee Amounts:")
-        payees.forEach { payee in
-            print("Payee: \(payee.payee.name), Amount String: '\(payee.amount)'")
+        payeeDetails.forEach { detail in
+            print("Payee: \(detail.payee.name), Amount: \(detail.amount)")
         }
 
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
 
-        let toAccounts = payees.map {
-            let cleanedAmount = $0.amount
+        let toAccounts = payeeDetails.map { detail in
+            let rawAmount = detail.amount
                 .replacingOccurrences(of: "$", with: "")
                 .replacingOccurrences(of: ",", with: "")
-                .trimmingCharacters(in: .whitespacesAndNewlines)
-            print("Cleaned Amount for \($0.payee.name): '\(cleanedAmount)'")
-
-            let parsedAmount = Double(cleanedAmount) ?? 0.0
 
             return ToAccount(
-                AccountNumberTo: $0.payee.accountNumber,
-                Amount: parsedAmount,
+                AccountNumberTo: detail.payee.accountNumber,
+                Amount: Double(rawAmount) ?? 0.0,
                 Currency: "CAD",
-                Frequency: $0.frequency.capitalized,
-                StartDate: formatter.string(from: $0.startDate ?? Date()),
-                EndDate: formatter.string(from: $0.endDate ?? Date()),
-                Memo: $0.memo ?? "",
+                Frequency: detail.frequency.capitalized,
+                StartDate: formatter.string(from: detail.startDate ?? Date()),
+                EndDate: formatter.string(from: detail.endDate ?? Date()),
+                Memo: detail.memo ?? "",
                 TransactionType: "Bill Payment"
             )
         }
 
         let requestBody = PayBillRequest(AccountNumberFrom: fromAccount.accountId, ToAccountNumbers: toAccounts)
 
-        guard let url = URL(string:AppConfig.PayBillURL) else {
+        guard let url = URL(string: AppConfig.PayBillURL) else {
             print("Invalid URL")
             return
         }
@@ -2316,10 +2494,8 @@ struct BillConfirmationSheet: View {
                     print("Response Body:\n\(raw)")
                 }
 
-            
                 if let data = data {
                     do {
-                        // Here: Create a struct for decoding
                         struct ApiResponse: Codable {
                             let status: String
                             let data: TransactionData
@@ -2327,21 +2503,27 @@ struct BillConfirmationSheet: View {
                         struct TransactionData: Codable {
                             let toAccountNumbers: [ToAccountResponse]
                         }
-
                         struct ToAccountResponse: Codable {
                             let transactionNumber: String
                         }
 
                         let decoded = try JSONDecoder().decode(ApiResponse.self, from: data)
-                        
+                        let trxIds = decoded.data.toAccountNumbers.map { $0.transactionNumber }
+
                         DispatchQueue.main.async {
-                            self.transactionId = decoded.data.toAccountNumbers.first?.transactionNumber
-                            self.navigateToSummary = true
+                            let updatedPayeeDetails: [PayeePaymentDetails] = zip(payeeDetails, trxIds).map { (detail, trxId) in
+                                var updated = detail
+                                updated.transactionId = trxId
+                                return updated
+                            }
+
+                            setUpdatedDetails(updatedPayeeDetails)
+                            onComplete()
                         }
                     } catch {
                         print("Decoding error: \(error)")
                         DispatchQueue.main.async {
-                            self.navigateToSummary = true //Even if decoding fails, show summary
+                            onComplete()
                         }
                     }
                 }
@@ -2357,7 +2539,9 @@ struct BillConfirmationSheet: View {
 struct RecurringBillConfirmationSheet: View {
     var fromAccount: BankAccount?
     var selectedPayees: [Payee] = []
-    var payeeDetails: [PayeePaymentDetails] = [] // contains amount, startDate, endDate, frequency
+    //var payeeDetails: [PayeePaymentDetails] = [] // contains amount, startDate, endDate, frequency
+    @Binding var payeeDetails: [PayeePaymentDetails]
+
     var memo: String?
     @State private var transactionId: String? = nil
     @State private var navigateToSummary = false
@@ -2571,11 +2755,22 @@ struct RecurringBillConfirmationSheet: View {
                                        }
 
                                        let decoded = try JSONDecoder().decode(ApiResponse.self, from: data)
-                                       
-                                       DispatchQueue.main.async {
-                                           self.transactionId = decoded.data.toAccountNumbers.first?.transactionNumber
-                                           self.navigateToSummary = true
-                                       }
+                                       let trxIds = decoded.data.toAccountNumbers.map { $0.transactionNumber }
+
+                                               DispatchQueue.main.async {
+                                                   let updatedDetails: [PayeePaymentDetails] = zip(payeeDetails, trxIds).map { (detail, trxId) in
+                                                       var updated = detail
+                                                       updated.transactionId = trxId
+                                                       return updated
+                                                   }
+
+                                                   self.payeeDetails = updatedDetails
+                                                   self.navigateToSummary = true
+                                               }
+//                                       DispatchQueue.main.async {
+//                                           self.transactionId = decoded.data.toAccountNumbers.first?.transactionNumber
+//                                           self.navigateToSummary = true
+//                                       }
                                    } catch {
                                        print("Decoding error: \(error)")
                                        DispatchQueue.main.async {
@@ -2626,7 +2821,7 @@ struct BillSendSheet: View {
     var date: String
     var selectedPayees: [Payee] = []
     var payeeDetails: [PayeePaymentDetails] = []
-    var transactionId: String? = nil 
+    var transactionId: String? = nil
     var isRecurring: Bool = false
     @StateObject var viewModel = PayeeViewModel()
 
@@ -2741,9 +2936,10 @@ private struct RecurringPayeeSummaryView: View {
     var transactionId: String?
     var body: some View {
         if selectedPayees.count == 1, let detail = payeeDetails.first {
-            if let txnId = transactionId {
-                            BillDetailRow(title: NSLocalizedString("transaction_id", comment: ""), value: txnId)
-                        }
+            if let txnId = detail.transactionId, !txnId.isEmpty {
+                BillDetailRow(title: NSLocalizedString("transaction_id", comment: ""), value: txnId)
+            }
+
 //            BillDetailRow(title: "Pay to", value: detail.payee.name, bold: true)
 //            BillDetailRow(title: "Amount", value: detail.amount)
 //            BillDetailRow(title: "Start Date", value: formatted(detail.startDate))
@@ -2808,13 +3004,28 @@ private struct OneTimePayeeSummaryView: View {
     var payeeDetails: [PayeePaymentDetails]
 
     var body: some View {
-        if selectedPayees.count == 1, let payee = selectedPayees.first {
+        if selectedPayees.count == 1, let payee = selectedPayees.first , let detail = payeeDetails.first{
+            if let txnId = detail.transactionId, !txnId.isEmpty {
+                    BillDetailRow(
+                        title: NSLocalizedString("transaction_id", comment: ""),
+                        value: txnId
+                    )
+                }
+            
             BillDetailRow(title: "Pay to", value: payee.name, bold: true)
             BillDetailRow(title: "Amount", value: amount)
             BillDetailRow(title: "Date", value: date)
         } else {
             ForEach(payeeDetails) { detail in
+                
                 VStack(alignment: .leading, spacing: 8) {
+                    
+                    if let txnId = detail.transactionId ,!txnId.isEmpty {
+                                BillDetailRow(
+                                    title: NSLocalizedString("transaction_id", comment: ""),
+                                    value: txnId
+                                )
+                            }
                     BillDetailRow(title: "Pay to", value: "\(detail.payee.name) - \(detail.payee.accountNumber)", bold: true)
                     BillDetailRow(title: "Amount", value: detail.amount)
                     BillDetailRow(title: "Date", value: formatted(detail.date))
@@ -2863,7 +3074,7 @@ struct BillDetailRow: View {
     }
 }
 
-//selection of transfer from to 
+//selection of transfer from to
 struct PayBillScreen_Previews: PreviewProvider {
     static var previews: some View {
         let viewModel = PayeeViewModel()

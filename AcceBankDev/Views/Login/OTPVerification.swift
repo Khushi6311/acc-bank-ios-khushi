@@ -109,14 +109,18 @@ struct OTPVerificationView: View {
     //funtion with API
     private func verifyOTP() {
         guard otp.count == otpLength else {
-            errorMessage = "Please enter a 6-digit OTP."
+            //errorMessage = "Please enter a 6-digit OTP."
+            errorMessage = NSLocalizedString("otp_length_error", comment: "")
+
             return
         }
 
         print("Verifying OTP: \(otp)")
 
         guard let url = URL(string: AppConfig.OTPVerificationURL) else {
-            errorMessage = "Invalid verification URL"
+            //errorMessage = "Invalid verification URL"
+            errorMessage = NSLocalizedString("invalid_verification_url", comment: "")
+
             return
         }
 
@@ -153,65 +157,13 @@ struct OTPVerificationView: View {
                 print("Request Body:\n\(jsonString)")
             }
         } catch {
-            errorMessage = "Failed to encode OTP data"
+            //errorMessage = "Failed to encode OTP data"
+            errorMessage = NSLocalizedString("failed_to_encode", comment: "")
+
             return
         }
 
-//        URLSession.shared.dataTask(with: request) { data, response, error in
-//            DispatchQueue.main.async {
-//                if let error = error {
-//                    errorMessage = "Network error: \(error.localizedDescription)"
-//                    return
-//                }
-//
-//                guard let data = data else {
-//                    errorMessage = "No data received"
-//                    return
-//                }
-//
-//                // Debug logs
-//                if let httpResponse = response as? HTTPURLResponse {
-//                    print("HTTP Status Code: \(httpResponse.statusCode)")
-//                }
-//                if let raw = String(data: data, encoding: .utf8) {
-//                    print(" Raw OTP response: \(raw)")
-//                }
-//
-////                do {
-////                    let result = try JSONDecoder().decode(OTPVerifyResponse.self, from: data)
-////                    //if result.status {
-////                    if result.status.lowercased() == "success" {
-////
-////                        print("OTP Verified Successfully")
-////                        isVerified = true
-////                    } else {
-////                        errorMessage = result.message ?? "OTP verification failed"
-////                        print("OTP verification failed: \(result.message ?? "Unknown error")")
-////                    }
-////                } catch {
-////                    errorMessage = "Invalid server response"
-////                    print("JSON decode error: \(error)")
-////                }
-//                
-//                do {
-//                    if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] {
-//                        print("Parsed response JSON: \(json)")
-//
-//                        if let status = json["status"] as? String, status.lowercased() == "success" {
-//                            isVerified = true
-//                        } else {
-//                            errorMessage = json["message"] as? String ?? "OTP verification failed"
-//                        }
-//                    } else {
-//                        errorMessage = "Unexpected response format"
-//                    }
-//                } catch {
-//                    errorMessage = "Failed to parse response"
-//                    print("Parsing error: \(error.localizedDescription)")
-//                }
-//
-//            }
-//        }.resume()
+
         URLSession.shared.dataTask(with: request) { data, response, error in
             DispatchQueue.main.async {
                 if let error = error {
@@ -234,12 +186,16 @@ struct OTPVerificationView: View {
                             } else {
                                 if let message = json["message"] as? String {
                                     if message.localizedCaseInsensitiveContains("token") {
-                                        errorMessage = "Invalid OTP"
+                                        //errorMessage = "Invalid OTP"
+                                        errorMessage = NSLocalizedString("otp_invalid", comment: "")
+
                                     } else {
                                         errorMessage = message
                                     }
                                 } else {
-                                    errorMessage = "OTP verification failed"
+                                    //errorMessage = "OTP verification failed"
+                                    errorMessage = NSLocalizedString("otp_verification_failed", comment: "")
+
                                 }
                             }
                         } else {

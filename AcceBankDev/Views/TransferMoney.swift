@@ -760,7 +760,7 @@ struct MyAccountsTransferForm: View {
                     
                     if showAmountError {
                         //ErrorMessage(text: "This field is required")
-                        ErrorMessage(text: NSLocalizedString("error_required_payee_amount_field", comment: "Validation error for empty field"))
+                        ErrorMessage(text: NSLocalizedString("error_required_amount", comment: "Validation error for empty field"))
                     }
                     
                     // **Date Selection**
@@ -1450,7 +1450,7 @@ struct AnotherMemberTransferForm: View {
 
             if showAmountError {
                 //ErrorMessage(text: "This field is required")
-                ErrorMessage(text: NSLocalizedString("error_required_payee_amount_field", comment: "Validation error for empty field"))
+                ErrorMessage(text: NSLocalizedString("error_required_amount", comment: "Validation error for empty field"))
             }
 
             // **Date Selection**
@@ -1664,10 +1664,10 @@ struct AnotherMemberTransferForm: View {
                                     isAnotherMemberSelected: isAnotherMemberSelected
                                 ) { transactionId in
                                     if let transactionId = transactionId {
-                                        self.transactionId = transactionId  // ✅ update your @State transactionId
+                                        self.transactionId = transactionId  //  update your @State transactionId
                                         //navigateToSummary = true            // Navigate to Summary sheet
                                     } else {
-                                        print("❌ Failed to get transaction ID")
+                                        print("Failed to get transaction ID")
                                     }
                                 }
                             }// Add this
