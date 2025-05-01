@@ -20,7 +20,9 @@ struct HistoryView: View {
                         .foregroundColor(.black)
                 }
                 Spacer()
-                Text("History")
+                //Text("History")
+                Text(NSLocalizedString("history_title", comment: ""))
+
                     .font(.headline)
                     .foregroundColor(.black)
                 Spacer()
@@ -32,7 +34,9 @@ struct HistoryView: View {
             // Tabs
             HStack(spacing: 0) {
                 Button(action: { selectedTab = "My accounts" }) {
-                    Text("My accounts")
+                    //Text("My accounts")
+                    Text(NSLocalizedString("tab_my_accounts", comment: ""))
+
                         .font(.system(size: 14))
                         .padding()
                         .frame(maxWidth: .infinity)
@@ -51,7 +55,9 @@ struct HistoryView: View {
                     }
 
                 }) {
-                    Text("History")
+                    //Text("History")
+                    Text(NSLocalizedString("tab_history", comment: ""))
+
                         .font(.system(size: 14))
                         .padding()
                         .frame(maxWidth: .infinity)
@@ -72,34 +78,69 @@ struct HistoryView: View {
             //  Section Content Based on Tab
             if selectedTab == "My accounts", let account = account {
                 VStack(spacing: 12) {
-                    AccountField(label: "Account Status", value: "Active")
-                        Divider()
-
-                        AccountField(label: "Joint Account", value: "No")
-                        Divider()
-                    AccountField(label: "Account Name", value: account.accountName)
+//                    AccountField(label: "Account Status", value: "Active")
+//                        Divider()
+//
+//                        AccountField(label: "Joint Account", value: "No")
+//                        Divider()
+//                    AccountField(label: "Account Name", value: account.accountName)
+//                    Divider()
+//                    AccountField(label: "Account Type", value: account.accountType)
+//                    Divider()
+//                    AccountField(label: "Account Number", value: account.accountNumber)
+//                    Divider()
+//                    AccountField(label: "Balance", value: account.balance)
+//                    Divider()
+//                    AccountField(label: "Available Funds", value: account.balance)
+//                        Divider()
+//                    AccountField(label: "Holds", value: "$0.00")
+//                        Divider()
+//
+//                        AccountField(label: "Interest Rate", value: "0.00%")
+//                        Divider()
+//
+//                        AccountField(label: "Authorized Limit", value: "$0.00")
+//                        Divider()
+//
+//                        AccountField(label: "Transit Number", value: "50138")
+//                        Divider()
+//
+//                        AccountField(label: "Institution Number", value: "889")
+                    AccountField(label: NSLocalizedString("account_status_label", comment: ""), value: NSLocalizedString("account_status_value", comment: ""))
                     Divider()
-                    AccountField(label: "Account Type", value: account.accountType)
+
+                    AccountField(label: NSLocalizedString("joint_account_label", comment: ""), value: NSLocalizedString("joint_account_value", comment: ""))
                     Divider()
-                    AccountField(label: "Account Number", value: account.accountNumber)
+
+                    AccountField(label: NSLocalizedString("account_name_label", comment: ""), value: account.accountName)
                     Divider()
-                    AccountField(label: "Balance", value: account.balance)
+
+                    AccountField(label: NSLocalizedString("account_type_label", comment: ""), value: account.accountType)
                     Divider()
-                    AccountField(label: "Available Funds", value: account.balance)
-                        Divider()
-                    AccountField(label: "Holds", value: "$0.00")
-                        Divider()
 
-                        AccountField(label: "Interest Rate", value: "0.00%")
-                        Divider()
+                    AccountField(label: NSLocalizedString("account_number_label", comment: ""), value: account.accountNumber)
+                    Divider()
 
-                        AccountField(label: "Authorized Limit", value: "$0.00")
-                        Divider()
+                    AccountField(label: NSLocalizedString("balance_label", comment: ""), value: account.balance)
+                    Divider()
 
-                        AccountField(label: "Transit Number", value: "50138")
-                        Divider()
+                    AccountField(label: NSLocalizedString("available_funds_label", comment: ""), value: account.balance)
+                    Divider()
 
-                        AccountField(label: "Institution Number", value: "889")
+                    AccountField(label: NSLocalizedString("holds_label", comment: ""), value: "$0.00")
+                    Divider()
+
+                    AccountField(label: NSLocalizedString("interest_rate_label", comment: ""), value: "0.00%")
+                    Divider()
+
+                    AccountField(label: NSLocalizedString("authorized_limit_label", comment: ""), value: "$0.00")
+                    Divider()
+
+                    AccountField(label: NSLocalizedString("transit_number_label", comment: ""), value: "50138")
+                    Divider()
+
+                    AccountField(label: NSLocalizedString("institution_number_label", comment: ""), value: "889")
+
                 }
                 .padding()
                 .background(Color.white)
@@ -109,14 +150,20 @@ struct HistoryView: View {
 
             } else if selectedTab == "History" {
                 VStack(spacing: 12) {
-                    Text("Filter by Date")
+                    //Text("Filter by Date")
+                    Text(NSLocalizedString("filter_by_date", comment: ""))
+
                         .font(.headline)
                         .frame(maxWidth: .infinity, alignment: .leading)
 
-                    DatePicker("Start Date", selection: $startDate, displayedComponents: .date)
+//                    DatePicker("Start Date", selection: $startDate, displayedComponents: .date)
+                    DatePicker(NSLocalizedString("start_date", comment: ""), selection: $startDate, displayedComponents: .date)
+
                         .datePickerStyle(.compact)
 
-                    DatePicker("End Date", selection: $endDate, displayedComponents: .date)
+//                    DatePicker("End Date", selection: $endDate, displayedComponents: .date)
+                    DatePicker(NSLocalizedString("end_date", comment: ""), selection: $endDate, displayedComponents: .date)
+
                         .datePickerStyle(.compact)
 
                     Button(action: {
@@ -124,7 +171,9 @@ struct HistoryView: View {
                             fetchTransactionHistory(for: id)
                         }
                     }) {
-                        Text("Apply Filter")
+                        //Text("Apply Filter")
+                        Text(NSLocalizedString("apply_filter", comment: ""))
+
                             .font(.subheadline)
                             .foregroundColor(.white)
                             .padding()
@@ -151,7 +200,9 @@ struct HistoryView: View {
 //                        .padding()
                 if transactions.isEmpty {
                         // Show "No transactions found" message when there are no transactions
-                        Text("No transactions found")
+                        //Text("No transactions found")
+                    Text(NSLocalizedString("no_transactions", comment: ""))
+
                             .font(.headline)
                             .foregroundColor(.gray)
                             .padding()

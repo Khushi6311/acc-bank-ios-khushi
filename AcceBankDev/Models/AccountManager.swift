@@ -44,6 +44,16 @@ struct BankAccount: Identifiable, Codable, Equatable {
         case balance
         case accountName
     }
+    var accountTypeKey: String {
+        switch accountType.lowercased() {
+        case "loan": return "loan"
+        case "savings": return "savings"
+        case "chequing", "spending (chequing)": return "chequing"
+        case "mortgage": return "mortgage"
+        case "term deposit": return "term_deposit"
+        default: return accountType.lowercased().replacingOccurrences(of: " ", with: "_")
+        }
+    }
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)

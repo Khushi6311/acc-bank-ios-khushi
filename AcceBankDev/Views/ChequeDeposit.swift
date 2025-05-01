@@ -37,7 +37,9 @@ struct DepositChequeView: View {
                         .foregroundColor(.black)
                 }
                 Spacer()
-                Text("Deposit cheques")
+                //Text("Deposit cheques")
+                Text(NSLocalizedString("deposit_cheques", comment: ""))
+
                     .font(.title2).bold()
                 Spacer()
             }
@@ -130,16 +132,22 @@ struct Step1View: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             
-            Text("Deposit cheques here as quickly, easily, and securely as a paper one.")
+//            Text("Deposit cheques here as quickly, easily, and securely as a paper one.")
+            Text(NSLocalizedString("deposit_cheque_intro", comment: ""))
+
                 .font(.body)
             VStack(alignment: .leading, spacing: 6) {
-                            Text("Important:")
+                            //Text("Important:")
+                Text(NSLocalizedString("step_important", comment: ""))
+
                                 .font(.subheadline)
                                 .bold()
 
                             VStack(alignment: .leading, spacing: 4) {
-                                Text("• You must have a cheque that is less than 6 months old.")
-                                Text("• Standard hold times may apply, which may restrict your ability to access your deposited funds.")
+//                                Text("• You must have a cheque that is less than 6 months old.")
+//                                Text("• Standard hold times may apply, which may restrict your ability to access your deposited funds.")
+                                Text(NSLocalizedString("step_important_note_1", comment: ""))
+                                Text(NSLocalizedString("step_important_note_2", comment: ""))
                             }
                             .font(.footnote)
                         }
@@ -149,12 +157,29 @@ struct Step1View: View {
             }) {
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Deposit to")
+                        //Text("Deposit to")
+                        Text(NSLocalizedString("deposit_to", comment: ""))
+
                             .font(.caption)
                             .foregroundColor(.gray)
                         Text(accountManager.selectedAccount?.accountType ?? "Select account")
                             .font(.body)
                             .foregroundColor(.black)
+//                        if let account = accountManager.selectedAccount {
+//                            let localizedType = NSLocalizedString("account_type_\(account.accountTypeKey)", comment: "")
+//                            Text(localizedType)
+//                                .font(.body)
+//                                .foregroundColor(.black)
+//
+////                            Text(account.accountNumber)
+////                                .font(.caption)
+////                                .foregroundColor(.gray)
+//                        } else {
+//                            Text(NSLocalizedString("select_account", comment: ""))
+//                                .font(.body)
+//                                .foregroundColor(.gray)
+//                        }
+
                         if let accountNumber = accountManager.selectedAccount?.accountNumber {
                             Text(accountNumber)
                                 .font(.caption)
@@ -178,7 +203,9 @@ struct Step1View: View {
                 AccountSelectionSheet(accountManager: accountManager, isPresented: $showAccountSheet)
             }
             if showAccountError {
-                            Text("Please select an account.")
+                            //Text("Please select an account.")
+                Text(NSLocalizedString("please_select_account", comment: ""))
+
                                 .font(.caption)
                                 .foregroundColor(.red)
                         }
@@ -188,7 +215,9 @@ struct Step1View: View {
 //                .padding()
 //                .background(RoundedRectangle(cornerRadius: 8).stroke(Color.gray))
         
-                            TextField("Amount", text: $amount)
+                            //TextField("Amount", text: $amount)
+            TextField(NSLocalizedString("amount", comment: ""), text: $amount)
+
                                 //.keyboardType(.decimalPad)
                 .keyboardType(.numbersAndPunctuation)
                   .submitLabel(.done)
@@ -210,7 +239,9 @@ struct Step1View: View {
                         .background(RoundedRectangle(cornerRadius: 8).stroke(showAmountError ? Color.red : Color.gray))
 
                         if showAmountError {
-                            Text("Amount is required.")
+                            //Text("Amount is required.")
+                            Text(NSLocalizedString("amount_required", comment: ""))
+
                                 .font(.caption)
                                 .foregroundColor(.red)
                         }
@@ -219,7 +250,9 @@ struct Step1View: View {
                 //onContinue()
                 validateAndContinue()
             }) {
-                Text("Continue")
+                //Text("Continue")
+                Text(NSLocalizedString("continue", comment: ""))
+
                     .font(.headline)
                     .frame(maxWidth: .infinity)
                     .padding()
@@ -260,15 +293,23 @@ struct Step2View: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("The deposit cheque feature requires photos to be precise.")
+//            Text("The deposit cheque feature requires photos to be precise.")
+            Text(NSLocalizedString("cheque_photo_instruction", comment: ""))
+
                 .font(.body)
             VStack(alignment: .leading, spacing: 6) {
-                           Text("• Ensure your camera lens is clean")
-                           Text("• Make sure the entire cheque is within the defined perimeter. It cannot touch the guide box")
-                           Text("• Ensure the camera is positioned directly overhead and not at a sharp angle which may distort the image")
-                           Text("• Ensure the cheque details are highly visible. Watch for shadows and glare from overhead lights.")
-                           Text("• Centre the cheque on a dark surface in good light.")
-                           Text("• Try enabling and disabling the flash to adjust for low light or glare conditions.")
+//                           Text("• Ensure your camera lens is clean")
+//                           Text("• Make sure the entire cheque is within the defined perimeter. It cannot touch the guide box")
+//                           Text("• Ensure the camera is positioned directly overhead and not at a sharp angle which may distort the image")
+//                           Text("• Ensure the cheque details are highly visible. Watch for shadows and glare from overhead lights.")
+//                           Text("• Centre the cheque on a dark surface in good light.")
+//                           Text("• Try enabling and disabling the flash to adjust for low light or glare conditions.")
+                Text(NSLocalizedString("camera_tip_clean_lens", comment: ""))
+                Text(NSLocalizedString("camera_tip_cheque_inside_box", comment: ""))
+                Text(NSLocalizedString("camera_tip_camera_overhead", comment: ""))
+                Text(NSLocalizedString("camera_tip_details_visible", comment: ""))
+                Text(NSLocalizedString("camera_tip_dark_surface", comment: ""))
+                Text(NSLocalizedString("camera_tip_flash_toggle", comment: ""))
                        }
                        .font(.footnote)
 
@@ -279,7 +320,9 @@ struct Step2View: View {
 
             }) {
                 HStack {
-                    Text("Cheque front")
+                    //Text("Cheque front")
+                    Text(NSLocalizedString("camera_front", comment: ""))
+
                     Spacer()
                     //Image(systemName: "camera")
                     Image(systemName: chequeFrontImage == nil ? "camera" : "checkmark.circle.fill")
@@ -303,7 +346,9 @@ struct Step2View: View {
 
             }) {
                 HStack {
-                    Text("Cheque back")
+                    //Text("Cheque back")
+                    Text(NSLocalizedString("camera_back", comment: ""))
+
                     Spacer()
                     //Image(systemName: "camera")
                     Image(systemName: chequeBackImage == nil ? "camera" : "checkmark.circle.fill")
@@ -323,17 +368,19 @@ struct Step2View: View {
 //                   }
         
             Button(action: {
-                //onContinue()
-                showFrontError = chequeFrontImage == nil
-                                showBackError = chequeBackImage == nil
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        //onContinue()
-                    if chequeFrontImage != nil && chequeBackImage != nil {
-                                onContinue()
-                            }
-                    }
+                onContinue()
+//                showFrontError = chequeFrontImage == nil
+//                                showBackError = chequeBackImage == nil
+//                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+//                        //onContinue()
+//                    if chequeFrontImage != nil && chequeBackImage != nil {
+//                                onContinue()
+//                            }
+//                    }
             }) {
-                Text("Continue")
+                //Text("Continue")
+                Text(NSLocalizedString("continue", comment: ""))
+
                     .font(.headline)
                     .frame(maxWidth: .infinity)
                     .padding()
@@ -378,7 +425,9 @@ struct ChequeConfirmationSheet: View {
         VStack(alignment: .leading, spacing: 16) {
             // Top Bar
             HStack {
-                Text("Confirmation")
+                //Text("Confirmation")
+                Text(NSLocalizedString("confirmation", comment: ""))
+
                     .font(.headline)
                 Spacer()
                 Button(action: {
@@ -393,10 +442,17 @@ struct ChequeConfirmationSheet: View {
             // Info Fields
             Group {
                 if let account = selectedAccount {
-                        Text("Deposit to")
+                        //Text("Deposit to")
+                    Text(NSLocalizedString("deposit_to", comment: ""))
+
                             .font(.caption)
                             .foregroundColor(.gray)
                         Text("\(account.accountType) (\(account.accountNumber))")
+                    //for french account name
+
+//                    let localizedType = NSLocalizedString("account_type_\(account.accountTypeKey)", comment: "")
+//                    Text("\(localizedType) (\(account.accountNumber))")
+
                             .font(.body)
                         Divider()
                     }
@@ -405,20 +461,26 @@ struct ChequeConfirmationSheet: View {
 //                    .foregroundColor(.gray)
 //                Text(depositTo)
 //                    .font(.body)
-                Text("Transaction ID")
+                //Text("Transaction ID")
+                Text(NSLocalizedString("transaction_id", comment: ""))
+
                     .font(.caption)
                     .foregroundColor(.gray)
                 Divider()
                 Text(transactionId)
                     .font(.body)
                 Divider()
-                Text("Deposit date")
+                //Text("Deposit date")
+                Text(NSLocalizedString("deposit_date", comment: ""))
+
                     .font(.caption)
                     .foregroundColor(.gray)
                 Text(formattedDate)
                     .font(.body)
                 Divider()
-                Text("Amount")
+                //Text("Amount")
+                Text(NSLocalizedString("amount", comment: ""))
+
                     .font(.caption)
                     .foregroundColor(.gray)
                 Text(amount)
@@ -430,7 +492,9 @@ struct ChequeConfirmationSheet: View {
 
             // Cheque front image
             if let front = chequeFrontImage {
-                Text("Cheque front")
+                //Text("Cheque front")
+                Text(NSLocalizedString("camera_front", comment: ""))
+
                     .font(.caption)
                     .foregroundColor(.gray)
                 Image(uiImage: front)
@@ -443,7 +507,9 @@ struct ChequeConfirmationSheet: View {
 
             // Cheque back image
             if let back = chequeBackImage {
-                Text("Cheque back")
+                //Text("Cheque back")
+                Text(NSLocalizedString("camera_back", comment: ""))
+
                     .font(.caption)
                     .foregroundColor(.gray)
                 Image(uiImage: back)
@@ -463,7 +529,9 @@ struct ChequeConfirmationSheet: View {
                 showSummary=true
 
             }) {
-                Text("Confirm")
+                //Text("Confirm")
+                Text(NSLocalizedString("confirm", comment: ""))
+
                     .font(.headline)
                     .frame(maxWidth: .infinity)
                     .padding()
@@ -515,7 +583,9 @@ struct ChequeSummarySheet: View {
             HStack {
                 Image(systemName: "checkmark.circle.fill")
                     .foregroundColor(.white)
-                Text("Cheque Deposit Successful")
+                //Text("Cheque Deposit Successful")
+                Text(NSLocalizedString("cheque_deposit_success", comment: ""))
+
                     .foregroundColor(.white)
                     .font(.subheadline)
                     .bold()
@@ -528,7 +598,9 @@ struct ChequeSummarySheet: View {
 
             // Card-style summary box
             VStack(alignment: .leading, spacing: 16) {
-                Text("Cheque Deposit Summary")
+                //Text("Cheque Deposit Summary")
+                Text(NSLocalizedString("cheque_deposit_summary", comment: ""))
+
                     .font(.headline)
                     .bold()
                     .frame(maxWidth: .infinity, alignment: .center)
@@ -536,10 +608,16 @@ struct ChequeSummarySheet: View {
                 Divider()
                 if let account = selectedAccount {
                     HStack {
-                        Text("Deposit to")
+                        //Text("Deposit to")
+                        Text(NSLocalizedString("deposit_to", comment: ""))
+
                             .foregroundColor(.gray)
                             .font(.caption)
-                        Text("\(account.accountType) (\(account.accountNumber))")
+                     Text("\(account.accountType) (\(account.accountNumber))")
+                        //for french account name
+//                        let localizedType = NSLocalizedString("account_type_\(account.accountTypeKey)", comment: "")
+//                        Text("\(localizedType) (\(account.accountNumber))")
+
                             .font(.body)
                     }
                 }
@@ -547,7 +625,9 @@ struct ChequeSummarySheet: View {
                 Divider()
 
                 HStack {
-                    Text("Transaction ID")
+                    //Text("Transaction ID")
+                    Text(NSLocalizedString("transaction_id", comment: ""))
+
                         .foregroundColor(.gray)
                         .font(.caption)
                     Text(transactionId)
@@ -555,7 +635,9 @@ struct ChequeSummarySheet: View {
                 }
                 Divider()
                 HStack {
-                    Text("Deposit date")
+                    //Text("Deposit date")
+                    Text(NSLocalizedString("deposit_date", comment: ""))
+
                         .foregroundColor(.gray)
                         .font(.caption)
                     //Spacer()
@@ -568,7 +650,9 @@ struct ChequeSummarySheet: View {
 
 
                 HStack {
-                    Text("Amount")
+                    //Text("Amount")
+                    Text(NSLocalizedString("amount", comment: ""))
+
                         .foregroundColor(.gray)
                         .font(.caption)
                    // Spacer()
@@ -594,7 +678,9 @@ struct ChequeSummarySheet: View {
                 navigateToMainView = true
 
             }) {
-                Text("Done")
+                //Text("Done")
+                Text(NSLocalizedString("done", comment: ""))
+
                     .bold()
                     .frame(maxWidth: .infinity)
                     .padding()
@@ -611,6 +697,87 @@ struct ChequeSummarySheet: View {
         .background(Color.white.ignoresSafeArea())
     }
 }
+//struct AccountSelectionSheet: View {
+//    @ObservedObject var accountManager: AccountManager
+//    @Binding var isPresented: Bool
+//
+//    var body: some View {
+//        // Precompute localized header
+//        let headerText = NSLocalizedString("transfer_from", comment: "")
+//
+//        return VStack {
+//            // Header
+//            HStack {
+//                Text(headerText)
+//                    .font(.headline)
+//                    .bold()
+//                Spacer()
+//                Button(action: {
+//                    isPresented = false // Close sheet
+//                }) {
+//                    Image(systemName: "xmark")
+//                        .font(.title3)
+//                        .foregroundColor(.gray)
+//                }
+//            }
+//            .padding()
+//
+//            // Account List
+//            ScrollView {
+//                VStack(spacing: 10) {
+//                    ForEach(accountManager.accounts) { account in
+//                        Button(action: {
+//                            accountManager.selectedAccount = account
+//                            isPresented = false
+//                        }) {
+//                            HStack {
+//                                VStack(alignment: .leading, spacing: 2) {
+//                                    // Account Name
+//                                    Text(account.accountName)
+//                                        .font(.headline)
+//                                        .bold()
+//                                        .foregroundColor(.black)
+//
+//                                    // Localized Account Type
+//                                    let typeKey = "account_type_\(account.accountTypeKey)"
+//                                    let localizedType = NSLocalizedString(typeKey, comment: "")
+//                                    Text(localizedType)
+//                                        .font(.subheadline)
+//                                        .foregroundColor(.gray)
+//
+//                                    // Account Number
+//                                    Text(account.accountNumber)
+//                                        .font(.subheadline)
+//                                        .foregroundColor(.gray)
+//                                }
+//
+//                                Spacer()
+//
+//                                // Balance
+//                                Text(account.balance)
+//                                    .font(.headline)
+//                                    .bold()
+//                                    .foregroundColor(.black)
+//
+//                                // Selected Checkmark
+//                                if account == accountManager.selectedAccount {
+//                                    Image(systemName: "checkmark.circle.fill")
+//                                        .foregroundColor(.blue)
+//                                }
+//                            }
+//                            .padding()
+//                            .background(account == accountManager.selectedAccount ? Color.blue.opacity(0.2) : Color(.systemGray6))
+//                            .cornerRadius(10)
+//                        }
+//                    }
+//                }
+//                .padding()
+//            }
+//        }
+//        .padding(.horizontal)
+//        .presentationDetents([.medium, .large])
+//    }
+//}
 
 
 struct AccountSelectionSheet: View {

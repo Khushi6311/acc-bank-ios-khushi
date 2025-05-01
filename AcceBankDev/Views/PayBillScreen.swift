@@ -679,6 +679,7 @@ struct AddPayeeFormView: View {
     @State private var showPayeeNameError = false
     @State private var showPayeeTypeError = false
     @State private var showSuccessMessage = false
+    @State private var showSuccessScreen = false
 
     let payeeTypes = [
         "CRA – GST/HST", "CRA – Payroll",
@@ -695,7 +696,9 @@ struct AddPayeeFormView: View {
         VStack(spacing: 20) {
             // Header
             HStack {
-                Text("Add New Payee")
+                //Text("Add New Payee")
+                Text(NSLocalizedString("add_new_payee", comment: "Header title for add payee screen"))
+
                     .font(.headline)
                 Spacer()
                 Button(action: { dismiss() }) {
@@ -708,7 +711,9 @@ struct AddPayeeFormView: View {
 //                   Text("Payee Name")
 //                       .font(.caption)
 //                       .foregroundColor(.gray)
-                   TextField("Enter Payee Name", text: $payeeName)
+                   //TextField("Enter Payee Name", text: $payeeName)
+                TextField(NSLocalizedString("enter_payee_name", comment: "Placeholder for payee name"), text: $payeeName)
+
                        .padding()
                        .background(Color(.systemGray6))
                        .cornerRadius(10)
@@ -732,7 +737,9 @@ struct AddPayeeFormView: View {
                     }
                 }) {
                     HStack {
-                        Text(selectedPayee.isEmpty ? "Select Payee" : selectedPayee)
+                        //Text(selectedPayee.isEmpty ? "Select Payee" : selectedPayee)
+                        Text(selectedPayee.isEmpty ? NSLocalizedString("select_payee", comment: "Dropdown placeholder") : selectedPayee)
+
                             .foregroundColor(selectedPayee.isEmpty ? .gray : .black)
                         Spacer()
                         Image(systemName: showPayeeList ? "chevron.up" : "chevron.down")
@@ -785,7 +792,9 @@ struct AddPayeeFormView: View {
             
             VStack(alignment: .leading,spacing:4){
                 // Account Number Field
-                TextField("Account Number", text: $accountNumber)
+                //TextField("Account Number", text: $accountNumber)
+                TextField(NSLocalizedString("account_number", comment: "Placeholder for account number"), text: $accountNumber)
+
                     .keyboardType(.numberPad)
                     .padding()
                     .background(Color(.systemGray6))
@@ -807,7 +816,9 @@ struct AddPayeeFormView: View {
                 validateAndSave()
                 
             }) {
-                Text("Save Account")
+                //Text("Save Account")
+                Text(NSLocalizedString("save_account", comment: "Save button label"))
+
                     .frame(maxWidth: .infinity)
                     .padding()
                     .background(Color.black)
@@ -815,13 +826,18 @@ struct AddPayeeFormView: View {
                     .cornerRadius(10)
             }
             .padding(.horizontal)
-            if showSuccessMessage {
-                Text("Payee Added Successfully!")
-                    .font(.headline)
-                    .foregroundColor(.black)
-                    .padding()
-                    .transition(.slide)
-                    .zIndex(1)
+//            if showSuccessMessage {
+//                Text("Payee Added Successfully!")
+//                    .font(.headline)
+//                    .foregroundColor(.black)
+//                    .padding()
+//                    .transition(.slide)
+//                    .zIndex(1)
+//            }
+            .fullScreenCover(isPresented: $showSuccessScreen) {
+                PayeeSuccessView {
+                    dismiss()  // This will dismiss AddPayeeFormView and return to MainOptions
+                }
             }
 
             Spacer()
@@ -886,7 +902,9 @@ struct AddPayeeFormView: View {
                     print("Payee added successfully")
                     DispatchQueue.main.async {
                         //dismiss()
-                        showSuccessMessage = true
+                        //showSuccessMessage = true
+                        showSuccessScreen = true
+
                     }
                 } else {
                     print("Server responded with status code: \(httpResponse.statusCode)")
@@ -937,7 +955,9 @@ struct AddPayeeFormView: View {
         )
         //onSave(newPayee)
         //dismiss()
-        showSuccessMessage = true
+        //showSuccessMessage = true
+        showSuccessScreen = true
+
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
             dismiss()
         }
@@ -949,6 +969,39 @@ struct AddPayeeFormView: View {
     }
 
 
+}
+struct PayeeSuccessView: View {
+    var onDone: () -> Void
+
+    var body: some View {
+        VStack {
+            Spacer()
+
+            Image(systemName: "checkmark.circle.fill")
+                .resizable()
+                .frame(width: 100, height: 100)
+                .foregroundColor(.green)
+
+            Text("Payee Added Successfully!")
+                .font(.title2)
+                .bold()
+                .padding()
+
+            Spacer()
+
+            Button(action: onDone) {
+                Text("Done")
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity, minHeight: 50)
+                    .background(Color.black)
+                    .cornerRadius(12)
+            }
+            .padding(.horizontal, 30)
+            .padding(.bottom, 40)
+        }
+        .background(Color.white.ignoresSafeArea())
+    }
 }
 
     
@@ -2832,7 +2885,7 @@ struct BillSendSheet: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 16) {
+            VStack(spacing: 0) {
 
                 // Top green bar
                 HStack {
@@ -2848,10 +2901,11 @@ struct BillSendSheet: View {
                 .frame(maxWidth: .infinity)
                 .background(Color.green)
                 .cornerRadius(10)
-                .padding()
+                .padding(.top,30)
+                .padding(.horizontal)
 
                 // Payment Summary
-                VStack {
+                VStack (spacing: 0) {
                     Text(NSLocalizedString("payment_summary", comment: ""))
                         .font(.title3)
                         .bold()
@@ -2908,7 +2962,8 @@ struct BillSendSheet: View {
                 Text(NSLocalizedString("continue_with_new_transfer", comment: "Continue with new transfer button"))
                     .font(.headline)
                     .frame(maxWidth: .infinity)
-                    .padding()
+                    //.padding()
+                    .padding(.horizontal)
                     //.background(Color.colorBlue) // or .blue
                     .background(
                         RoundedRectangle(cornerRadius: 10)

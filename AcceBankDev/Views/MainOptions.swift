@@ -7,6 +7,7 @@ struct MainOptionsView: View {
 
     @State private var showAddPayeeSheet = false
     @State private var selectedPayees: [Payee] = []
+
     var body: some View {
         NavigationView {
             ZStack {
@@ -23,14 +24,15 @@ struct MainOptionsView: View {
                     VStack(spacing: 10) {
                         // Add Account Button
                         Button(action: {
-                            showAddAccountSheet = true
+                            showAddContactSheet = true
                         }) {
                             HStack {
                                 Image(systemName: "building.columns.fill")
                                     .foregroundColor(.black)
                                     .font(.title2)
                                 
-                                Text("Add Contact")
+                                //Text("Add Contact")
+                                Text(NSLocalizedString("add_contact", comment: ""))
                                     .foregroundColor(.black)
                                     .font(.headline)
                                 
@@ -44,7 +46,7 @@ struct MainOptionsView: View {
                             // Replace with your AddAccountFormView()
                             //Text("Add Account Form Placeholder")
                             //AddContactFormView(accountManager: AccountManager())
-                            AddContactFormView(isPresented: .constant(false), contactManager: ContactManager())
+                            AddContactFormView(isPresented: $showAddContactSheet, contactManager: ContactManager())
 
 
                         }
@@ -60,7 +62,8 @@ struct MainOptionsView: View {
                                     .foregroundColor(.black)
                                     .font(.title2)
                                 
-                                Text("Add Payee")
+                                //Text("Add Payee")
+                                Text(NSLocalizedString("add_payee", comment: ""))
                                     .foregroundColor(.black)
                                     .font(.headline)
                                 
@@ -91,7 +94,8 @@ struct MainOptionsView: View {
                                     .foregroundColor(.black)
                                     .font(.title2)
                                 
-                                Text("Add Account")
+                                //Text("Add Account")
+                                Text(NSLocalizedString("add_account", comment: ""))
                                     .foregroundColor(.black)
                                     .font(.headline)
                                 
@@ -105,7 +109,8 @@ struct MainOptionsView: View {
                             // Replace with your AddAccountFormView()
                             //Text("Add Account Form Placeholder")
                             //AddContactFormView(accountManager: AccountManager())
-                            AddAccountFormView(accountManager: AccountManager())
+                           AddAccountFormView(accountManager: AccountManager())
+//                            AddAccountFormView(isPresented: $isShowingAddAccountForm, accountManager: AccountManager())
 
 
 
@@ -131,3 +136,4 @@ struct MainOptionsView: View {
 #Preview {
     MainOptionsView()
 }
+

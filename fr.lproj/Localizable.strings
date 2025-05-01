@@ -92,6 +92,84 @@
 "close_button" = "Fermer";
 ///^^^^^^^^^^^^^^^^^^
 
+//5.cheque deposit
+"deposit_cheques" = "Déposer des chèques";
+"step_important" = "Important :";
+"step_important_note_1" = "• Vous devez avoir un chèque de moins de 6 mois.";
+"step_important_note_2" = "• Des délais de traitement standard peuvent s’appliquer, limitant l’accès à vos fonds déposés.";
+"deposit_to" = "Déposer dans";
+"select_account" = "Sélectionner un compte";
+"amount_required" = "Le montant est requis.";
+"please_select_account" = "Veuillez sélectionner un compte.";
+"amount" = "Montant";
+"continue" = "Continuer";
+"cheque_photo_instruction" = "La fonctionnalité de dépôt de chèque nécessite des photos précises.";
+"camera_front" = "Avant du chèque";
+"camera_back" = "Arrière du chèque";
+"confirmation" = "Confirmation";
+"transaction_id" = "ID de transaction";
+"deposit_date" = "Date de dépôt";
+"confirm" = "Confirmer";
+"cheque_front" = "Avant du chèque";
+"cheque_back" = "Arrière du chèque";
+"cheque_deposit_success" = "Dépôt de chèque réussi";
+"cheque_deposit_summary" = "Résumé du dépôt de chèque";
+"done" = "Terminé";
+"transfer_from" = "Transférer depuis";
+"deposit_cheque_intro" = "Déposez les chèques ici aussi rapidement, facilement et en toute sécurité qu’un chèque papier.";
+"camera_tip_clean_lens" = "• Assurez-vous que l’objectif de votre caméra est propre";
+"camera_tip_cheque_inside_box" = "• Assurez-vous que l’ensemble du chèque est dans le périmètre défini. Il ne doit pas toucher le cadre de guidage";
+"camera_tip_camera_overhead" = "• Assurez-vous que la caméra est positionnée directement au-dessus, sans angle qui pourrait déformer l’image";
+"camera_tip_details_visible" = "• Assurez-vous que les détails du chèque sont clairement visibles. Évitez les ombres et les reflets causés par l’éclairage";
+"camera_tip_dark_surface" = "• Placez le chèque au centre d’une surface sombre et bien éclairée.";
+"camera_tip_flash_toggle" = "• Essayez d’activer ou de désactiver le flash pour ajuster selon la luminosité ou les reflets.";
+
+
+//6.Histiry screen
+"history_title" = "Historique";
+"tab_my_accounts" = "Mes comptes";
+"tab_history" = "Historique";
+"filter_by_date" = "Filtrer par date";
+"start_date" = "Date de début";
+"end_date" = "Date de fin";
+"apply_filter" = "Appliquer le filtre";
+"no_transactions" = "Aucune transaction trouvée";
+
+"account_status_label" = "Statut du compte";
+"account_status_value" = "Actif";
+"joint_account_label" = "Compte joint";
+"joint_account_value" = "Non";
+"account_name_label" = "Nom du compte";
+"account_type_label" = "Type de compte";
+"account_number_label" = "Numéro de compte";
+"balance_label" = "Solde";
+"available_funds_label" = "Fonds disponibles";
+"holds_label" = "Fonds bloqués";
+"interest_rate_label" = "Taux d'intérêt";
+"authorized_limit_label" = "Limite autorisée";
+"transit_number_label" = "Numéro de transit";
+"institution_number_label" = "Numéro d'institution";
+
+"self_transfer" = "Virement à soi-même";
+"recipient" = "Destinataire";
+"sender" = "Expéditeur";
+"to_prefix" = "À";
+"transaction_status_completed" = "Terminé";
+"transaction_status_internal" = "Interne";
+
+"add_account" = "Ajouter un compte";
+
+//7.add payee
+"add_new_payee" = "Ajouter un nouveau bénéficiaire";
+"enter_payee_name" = "Entrez le nom du bénéficiaire";
+"select_payee" = "Sélectionnez un bénéficiaire";
+"account_number" = "Numéro de compte";
+"save_account" = "Enregistrer le compte";
+"payee_added_success" = "Bénéficiaire ajouté avec succès !";
+
+"error_payee_name_required" = "Le nom du bénéficiaire est requis.";
+"error_payee_type_required" = "Le type de bénéficiaire est requis.";
+"error_account_number_required" = "Le numéro de compte est requis.";
 
 //below is for SendMoneyScreenView file
 // Common Labels
@@ -340,6 +418,8 @@
 "frequency_weekly" = "Hebdomadaire";
 "frequency_monthly" = "Mensuelle";
 "frequency_annual" = "Annuelle";
+"frequency_yearly" = "Annuel";
+
 
 
 //addaccount file
@@ -393,3 +473,5 @@
 "no_payee_found" = "Aucun bénéficiaire trouvé.";
 "no_contact_found" = "Aucun contact trouvé.";
 "error_required_account_field" = "Veuillez sélectionner un compte pour effectuer le paiement.";
+
+"error_acknowledgment_required"="Veuillez accepter les conditions de dépôt automatique pour continuer.";

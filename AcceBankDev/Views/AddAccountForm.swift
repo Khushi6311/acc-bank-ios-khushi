@@ -19,6 +19,7 @@ struct AddAccountFormView: View {
     @State private var selectedAccountTypeLabel = ""
     @State private var showSuccessMessage = false
     @State private var dismissAfterDelay = false
+    @State private var showSuccessScreen = false
 
     var body: some View {
         NavigationStack {
@@ -176,23 +177,33 @@ struct AddAccountFormView: View {
                     .padding(.top, 20)
                 }
                 .padding(.horizontal, 20)
-                if showSuccessMessage {
-                    withAnimation {
-                        Text("Account Added Successfully!")
-                            .font(.headline)
-                            .foregroundColor(.green)
-                            .padding()
-                            .transition(.move(edge: .top))
-                            .zIndex(1)
-                    }
-                }
+//                if showSuccessMessage {
+//                    withAnimation {
+//                        Text("Account Added Successfully!")
+//                            .font(.headline)
+//                            .foregroundColor(.green)
+//                            .padding()
+//                            .transition(.move(edge: .top))
+//                            .zIndex(1)
+//                    }
+//                }
 
 
             }
+            
+
             .onAppear {
                 fetchAccountTypes()
             }
+            .fullScreenCover(isPresented: $showSuccessScreen) {
+                AccountSuccessScreen {
+                    showSuccessScreen = false
+                    presentationMode.wrappedValue.dismiss()
+                }
+            }
+
         }
+        
     }
 
     func formatCurrencyInput(_ input: String) -> String {
@@ -210,15 +221,10 @@ struct AddAccountFormView: View {
     
     //API use
     func submitAccountToServer() {
-        guard let url = URL(string: AppConfig.AddAccountURL)
-        else {
-
+        guard let url = URL(string: AppConfig.AddAccountURL) else {
             print("Invalid URL")
             return
         }
-        
-        print("Final AddAccount URL: \(url)")
-
 
         guard let token = TokenManager.shared.getToken(), !token.isEmpty else {
             print("Missing token")
@@ -247,55 +253,120 @@ struct AddAccountFormView: View {
         request.httpBody = try? JSONSerialization.data(withJSONObject: requestBody)
 
         URLSession.shared.dataTask(with: request) { data, response, error in
-            DispatchQueue.main.async {
-                if let error = error {
-                    print("Error saving account: \(error.localizedDescription)")
-                    return
+            if let error = error {
+                print("Error saving account: \(error.localizedDescription)")
+                return
+            }
+
+            guard let httpResponse = response as? HTTPURLResponse else {
+                print("Invalid response object")
+                return
+            }
+
+            print("Status Code: \(httpResponse.statusCode)")
+
+            // ✅ SUCCESS BLOCK (even if response body is empty)
+            if httpResponse.statusCode == 200 || httpResponse.statusCode == 201 {
+                DispatchQueue.main.async {
+                    showSuccessScreen = true
                 }
-
-                guard let data = data else {
-                    print("No data received from API.")
-                    return
+            } else {
+                // Optional: Print raw body for debugging
+                if let data = data, let raw = String(data: data, encoding: .utf8) {
+                    print("Raw Error Body: \(raw)")
                 }
-
-                do {
-                    let decoded = try JSONDecoder().decode(GenericAPIResponse.self, from: data)
-                    print("Account saved: \(decoded.message)")
-                    //showSuccessMessage = true
-                    DispatchQueue.main.async {
-                        showSuccessMessage = true
-
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 2.2) {
-                            presentationMode.wrappedValue.dismiss()
-                        }
-                    }
-
-//                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-//                        presentationMode.wrappedValue.dismiss()
-//                    }
-                    //presentationMode.wrappedValue.dismiss()
-                } catch {
-                    print("Decoding error: \(error.localizedDescription)")
-                    
-                    if let raw = String(data: data, encoding: .utf8) {
-                        print("Raw Save Account Response: '\(raw)'")
-                    } else {
-                        print("Unable to decode response to string")
-                    }
-
-                    // Fallback: check if it's just a 200 with no content
-                    if let httpResponse = response as? HTTPURLResponse {
-                        print("Status code: \(httpResponse.statusCode)")
-                        if httpResponse.statusCode == 200 {
-                            print("Account saved with 200 OK, but no response body.")
-                            presentationMode.wrappedValue.dismiss()
-                        }
-                    }
-                }
-
+                print("Failed with status: \(httpResponse.statusCode)")
             }
         }.resume()
     }
+
+//    func submitAccountToServer() {
+//        guard let url = URL(string: AppConfig.AddAccountURL)
+//        else {
+//
+//            print("Invalid URL")
+//            return
+//        }
+//        
+//        print("Final AddAccount URL: \(url)")
+//
+//
+//        guard let token = TokenManager.shared.getToken(), !token.isEmpty else {
+//            print("Missing token")
+//            return
+//        }
+//
+//        guard let contactId = TokenManager.shared.getContactId(), !contactId.isEmpty else {
+//            print("Missing contact ID")
+//            return
+//        }
+//
+//        let sanitizedAmount = balance.replacingOccurrences(of: "$", with: "")
+//        let amountDouble = Double(sanitizedAmount) ?? 0.0
+//
+//        let requestBody: [String: Any] = [
+//            "contactId": contactId,
+//            "accountName": accountName,
+//            "accountType": accountType,
+//            "amount": amountDouble
+//        ]
+//
+//        var request = URLRequest(url: url)
+//        request.httpMethod = "POST"
+//        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+//        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+//        request.httpBody = try? JSONSerialization.data(withJSONObject: requestBody)
+//
+//        URLSession.shared.dataTask(with: request) { data, response, error in
+//            DispatchQueue.main.async {
+//                if let error = error {
+//                    print("Error saving account: \(error.localizedDescription)")
+//                    return
+//                }
+//
+//                guard let data = data else {
+//                    print("No data received from API.")
+//                    return
+//                }
+//
+//                do {
+//                    let decoded = try JSONDecoder().decode(GenericAPIResponse.self, from: data)
+//                    print("Account saved: \(decoded.message)")
+//                    //showSuccessMessage = true
+//                    DispatchQueue.main.async {
+//                        showSuccessScreen = true
+//
+////                        DispatchQueue.main.asyncAfter(deadline: .now() + 2.2) {
+////                            presentationMode.wrappedValue.dismiss()
+////                        }
+//                    }
+//
+////                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+////                        presentationMode.wrappedValue.dismiss()
+////                    }
+//                    //presentationMode.wrappedValue.dismiss()
+//                } catch {
+//                    print("Decoding error: \(error.localizedDescription)")
+//                    
+//                    if let raw = String(data: data, encoding: .utf8) {
+//                        print("Raw Save Account Response: '\(raw)'")
+//                    } else {
+//                        print("Unable to decode response to string")
+//                    }
+//
+//                    // Fallback: check if it's just a 200 with no content
+//                    if let httpResponse = response as? HTTPURLResponse {
+//                        print("Status code: \(httpResponse.statusCode)")
+//                        if httpResponse.statusCode == 200 {
+//                            print("Account saved with 200 OK, but no response body.")
+//                            presentationMode.wrappedValue.dismiss()
+//                        }
+//                    }
+//                }
+//
+//            }
+//        }.resume()
+//    }
 
 
     private func validateFields() -> Bool {
@@ -395,6 +466,38 @@ struct AddAccountFormView: View {
 
 
 
+}
+
+
+//success screen
+struct AccountSuccessScreen: View {
+    var onDone: () -> Void
+    
+    var body: some View {
+        VStack {
+            Spacer()
+            Image(systemName: "checkmark.circle.fill")
+                .resizable()
+                .frame(width: 100, height: 100)
+                .foregroundColor(.green)
+            Text("Account Added Successfully!")
+                .font(.title2)
+                .bold()
+                .padding()
+
+            Spacer()
+            Button(action: onDone) {
+                Text("Done")
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity, minHeight: 50)
+                    .background(Color.black)
+                    .cornerRadius(12)
+            }
+            .padding(.horizontal, 30)
+            .padding(.bottom, 40)
+        }
+    }
 }
 
 // MARK: - API Models

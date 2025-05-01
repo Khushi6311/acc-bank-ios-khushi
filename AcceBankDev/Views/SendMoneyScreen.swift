@@ -26,6 +26,11 @@ struct SendMoneyView: View {
     @State private var confirmSecurityAnswer: String = ""
 
     @State private var isUpdatingSecurityInfo = false
+    @State private var accountError: String? = nil
+    @State private var contactError: String? = nil
+    @State private var amountError: String? = nil
+    @State private var acknowledgmentError: String? = nil
+    @State private var securityError: String? = nil
 
     var body: some View {
         NavigationStack {
@@ -50,29 +55,7 @@ struct SendMoneyView: View {
                 }
                 .padding()
                 
-                //  Payment Error Banner
-                //                if showPaymentError {
-                //                    HStack {
-                //                        Image(systemName: "exclamationmark.triangle.fill")
-                //                            .foregroundColor(.white)
-                //                        VStack(alignment: .leading) {
-                //                            //Text("Payment failed")//
-                //                            Text(NSLocalizedString("payment_failed", comment: ""))
-                //
-                //                                .font(.headline)
-                //                                .bold()
-                ////                            Text("This payment amount exceeds your transaction limit. Please try again.")//
-                //                            Text(NSLocalizedString("transaction_limit_exceeded", comment: ""))
-                //                                .font(.subheadline)
-                //                        }
-                //                        Spacer()
-                //                    }
-                //                    .padding()
-                //                    .background(Color.red.opacity(0.9))
-                //                    .foregroundColor(.white)
-                //                    .cornerRadius(10)
-                //                    .padding(.horizontal)
-                //                }
+          
                 ScrollView(showsIndicators:false){
                 VStack(alignment: .leading, spacing: 15) {
                     if showPaymentError {
@@ -132,6 +115,10 @@ struct SendMoneyView: View {
                         .background(Color(.systemGray6))
                         .cornerRadius(10)
                     }
+                    if let error = accountError {
+                        Text(error).font(.footnote).foregroundColor(.red)
+                    }
+
                     
                     // Send To (Dropdown with Contact List)
                     //Text("Send to")//
@@ -148,11 +135,20 @@ struct SendMoneyView: View {
                             Spacer()
                             Image(systemName: "chevron.down")
                         }
+                      
                         .padding()
                         .background(Color(.systemGray6))
                         .cornerRadius(10)
+                       
                     }
                     
+                    if let error = contactError {
+                        Text(error)
+                            .font(.footnote)
+                            .foregroundColor(.red)
+                            .padding(.leading, 4)
+                    }
+
                     // Add Contact Button (Opens Form)
                     Button(action: { showAddContactSheet = true }) {
                         HStack {
@@ -258,6 +254,10 @@ struct SendMoneyView: View {
                                         text: $confirmSecurityAnswer)
                                 .textFieldStyle(RoundedBorderTextFieldStyle())
                                 .disabled(!isUpdatingSecurityInfo)
+                            if let error = securityError {
+                                Text(error).font(.footnote).foregroundColor(.red)
+                            }
+
                         }
                         .padding()
                         .background(Color(.systemGray6))
@@ -274,7 +274,8 @@ struct SendMoneyView: View {
                     //                        .textFieldStyle(RoundedBorderTextFieldStyle())
                     //                        .padding(.top, 5)
                     //                    TextField("Enter transfer amount", text: $transferAmount)//
-                    TextField(NSLocalizedString("enter_transfer_amount", comment: ""), text: $transferAmount)
+                    TextField(NSLocalizedString("error_required_amount", comment: ""), text: $transferAmount)
+                    
                     
                         //.keyboardType(.decimalPad) // Ensure numeric input
                         .keyboardType(.numbersAndPunctuation)
@@ -285,9 +286,15 @@ struct SendMoneyView: View {
                             transferAmount = formatCurrencyInput(newValue)
                         }
                     
+                    if let error = amountError {
+                        Text(error)
+                            .font(.footnote)
+                            .foregroundColor(.red)
+                            .padding(.leading, 4)
+                    }
+
                     
-                    
-                    
+                   
                     
                     //TextField("Message (optional)", text: $message)//
                     TextField(NSLocalizedString("message_optional", comment: ""), text: $message)
@@ -316,11 +323,11 @@ struct SendMoneyView: View {
                     // Error Message
                     //                    if showError {
                     //                        Text("Please select a contact, enter an amount, and acknowledge the terms.")//
-                    if showError {
-                        Text(NSLocalizedString("error_select_contact", comment: ""))
-                            .foregroundColor(.red)
+                    if let error = acknowledgmentError {
+                        Text(error)
                             .font(.footnote)
-                            .padding(.top, 5)
+                            .foregroundColor(.red)
+                            .padding(.leading, 4)
                     }
                     
                     // Continue Button with Validation
@@ -405,104 +412,130 @@ struct SendMoneyView: View {
 
     //function valiadate amount with balance and give summary
     private func validateAndShowSummary() {
-        showError = false  // Reset error state before validation
-        showPaymentError = false  // Reset payment error
+        accountError = nil
+        contactError = nil
+        amountError = nil
+        acknowledgmentError = nil
+        securityError = nil
+        showPaymentError = false
 
-        print("DEBUG: Starting validation...")
-//11 april]
-//        guard securityAnswer == confirmSecurityAnswer else {
-//            print("DEBUG: Security answers don't match.")
+        var isValid = true
+
+        if accountManager.selectedAccount == nil {
+            accountError = NSLocalizedString("error_required_transfer_from_field", comment: "Please select an account.")
+            isValid = false
+        }
+
+        if selectedContact == nil {
+            contactError = NSLocalizedString("error_select_contact", comment: "Please select a contact.")
+            isValid = false
+        }
+
+        if isUpdatingSecurityInfo {
+            if securityAnswer.isEmpty || confirmSecurityAnswer.isEmpty || securityAnswer != confirmSecurityAnswer {
+                securityError = NSLocalizedString("error_security_mismatch", comment: "Security answers do not match.")
+                isValid = false
+            }
+        }
+
+        let cleanedAmount = transferAmount.replacingOccurrences(of: "$", with: "").trimmingCharacters(in: .whitespaces)
+        if cleanedAmount.isEmpty || Double(cleanedAmount) == nil {
+            amountError = NSLocalizedString("error_required_amount", comment: "Please enter a valid amount.")
+            isValid = false
+        } else if let account = accountManager.selectedAccount {
+            let enteredAmount = Double(cleanedAmount) ?? 0.0
+            let accountBalance = Double(account.balance.replacingOccurrences(of: "$", with: "").replacingOccurrences(of: ",", with: "")) ?? 0.0
+            if enteredAmount > accountBalance {
+                showPaymentError = true
+                isValid = false
+            }
+        }
+
+        if !isAcknowledged {
+            acknowledgmentError = NSLocalizedString("error_acknowledgment_required", comment: "Please acknowledge auto-deposit.")
+            isValid = false
+        }
+
+        if isValid {
+            showPaymentSummarySheet = true
+        }
+    }
+
+//    private func validateAndShowSummary() {
+//        showError = false  // Reset error state before validation
+//        showPaymentError = false  // Reset payment error
+//
+//        print("DEBUG: Starting validation...")
+//
+//        if isUpdatingSecurityInfo {
+//            guard securityAnswer == confirmSecurityAnswer else {
+//                print("DEBUG: Security answers don't match.")
+//                showError = true
+//                return
+//            }
+//
+//            if var contact = selectedContact {
+//                contact.securityQuestion = securityQuestion
+//                contact.securityAnswer = securityAnswer
+//                selectedContact = contact
+//
+//                if let index = contactManager.contacts.firstIndex(where: { $0.id == contact.id }) {
+//                    contactManager.contacts[index] = contact
+//                    //contactManager.saveContacts()
+//                }
+//            }
+//        }
+//
+//        guard let balanceString = accountManager.selectedAccount?.balance
+//                .replacingOccurrences(of: "$", with: "")
+//                .replacingOccurrences(of: ",", with: ""),
+//              let accountBalance = Double(balanceString) else {
+//            print("DEBUG: Could not retrieve account balance.")
 //            showError = true
 //            return
 //        }
 //
-//        // Save into the selected contact
-//        if var contact = selectedContact {
-//            contact.securityQuestion = securityQuestion
-//            contact.securityAnswer = securityAnswer
-//            selectedContact = contact
-//            
-//            // Also update in contactManager
-//            if let index = contactManager.contacts.firstIndex(where: { $0.id == contact.id }) {
-//                contactManager.contacts[index] = contact
-//                contactManager.saveContacts() // If your manager supports saving
-//            }
+//        print("DEBUG: Account Balance - \(accountBalance)")
 //
-//            print("DEBUG: Saved security question to contact.")
+//        // Ensure transferAmount is valid and convert to a number
+//        let cleanedAmount = transferAmount.replacingOccurrences(of: "$", with: "").trimmingCharacters(in: .whitespaces)
+//        
+//        guard let enteredAmount = Double(cleanedAmount), !cleanedAmount.isEmpty else {
+//            print("DEBUG: Invalid or empty transfer amount.")
+//            showError = true
+//            return
 //        }
 //
-        
-        //11 2 code
-        // Save into the selected contact if checkbox is selected
-        if isUpdatingSecurityInfo {
-            guard securityAnswer == confirmSecurityAnswer else {
-                print("DEBUG: Security answers don't match.")
-                showError = true
-                return
-            }
-
-            if var contact = selectedContact {
-                contact.securityQuestion = securityQuestion
-                contact.securityAnswer = securityAnswer
-                selectedContact = contact
-
-                if let index = contactManager.contacts.firstIndex(where: { $0.id == contact.id }) {
-                    contactManager.contacts[index] = contact
-                    //contactManager.saveContacts()
-                }
-            }
-        }
-
-        guard let balanceString = accountManager.selectedAccount?.balance
-                .replacingOccurrences(of: "$", with: "")
-                .replacingOccurrences(of: ",", with: ""),
-              let accountBalance = Double(balanceString) else {
-            print("DEBUG: Could not retrieve account balance.")
-            showError = true
-            return
-        }
-
-        print("DEBUG: Account Balance - \(accountBalance)")
-
-        // Ensure transferAmount is valid and convert to a number
-        let cleanedAmount = transferAmount.replacingOccurrences(of: "$", with: "").trimmingCharacters(in: .whitespaces)
-        
-        guard let enteredAmount = Double(cleanedAmount), !cleanedAmount.isEmpty else {
-            print("DEBUG: Invalid or empty transfer amount.")
-            showError = true
-            return
-        }
-
-        print("DEBUG: Transfer Amount - \(enteredAmount)")
-
-        // Check if a contact is selected
-        if selectedContact == nil {
-            print("DEBUG: No contact selected.")
-            showError = true
-            return
-        }
-
-        print("DEBUG: Contact selected - \(selectedContact?.name ?? "Unknown")")
-
-        // Ensure user acknowledges the terms
-        if !isAcknowledged {
-            print("DEBUG: User did not acknowledge the terms.")
-            showError = true
-            return
-        }
-
-        // Check if entered amount exceeds account balance
-        if enteredAmount > accountBalance {
-            print("DEBUG: Entered amount exceeds account balance.")
-            showPaymentError = true
-            return
-        }
-
-        // If everything is valid, proceed to payment summary
-        print("DEBUG: Validation successful! Opening Payment Summary.")
-        showError = false
-        showPaymentSummarySheet = true
-    }
+//        print("DEBUG: Transfer Amount - \(enteredAmount)")
+//
+//        // Check if a contact is selected
+//        if selectedContact == nil {
+//            print("DEBUG: No contact selected.")
+//            showError = true
+//            return
+//        }
+//
+//        print("DEBUG: Contact selected - \(selectedContact?.name ?? "Unknown")")
+//
+//        // Ensure user acknowledges the terms
+//        if !isAcknowledged {
+//            print("DEBUG: User did not acknowledge the terms.")
+//            showError = true
+//            return
+//        }
+//
+//        // Check if entered amount exceeds account balance
+//        if enteredAmount > accountBalance {
+//            print("DEBUG: Entered amount exceeds account balance.")
+//            showPaymentError = true
+//            return
+//        }
+//
+//        // If everything is valid, proceed to payment summary
+//        print("DEBUG: Validation successful! Opening Payment Summary.")
+//        showError = false
+//        showPaymentSummarySheet = true
+//    }
 
     
 

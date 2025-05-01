@@ -1920,7 +1920,9 @@ struct ConfirmationSheet: View {
 
                     PaymentDetailRow(
                         title: NSLocalizedString("frequency", comment: "Label for frequency of recurring payment"),
-                        value: selectedFrequency ?? NSLocalizedString("na", comment: "Not available fallback"),
+//                        value: selectedFrequency ?? NSLocalizedString("na", comment: "Not available fallback"),
+                        value: NSLocalizedString(selectedFrequency?.lowercased() ?? "na", comment: "Localized frequency value"),
+
                         bold: false
                     )
 
@@ -2067,180 +2069,186 @@ struct SummarySheet: View { //SummarySheet
     @Environment(\.presentationMode) var presentationMode
 
     var body: some View {
-        VStack {
-            // Payment Sent Message
-            HStack {
-                Image(systemName: "checkmark.circle.fill")
-                    .foregroundColor(.white)
-                    .font(.title3)
-                //Text("Payment Sent")
-                Text(NSLocalizedString("payment_sent", comment: "Message shown when a payment is successfully sent"))
+        ScrollView {
+            VStack(spacing:0){
+                // Payment Sent Message
+                HStack {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.white)
+                        .font(.title3)
+                    //Text("Payment Sent")
+                    Text(NSLocalizedString("payment_sent", comment: "Message shown when a payment is successfully sent"))
+                    
+                        .font(.headline)
+                        .foregroundColor(.white)
+                    Spacer()
+                }
+                .padding()
+                .frame(maxWidth: .infinity)
+                .background(Color.green)
+                .cornerRadius(10)
+                .padding(.top, 40)
+                .padding(.horizontal)
 
-                    .font(.headline)
-                    .foregroundColor(.white)
-                Spacer()
-            }
-            .padding()
-            .frame(maxWidth: .infinity)
-            .background(Color.green)
-            .cornerRadius(10)
-            .padding()
-
-            // Payment Summary Card
-            VStack(alignment: .leading, spacing: 10) {
-                //Text("Payment Summary")
-                Text(NSLocalizedString("payment_summary", comment: "Message shown when a payment is successfully sent"))
-                    .font(.title3)
-                    .bold()
-                    .frame(maxWidth: .infinity, alignment: .center)
-
-                Divider()
                 
-                
-                PaymentDetailRow(
+                // Payment Summary Card
+                VStack(alignment: .leading, spacing:0) {
+                    //Text("Payment Summary")
+                    Text(NSLocalizedString("payment_summary", comment: "Message shown when a payment is successfully sent"))
+                        .font(.title3)
+                        .bold()
+                        .frame(maxWidth: .infinity, alignment: .center)
+                    
+                    Divider()
+                    
+                    
+                    PaymentDetailRow(
                         title: "Transaction ID",
                         value: transactionId,  // Show transaction id
                         bold: true
                     )
-
+                    
                     Divider()
-//25 march
-                PaymentDetailRow(
-                    title: NSLocalizedString("transfer_from", comment: "Label for the source account in transfer details"),
-                    value: "\(fromAccount?.accountName ?? NSLocalizedString("no_account", comment: "Fallback when no account")) - \(fromAccount?.accountNumber ?? "")",
-                    bold: true
-                )
-
-
-                PaymentDetailRow(
-                    title: isAnotherMemberSelected
-                        ? NSLocalizedString("send_to", comment: "Title for sending to a contact")
-                        : NSLocalizedString("transfer_to", comment: "Title for transferring to own account"),
-
-                    value: isAnotherMemberSelected
-                        ? (selectedContact?.name ?? NSLocalizedString("no_contact_selected", comment: "Fallback when no contact selected"))
-                        : "\(toAccount?.accountName ?? NSLocalizedString("no_account", comment: "Fallback when no account")) - \(toAccount?.accountNumber ?? "")",
-
-                    bold: true
-                )
-               
-//
-//                PaymentDetailRow(title: "Amount", value: "\(amount)", bold: true)
-                PaymentDetailRow(
-                    title: NSLocalizedString("amount", comment: "Label for transfer amount"),
-                    value: "\(amount)",
-                    bold: true
-                )
-
-
-
-                if isRecurring {
+                    //25 march
                     PaymentDetailRow(
-                        title: NSLocalizedString("payment_type", comment: "Label for payment type"),
-                        value: NSLocalizedString("recurring_payment", comment: "Recurring payment value"),
+                        title: NSLocalizedString("transfer_from", comment: "Label for the source account in transfer details"),
+                        value: "\(fromAccount?.accountName ?? NSLocalizedString("no_account", comment: "Fallback when no account")) - \(fromAccount?.accountNumber ?? "")",
                         bold: true
                     )
-
+                    
+                    
                     PaymentDetailRow(
-                        title: NSLocalizedString("frequency", comment: "Label for frequency of recurring payment"),
-                        value: selectedFrequency ?? NSLocalizedString("na", comment: "Not available fallback"),
+                        title: isAnotherMemberSelected
+                        ? NSLocalizedString("send_to", comment: "Title for sending to a contact")
+                        : NSLocalizedString("transfer_to", comment: "Title for transferring to own account"),
+                        
+                        value: isAnotherMemberSelected
+                        ? (selectedContact?.name ?? NSLocalizedString("no_contact_selected", comment: "Fallback when no contact selected"))
+                        : "\(toAccount?.accountName ?? NSLocalizedString("no_account", comment: "Fallback when no account")) - \(toAccount?.accountNumber ?? "")",
+                        
+                        bold: true
+                    )
+                    
+                    //
+                    //                PaymentDetailRow(title: "Amount", value: "\(amount)", bold: true)
+                    PaymentDetailRow(
+                        title: NSLocalizedString("amount", comment: "Label for transfer amount"),
+                        value: "\(amount)",
+                        bold: true
+                    )
+                    
+                    
+                    
+                    if isRecurring {
+                        PaymentDetailRow(
+                            title: NSLocalizedString("payment_type", comment: "Label for payment type"),
+                            value: NSLocalizedString("recurring_payment", comment: "Recurring payment value"),
+                            bold: true
+                        )
+                        
+                        PaymentDetailRow(
+                            title: NSLocalizedString("frequency", comment: "Label for frequency of recurring payment"),
+                            //                        value: selectedFrequency ?? NSLocalizedString("na", comment: "Not available fallback"),
+                            value: NSLocalizedString(selectedFrequency?.lowercased() ?? "na", comment: "Localized frequency value"),
+                            
+                            bold: false
+                        )
+                        
+                        PaymentDetailRow(
+                            title: NSLocalizedString("start_date", comment: "Label for start date of recurring payment"),
+                            value: startDateText ?? NSLocalizedString("na", comment: "Not available fallback"),
+                            bold: false
+                        )
+                        
+                        PaymentDetailRow(
+                            title: NSLocalizedString("end_date", comment: "Label for end date of recurring payment"),
+                            value: endDateText ?? NSLocalizedString("na", comment: "Not available fallback"),
+                            bold: false
+                        )
+                    } else {
+                        //                       PaymentDetailRow(
+                        //                           title: "Payment Type",
+                        //                           value: "One-Time",
+                        //                           bold: true
+                        //                       )
+                        //
+                        //                       PaymentDetailRow(
+                        //                           title: "Date",
+                        //                           value: dateText,
+                        //                           bold: false
+                        //                       )
+                        PaymentDetailRow(
+                            title: NSLocalizedString("payment_type", comment: "Label for payment type"),
+                            value: NSLocalizedString("one_time_payment", comment: "One-time payment value"),
+                            bold: true
+                        )
+                        
+                        PaymentDetailRow(
+                            title: NSLocalizedString("date", comment: "Label for payment date"),
+                            value: dateText,
+                            bold: false
+                        )
+                    }
+                    
+                    //                PaymentDetailRow(title: "Memo", value: memo.isEmpty ? "N/A" : memo, bold: false)
+                    PaymentDetailRow(
+                        title: NSLocalizedString("memo", comment: "Label for memo field"),
+                        value: memo.isEmpty ? NSLocalizedString("na", comment: "Fallback when no value is available") : memo,
                         bold: false
                     )
-
-                    PaymentDetailRow(
-                        title: NSLocalizedString("start_date", comment: "Label for start date of recurring payment"),
-                        value: startDateText ?? NSLocalizedString("na", comment: "Not available fallback"),
-                        bold: false
-                    )
-
-                    PaymentDetailRow(
-                        title: NSLocalizedString("end_date", comment: "Label for end date of recurring payment"),
-                        value: endDateText ?? NSLocalizedString("na", comment: "Not available fallback"),
-                        bold: false
-                    )
-                   } else {
-//                       PaymentDetailRow(
-//                           title: "Payment Type",
-//                           value: "One-Time",
-//                           bold: true
-//                       )
-//
-//                       PaymentDetailRow(
-//                           title: "Date",
-//                           value: dateText,
-//                           bold: false
-//                       )
-                       PaymentDetailRow(
-                           title: NSLocalizedString("payment_type", comment: "Label for payment type"),
-                           value: NSLocalizedString("one_time_payment", comment: "One-time payment value"),
-                           bold: true
-                       )
-
-                       PaymentDetailRow(
-                           title: NSLocalizedString("date", comment: "Label for payment date"),
-                           value: dateText,
-                           bold: false
-                       )
-                   }
-
-//                PaymentDetailRow(title: "Memo", value: memo.isEmpty ? "N/A" : memo, bold: false)
-                PaymentDetailRow(
-                    title: NSLocalizedString("memo", comment: "Label for memo field"),
-                    value: memo.isEmpty ? NSLocalizedString("na", comment: "Fallback when no value is available") : memo,
-                    bold: false
-                )
-            }
-       
-
-            .padding()
-            .background(RoundedRectangle(cornerRadius: 10).fill(Color.white).shadow(radius: 5))
-            .padding()
-
-            Spacer()
-
-            // Done Button: Redirects back to main page
-            Button(action: {
-                //presentationMode.wrappedValue.dismiss()
-                navigateToMainView = true
-            }) {
-                //Text("Done")
-                Text(NSLocalizedString("done", comment: "Done button label"))
-
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.black)
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
-            }
-            .fullScreenCover(isPresented: $navigateToMainView) {
-                MainView() // Opens MainView when button is clicked
-            }
-            .padding(.horizontal)
-            .padding(.bottom, 20)
-            
-            //added new button
-            Button(action: {
-                navigateToTransferMoney = true
-            }) {
-                Text(NSLocalizedString("continue_with_new_transfer", comment: "Continue with new transfer button"))
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
-                    .padding()
+                }
+                
+                
+                .padding()
+                .background(RoundedRectangle(cornerRadius: 10).fill(Color.white).shadow(radius: 5))
+                .padding()
+                
+                Spacer()
+                
+                // Done Button: Redirects back to main page
+                Button(action: {
+                    //presentationMode.wrappedValue.dismiss()
+                    navigateToMainView = true
+                }) {
+                    //Text("Done")
+                    Text(NSLocalizedString("done", comment: "Done button label"))
+                    
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.black)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                }
+                .fullScreenCover(isPresented: $navigateToMainView) {
+                    MainView() // Opens MainView when button is clicked
+                }
+                .padding(.horizontal)
+                .padding(.bottom, 20)
+                
+                //added new button
+                Button(action: {
+                    navigateToTransferMoney = true
+                }) {
+                    Text(NSLocalizedString("continue_with_new_transfer", comment: "Continue with new transfer button"))
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding()
                     //.background(Color.colorBlue) // or .blue
-                    .background(
-                        RoundedRectangle(cornerRadius: 10)
-                            .fill(Constants.backgroundGradient)
-                    )
-
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
+                        .background(
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(Constants.backgroundGradient)
+                        )
+                    
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                }
+                .fullScreenCover(isPresented: $navigateToTransferMoney) {
+                    TransferMoneyScreen() // Your Transfer Money screen view
+                }
+                .padding(.horizontal)
+                .padding(.bottom, 20) // consiste
             }
-            .fullScreenCover(isPresented: $navigateToTransferMoney) {
-                TransferMoneyScreen() // Your Transfer Money screen view
-            }
-            .padding(.horizontal)
-            .padding(.bottom, 20) // consiste
         }
         .padding()
     }

@@ -507,9 +507,12 @@ struct MoveMoneyView: View {
             }
             .fullScreenCover(isPresented: $isShowingContactForm) {
                 AddContactFormView(isPresented: $isShowingContactForm, contactManager: ContactManager())
+        
             }
             .fullScreenCover(isPresented: $isShowingAccountForm) {
                 AddAccountFormView(accountManager: AccountManager())
+//                AddAccountFormView(isPresented: $isShowingAddAccountForm, accountManager: AccountManager())
+
             }
             .fullScreenCover(isPresented: $isShowingPayBills) {
                 let viewModel = PayeeViewModel()

@@ -59,12 +59,23 @@ struct HomePageView: View {
                             .background(Color.white)
                         
                         Spacer().frame(height: 60)
-                        
-                        Image("profilePic")
-                            .resizable()
-                            .frame(width: geometry.size.width * 0.18, height: geometry.size.width * 0.18)
-                            .clipShape(Circle())
-                            .padding(.top, -geometry.size.height * 0.05)
+//                        
+//                        Image("profilePic")
+//                            .resizable()
+//                            .frame(width: geometry.size.width * 0.18, height: geometry.size.width * 0.18)
+//                            .clipShape(Circle())
+//                            .padding(.top, -geometry.size.height * 0.05)
+                        ZStack {
+                            Circle()
+                                .fill(Color.white.opacity(0.3))
+                                .frame(width: geometry.size.width * 0.18, height: geometry.size.width * 0.18)
+
+                            Text(getInitials(firstName: TokenManager.shared.firstName, lastName: TokenManager.shared.lastName))
+                                .font(.system(size: 28, weight: .bold))
+                                .foregroundColor(.white)
+                        }
+                        .padding(.top, -geometry.size.height * 0.05)
+
                         
                         VStack(spacing: 1) {
 //                            Text(String(format: NSLocalizedString("welcome_text", comment: ""), username))
@@ -142,6 +153,11 @@ struct HomePageView: View {
                 }
             }
         }
+    }
+    func getInitials(firstName: String, lastName: String) -> String {
+        let firstInitial = firstName.first.map { String($0).uppercased() } ?? ""
+        let lastInitial = lastName.first.map { String($0).uppercased() } ?? ""
+        return firstInitial + lastInitial
     }
 
     func getGreeting() -> String {
