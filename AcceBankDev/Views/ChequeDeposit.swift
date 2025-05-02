@@ -29,14 +29,14 @@ struct DepositChequeView: View {
             
             // Top Bar
             HStack {
-                Button(action: {
-                    presentationMode.wrappedValue.dismiss() 
-                }) {
-                    Image(systemName: "arrow.left")
-                        .font(.title2)
-                        .foregroundColor(.black)
-                }
-                Spacer()
+//                Button(action: {
+//                    presentationMode.wrappedValue.dismiss() 
+//                }) {
+//                    Image(systemName: "arrow.left")
+//                        .font(.title2)
+//                        .foregroundColor(.black)
+//                }
+//                Spacer()
                 //Text("Deposit cheques")
                 Text(NSLocalizedString("deposit_cheques", comment: ""))
 

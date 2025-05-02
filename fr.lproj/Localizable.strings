@@ -9,7 +9,7 @@
 //below is for 1.LoginView file
 "quote_of_the_day" = "CITATION DU JOUR";
 "keep_me_logged_in" = "Rester connecté";
-"register" = "S'inscrire";
+"register" = "Besoin d'ouvrir un compte ? Inscrivez-vous!";
 "sign_in" = "Se connecter";
 "incorrect_password" = "Mot de passe incorrect. Veuillez réessayer.";
 
@@ -33,6 +33,7 @@
 "failed_to_encode" = "Échec de l'encodage des données OTP.";
 "network_error_prefix" = "Erreur réseau : ";
 "no_data_received" = "Aucune donnée reçue.";
+
 "unexpected_response_format" = "Format de réponse inattendu.";
 "otp_invalid" = "OTP invalide.";
 "otp_verification_failed" = "Échec de la vérification OTP.";
@@ -40,7 +41,7 @@
 "parse_error" = "Échec de l'analyse de la réponse.";
 "amount"="Montante";
 ////3.this below is for HomePageView
-"welcome_text" = "Bienvenue %@ à";
+"welcome_text" = "Bienvenue %@ %@ à";
 "bank_name" = "Acceinfo Banque";
 "greeting_text" = "Bonjour";
 "savings" = "Épargne";
@@ -205,7 +206,7 @@
 "cancel" = "Annuler";
 
 // Validation Errors
-"error_select_contact" = "⚠️ Veuillez sélectionner un contact, entrer un montant et accepter les conditions.";
+"error_select_contact" = "Veuillez sélectionner un contact.";
 "error_required_field" = "Champ obligatoire.";
 "error_invalid_email" = "Format d'e-mail invalide.";
 "error_invalid_phone" = "Format de numéro de téléphone invalide.";
@@ -256,7 +257,7 @@
 
 //below is for register view of register
 "register_title" = "S'inscrire";
-//"username_placeholder" = "Nom d'utilisateur";
+"username_placeholder" = "Nom d'utilisateur ou numéro de carte";
 "password_placeholder" = "Mot de passe";
 "confirm_password_placeholder" = "Confirmez le mot de passe";
 "all_fields_required" = "Tous les champs sont obligatoires.";

@@ -30,7 +30,7 @@ struct MainView: View {
             switch selectedTab {
             case 0:
                 //HomePageView(username: "Danielle")
-                HomePageView(username: username)
+                HomePageView(username: username, cardNumber: "1234")
 
                 //HomeView()
             case 1:

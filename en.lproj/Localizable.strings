@@ -17,7 +17,7 @@
 //below is for LoginView file 1. LoginView*******************
 "quote_of_the_day" = "QUOTE OF THE DAY";
 "keep_me_logged_in" = "Keep me logged in";
-"register" = "Register";
+"register" = "Need to open an account? Register!";
 "sign_in" = "Sign In";
 "incorrect_password" = "Incorrect password. Please try again.";
 "face_id_title" = "Enable Face ID?";
@@ -48,7 +48,7 @@
 
 
 //this below is for 3. HomePageView
-"welcome_text" = "Welcome %@ to";
+"welcome_text" = "Welcome %@ %@ to";
 "bank_name" = "Acceinfo Bank";
 "greeting_text" = "Good Morning";
 "savings" = "Savings";
@@ -269,7 +269,7 @@
 
 //below is for register view of register
 "register_title" = "Register";
-//"username_placeholder" = "Username";
+"username_placeholder" = "Username or Card number";
 "password_placeholder" = "Password";
 "confirm_password_placeholder" = "Confirm Password";
 "all_fields_required" = "All fields are required.";
@@ -430,7 +430,7 @@
 "error_name_required" = "Please enter the contact's name.";
 "error_email_required" = "Please enter a valid email address.";
 "error_invalid_email" = "Invalid email format.";
-"error_phone_required" = "Please enter a valid phone number. (10 digit validation)";
+"error_phone_required" = "Please enter a valid phone number.";
 "error_account_required" = "Account number is required.";
 "error_select_transfer_method" = "Please select at least one transfer method.";
 

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct HomePageView: View {
     var username: String
+    var cardNumber: String
 
     @State private var bankAccounts: [BankAccount] = []
     @State private var selectedAccount: BankAccount?
@@ -16,6 +17,23 @@ struct HomePageView: View {
 //            return ["Card", "Card2", "Card3"]
 //        }
 //    }
+//    var cardImages: [String] {
+//        let userImageMap: [String: [String]] = [
+//            "michaelthompson": ["MichaelCard1", "MichaelCard2"],
+//            "sarahmckenzie": ["SarahCard1", "SarahCard2"],
+//            "emilyfraser": ["EmilyCard1", "EmilyCard2"],
+//            "johnathanbrooks": ["JonathanCard1", "JonathanCard2"],
+//            "haanahleblanc": ["HaanahCard1", "HaanahCard2"],
+//            "danielrobertson": ["DanielCard1", "DanielCard2"],
+//            "matthewoconnor": ["MatthewCard1", "MatthewCard2"],
+//            "rachelsinclair": ["RachelCard1", "RachelCard2"],
+//            "davidpelletier": ["DavidCard1", "DavidCard2"],
+//            "gracemacdonald": ["GraceCard1", "GraceCard2"]
+//        ]
+//        
+//        return userImageMap[username.lowercased()] ?? ["Card", "Card2", "Card3"]
+//    }
+
     var cardImages: [String] {
         let userImageMap: [String: [String]] = [
             "michaelthompson": ["MichaelCard1", "MichaelCard2"],
@@ -30,9 +48,35 @@ struct HomePageView: View {
             "gracemacdonald": ["GraceCard1", "GraceCard2"]
         ]
         
-        return userImageMap[username.lowercased()] ?? ["Card", "Card2", "Card3"]
-    }
+        let cardToUserMap: [String: String] = [
+            "4532187632547612": "michaelthompson",
+            "5278238146792045": "sarahmckenzie",
+            "4532396711845920": "emilyfraser",
+            "5278762198321473": "johnathanbrooks",
+            "4532589162053819": "haanahleblanc",
+            "5278498374526061": "danielrobertson",
+            "4532861239014725": "matthewoconnor",
+            "5278652739108634": "rachelsinclair",
+            "4532348971052349": "davidpelletier",
+            "5278914280321158": "gracemacdonald"
+        ]
+        
+        let input = username.replacingOccurrences(of: " ", with: "").lowercased()
 
+        // 1. Try input as a username
+        if let images = userImageMap[input] {
+            return images
+        }
+        // 2. Try input as a card number → map to username
+        else if let user = cardToUserMap[input],
+                let images = userImageMap[user] {
+            return images
+        }
+        // 3. Default fallback
+        else {
+            return ["Card", "Card2"]//, "Card3"
+        }
+    }
 
 
     @State private var showHistory = false
@@ -82,8 +126,7 @@ struct HomePageView: View {
 //                            Text("Welcome \(TokenManager.shared.firstName) \(TokenManager.shared.lastName)")
                             Text(String(format: NSLocalizedString("welcome_text", comment: "Welcome message with user's name"), TokenManager.shared.firstName, TokenManager.shared.lastName))
 
-                                .font(.system(size: 18, weight: .bold))
-                                .foregroundColor(.white)
+                           
 
                                 .font(.system(size: 18, weight: .bold))
                                 .foregroundColor(.white)
@@ -320,9 +363,9 @@ struct HomePageView: View {
 
     @ViewBuilder
     var accountCardView: some View {
-        //if selectedAccount?.accountType == "Spending (Chequing)" {
-        //if selectedAccount?.accountCategoryName.contains("Chequing") == true {
-        if selectedAccount?.accountType == NSLocalizedString("account_type_chequing", comment: "") {
+        if selectedAccount?.accountType == "Spending (Chequing)" {
+      //not working  //if selectedAccount?.accountCategoryName.contains("Chequing") == true {
+        //if selectedAccount?.accountType == NSLocalizedString("account_type_chequing", comment: "") {
 
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 15) {
@@ -335,8 +378,8 @@ struct HomePageView: View {
             .frame(height: 190)
             .transition(.opacity)
             .padding(.bottom, 20)
-        //} else if selectedAccount?.accountType == "Savings" {
-        } else if selectedAccount?.accountType == NSLocalizedString("account_type_savings", comment: "") {
+        } else if selectedAccount?.accountType == "Savings" {
+        //} else if selectedAccount?.accountType == NSLocalizedString("account_type_savings", comment: "") {
 
             if cardImages.indices.contains(1) {
                 CreditCardView(imageName: cardImages[1])
@@ -419,23 +462,26 @@ struct AccountListView: View {
 
            return icon // fallback
        }
-
     var localizedTitle: String {
-        switch title.lowercased() {
-        case let t where t.contains("chequing"):
-            return NSLocalizedString("account_type_chequing", comment: "")
-        case let t where t.contains("loan"):
-            return NSLocalizedString("account_type_loan", comment: "")
-        case let t where t.contains("savings"):
-            return NSLocalizedString("account_type_savings", comment: "")
-        case let t where t.contains("mortgage"):
-            return NSLocalizedString("account_type_mortgage", comment: "")
-        case let t where t.contains("term deposit"):
-            return NSLocalizedString("account_type_term_deposit", comment: "")
-        default:
-            return title // fallback to API title if no match
-        }
+        return title // Use original English from API
     }
+//added this  to conver eng to french account name
+//    var localizedTitle: String {
+//        switch title.lowercased() {
+//        case let t where t.contains("chequing"):
+//            return NSLocalizedString("account_type_chequing", comment: "")
+//        case let t where t.contains("loan"):
+//            return NSLocalizedString("account_type_loan", comment: "")
+//        case let t where t.contains("savings"):
+//            return NSLocalizedString("account_type_savings", comment: "")
+//        case let t where t.contains("mortgage"):
+//            return NSLocalizedString("account_type_mortgage", comment: "")
+//        case let t where t.contains("term deposit"):
+//            return NSLocalizedString("account_type_term_deposit", comment: "")
+//        default:
+//            return title // fallback to API title if no match
+//        }
+    //}
 
 
     var body: some View {
@@ -519,6 +565,6 @@ struct AccountHeaderView: View {
 // MARK: - Preview
 struct HomePageView_Previews: PreviewProvider {
     static var previews: some View {
-        HomePageView(username: "Danielle")
+        HomePageView(username: "Danielle", cardNumber: "1234")
     }
 }

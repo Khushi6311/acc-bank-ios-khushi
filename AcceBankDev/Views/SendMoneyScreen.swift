@@ -244,13 +244,13 @@ struct SendMoneyView: View {
                                 .disabled(!isUpdatingSecurityInfo)
 
                             // Security Answer
-                            SecureField(NSLocalizedString("security_answer", comment: ""),
+                            TextField(NSLocalizedString("security_answer", comment: ""),
                                         text: $securityAnswer)
                                 .textFieldStyle(RoundedBorderTextFieldStyle())
                                 .disabled(!isUpdatingSecurityInfo)
 
                             // Confirm Security Answer
-                            SecureField(NSLocalizedString("confirm_security_answer", comment: ""),
+                            TextField(NSLocalizedString("confirm_security_answer", comment: ""),
                                         text: $confirmSecurityAnswer)
                                 .textFieldStyle(RoundedBorderTextFieldStyle())
                                 .disabled(!isUpdatingSecurityInfo)

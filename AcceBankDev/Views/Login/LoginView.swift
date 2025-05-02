@@ -215,7 +215,7 @@ struct LoginView: View {
 
     @State private var isFaceIDLogin = false
 
-
+    @State private var loginToken: String = ""
     //private let correctPassword = "123456" // Static password for demo
     
     var body: some View {
@@ -343,19 +343,33 @@ struct LoginView: View {
                                     
                                     Spacer()
                                     
-                                    Button(action: {
-                                        navigateToRegister = true
-                                    }) {
-                                        //Text("Register")
-                                        Text(NSLocalizedString("register", comment: ""))
-                                        
-                                            .font(.system(size: 18, weight: .bold))
-                                            .foregroundColor(.white)
-                                            .underline()
-                                    }
+//                                    Button(action: {
+//                                        navigateToRegister = true
+//                                    }) {
+//                                        //Text("Register")
+//                                        Text(NSLocalizedString("register", comment: ""))
+//                                        
+//                                            .font(.system(size: 18, weight: .bold))
+//                                            .foregroundColor(.white)
+//                                            .underline()
+//                                    }
                                 }
                                 .frame(width: 350, alignment: .leading)
                                 .padding(.horizontal, 40)
+                                
+                                HStack {
+                                    Button(action: {
+                                        navigateToRegister = true
+                                    }) {
+                                        Text(NSLocalizedString("register", comment: ""))
+//                                            .font(.system(size: 18, weight: .bold))
+                                            .font(.system(size: 16))
+                                            .foregroundColor(.white)
+                                    }
+                                    Spacer()
+                                }
+                                .frame(width: 340, alignment: .leading)
+                                //.padding(.horizontal, 10)
                                 //#########
                                 HStack {
                                     //Spacer()
@@ -471,7 +485,9 @@ struct LoginView: View {
 //                }
                 .navigationDestination(isPresented: $navigateToOTP) {
 //                    OTPVerificationView(token: UserDefaults.standard.string(forKey: "AuthToken") ?? "")
-                    OTPVerificationView(token: TokenManager.shared.getToken() ?? "")
+//                    OTPVerificationView(token: TokenManager.shared.getToken() ?? "")
+                    OTPVerificationView(token: loginToken)
+
 
                 }
 
@@ -550,10 +566,16 @@ struct LoginView: View {
                         let contactId = json["contactId"] as? String
 
                         if message.contains("success") {
+//                            if let token = token {
+//                                TokenManager.shared.saveToken(token)
+//                                TokenManager.shared.scheduleAutoRefresh()
+//                            }
                             if let token = token {
                                 TokenManager.shared.saveToken(token)
                                 TokenManager.shared.scheduleAutoRefresh()
+                                loginToken = token // ← Store locally
                             }
+
 
                             if let refreshToken = refreshToken {
                                 TokenManager.shared.saveRefreshToken(refreshToken)
@@ -648,9 +670,15 @@ struct LoginView: View {
                             saveUsernameIfNew()
                             errorMessage = nil
 
+//                            if let token = token {
+//                                TokenManager.shared.saveToken(token)
+//                                TokenManager.shared.scheduleAutoRefresh()
+//                            }
                             if let token = token {
                                 TokenManager.shared.saveToken(token)
                                 TokenManager.shared.scheduleAutoRefresh()
+                                loginToken = token
+                                print("✅ Stored loginToken for OTP:", loginToken) // ← ADD THIS
                             }
 
                             if let refreshToken = refreshToken {

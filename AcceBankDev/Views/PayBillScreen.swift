@@ -774,7 +774,7 @@ struct AddPayeeFormView: View {
 
                             }
                         }
-                        .frame(maxHeight: 200)
+                        .frame(maxHeight: 400)
                     }
                     .foregroundColor(Color.black)
                     .background(Color.white)
@@ -795,7 +795,9 @@ struct AddPayeeFormView: View {
                 //TextField("Account Number", text: $accountNumber)
                 TextField(NSLocalizedString("account_number", comment: "Placeholder for account number"), text: $accountNumber)
 
-                    .keyboardType(.numberPad)
+                    //.keyboardType(.numberPad)
+                    .keyboardType(.numbersAndPunctuation)
+                      .submitLabel(.done)
                     .padding()
                     .background(Color(.systemGray6))
                     .cornerRadius(8)
@@ -2962,8 +2964,8 @@ struct BillSendSheet: View {
                 Text(NSLocalizedString("continue_with_new_transfer", comment: "Continue with new transfer button"))
                     .font(.headline)
                     .frame(maxWidth: .infinity)
-                    //.padding()
-                    .padding(.horizontal)
+                    .padding()
+                    //.padding(.horizontal)
                     //.background(Color.colorBlue) // or .blue
                     .background(
                         RoundedRectangle(cornerRadius: 10)
