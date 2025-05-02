@@ -157,16 +157,37 @@ struct HistoryView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
 
 //                    DatePicker("Start Date", selection: $startDate, displayedComponents: .date)
-                    DatePicker(NSLocalizedString("start_date", comment: ""), selection: $startDate, displayedComponents: .date)
+//                    DatePicker(NSLocalizedString("start_date", comment: ""), selection: $startDate, displayedComponents: .date)
+//
+//                        .datePickerStyle(.compact)
+//
+////                    DatePicker("End Date", selection: $endDate, displayedComponents: .date)
+//                    DatePicker(NSLocalizedString("end_date", comment: ""), selection: $endDate, displayedComponents: .date)
+//
+//                        .datePickerStyle(.compact)
+                    DatePicker(
+                        NSLocalizedString("start_date", comment: ""),
+                        selection: $startDate,
+                        displayedComponents: .date
+                    )
+                    .datePickerStyle(.compact)
+                    .onChange(of: startDate) { newStart in
+                        if endDate < newStart {
+                            endDate = newStart
+                        }
+                    }
 
-                        .datePickerStyle(.compact)
+                    DatePicker(
+                        NSLocalizedString("end_date", comment: ""),
+                        selection: $endDate,
+                        in: startDate..., // Disables earlier dates
+                        displayedComponents: .date
+                    )
+                    .datePickerStyle(.compact)
 
-//                    DatePicker("End Date", selection: $endDate, displayedComponents: .date)
-                    DatePicker(NSLocalizedString("end_date", comment: ""), selection: $endDate, displayedComponents: .date)
-
-                        .datePickerStyle(.compact)
 
                     Button(action: {
+                        
                         if let id = account?.accountId {
                             fetchTransactionHistory(for: id)
                         }
@@ -218,7 +239,9 @@ struct HistoryView: View {
     //                                    .frame(width: 40, height: 40)
     //                                    .background(Color(UIColor.systemGray5))
     //                                    .clipShape(Circle())
-                                    Image(systemName: (tx.transactionFrom == (account?.accountId ?? "")) ? "arrow.up.right" : "arrow.down.left")
+//                                    Image(systemName: (tx.transactionFrom == (account?.accountId ?? "")) ? "arrow.up.right" : "arrow.down.left")
+                                    Image(systemName: getTransactionIcon(tx))
+
                                         .font(.title2)
                                         .frame(width: 40, height: 40)
                                         .background(Color(UIColor.systemGray5))
@@ -291,10 +314,20 @@ struct HistoryView: View {
             Spacer()
         }
         .navigationBarBackButtonHidden(true)
+        
+        
+    }
+    func getTransactionIcon(_ tx: Transaction) -> String {
+        if tx.transactionType?.lowercased() == "fund transfer" {
+            return "arrow.left.arrow.right" // 🔁 Fund Transfer Icon
+        }
+        return (tx.transactionFrom == (account?.accountId ?? "")) ? "arrow.up.right" : "arrow.down.left"
     }
     func getTransactionDisplayName(for transaction: Transaction) -> String {
         let loggedInAccountId = account?.accountId ?? ""
         //30 april
+       
+
         if transaction.transactionType == "Bill Payment" {
                 if let fromName = transaction.transactionFromCustomerName, !fromName.isEmpty {
                     return fromName
@@ -330,121 +363,262 @@ struct HistoryView: View {
 
     // MARK: API Call
     //func fetchTransactionHistory(for accountId: String) {
+//    func fetchTransactionHistory(for accountId: String) {
+//            let dateFormatter = DateFormatter()
+//            dateFormatter.dateFormat = "yyyy-MM-dd"
+//            
+//        let body: [String: Any] = [
+//                "accountId": accountId
+//            ]
+//     
+//            guard let token = TokenManager.shared.getToken() else {
+//                print("No token found")
+//                return
+//            }
+//     
+//            guard let url = URL(string: AppConfig.TransactionHistoryURL) else {
+//                print("Invalid URL")
+//                return
+//            }
+//     
+//            var request = URLRequest(url: url)
+//            request.httpMethod = "POST"
+//     
+//            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+//            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+//            request.setValue("application/json", forHTTPHeaderField: "Accept")
+//     
+//            request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+//            print("Account id: \(accountId)")
+//            print("Requesting Transaction History")
+//            print("URL: \(url.absoluteString)")
+//            print("Token: Bearer \(token)")
+//            print("Body: \(String(data: request.httpBody ?? Data(), encoding: .utf8) ?? "None")")
+//     
+//            isLoading = true
+//            URLSession.shared.dataTask(with: request) { data, response, error in
+//                DispatchQueue.main.async {
+//                    isLoading = false
+//                }
+//     
+//                if let error = error {
+//                    print("API Error: \(error.localizedDescription)")
+//                    return
+//                }
+//     
+//                guard let httpResponse = response as? HTTPURLResponse else {
+//                    print("Invalid response object")
+//                    return
+//                }
+//     
+//                guard (200...299).contains(httpResponse.statusCode) else {
+//                    print("Server responded with status code \(httpResponse.statusCode)")
+//                    return
+//                }
+//     
+//                guard let data = data else {
+//                    print("Empty data")
+//                    return
+//                }
+//     
+//                if let raw = String(data: data, encoding: .utf8) {
+//                    print("Raw Response: \(raw)")
+//                }
+//     
+//                do {
+//                    let decoder = JSONDecoder()
+//                    
+//                    // Step 1: Decode only BasicApiResponse first
+//                    struct BasicApiResponse: Codable {
+//                        let status: String
+//                        let message: String?
+//                        let statusCode: Int?
+//                    }
+//     
+//                    let basic = try decoder.decode(BasicApiResponse.self, from: data)
+//     
+//                    if basic.status.lowercased() == "success" {
+//                        // Step 2: Decode full transaction data
+//                        struct TransactionAPIResponse: Codable {
+//                            let status: String
+//                            let data: [Transaction]
+//                        }
+//     
+//                        let decoded = try decoder.decode(TransactionAPIResponse.self, from: data)
+//     
+//                        DispatchQueue.main.async {
+//                            let formatter = DateFormatter()
+//                            formatter.locale = Locale(identifier: "en_US_POSIX")
+//                            formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS"
+//
+//                            let filtered = decoded.data.filter { tx in
+//                                guard let txDate = formatter.date(from: tx.createdOn) else {
+//                                    print("Failed to parse date for transaction \(tx.transactionId)")
+//                                    return false
+//                                }
+//                                return txDate >= self.startDate && txDate <= self.endDate
+//                            }
+//
+//
+//                            self.transactions = filtered
+//
+//                            print("Showing \(filtered.count) filtered transactions")
+//                            print("Decoded \(decoded.data.count) transactions")
+//                        }
+//
+//                    } else {
+//                        // Step 3: API returned Failed
+//                        print("No transactions found. Message: \(basic.message ?? "Unknown Error")")
+//                        DispatchQueue.main.async {
+//                            self.transactions = [] // Clear list if failed
+//                        }
+//                    }
+//                } catch {
+//                    print("Decoding error: \(error.localizedDescription)")
+//                }
+//            }.resume()
+//        }
     func fetchTransactionHistory(for accountId: String) {
-            let dateFormatter = DateFormatter()
-            dateFormatter.dateFormat = "yyyy-MM-dd"
-            
-        let body: [String: Any] = [
-                "accountId": accountId
-            ]
-     
-            guard let token = TokenManager.shared.getToken() else {
-                print("No token found")
-                return
-            }
-     
-            guard let url = URL(string: AppConfig.TransactionHistoryURL) else {
-                print("Invalid URL")
-                return
-            }
-     
-            var request = URLRequest(url: url)
-            request.httpMethod = "POST"
-     
-            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            request.setValue("application/json", forHTTPHeaderField: "Accept")
-     
-            request.httpBody = try? JSONSerialization.data(withJSONObject: body)
-            print("Account id: \(accountId)")
-            print("Requesting Transaction History")
-            print("URL: \(url.absoluteString)")
-            print("Token: Bearer \(token)")
-            print("Body: \(String(data: request.httpBody ?? Data(), encoding: .utf8) ?? "None")")
-     
-            isLoading = true
-            URLSession.shared.dataTask(with: request) { data, response, error in
-                DispatchQueue.main.async {
-                    isLoading = false
-                }
-     
-                if let error = error {
-                    print("API Error: \(error.localizedDescription)")
-                    return
-                }
-     
-                guard let httpResponse = response as? HTTPURLResponse else {
-                    print("Invalid response object")
-                    return
-                }
-     
-                guard (200...299).contains(httpResponse.statusCode) else {
-                    print("Server responded with status code \(httpResponse.statusCode)")
-                    return
-                }
-     
-                guard let data = data else {
-                    print("Empty data")
-                    return
-                }
-     
-                if let raw = String(data: data, encoding: .utf8) {
-                    print("Raw Response: \(raw)")
-                }
-     
-                do {
-                    let decoder = JSONDecoder()
-                    
-                    // Step 1: Decode only BasicApiResponse first
-                    struct BasicApiResponse: Codable {
-                        let status: String
-                        let message: String?
-                        let statusCode: Int?
-                    }
-     
-                    let basic = try decoder.decode(BasicApiResponse.self, from: data)
-     
-                    if basic.status.lowercased() == "success" {
-                        // Step 2: Decode full transaction data
-                        struct TransactionAPIResponse: Codable {
-                            let status: String
-                            let data: [Transaction]
-                        }
-     
-                        let decoded = try decoder.decode(TransactionAPIResponse.self, from: data)
-     
-                        DispatchQueue.main.async {
-                            let formatter = DateFormatter()
-                            formatter.locale = Locale(identifier: "en_US_POSIX")
-                            formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS"
-
-                            let filtered = decoded.data.filter { tx in
-                                guard let txDate = formatter.date(from: tx.createdOn) else {
-                                    print("Failed to parse date for transaction \(tx.transactionId)")
-                                    return false
-                                }
-                                return txDate >= self.startDate && txDate <= self.endDate
-                            }
-
-
-                            self.transactions = filtered
-
-                            print("Showing \(filtered.count) filtered transactions")
-                            print("Decoded \(decoded.data.count) transactions")
-                        }
-
-                    } else {
-                        // Step 3: API returned Failed
-                        print("No transactions found. Message: \(basic.message ?? "Unknown Error")")
-                        DispatchQueue.main.async {
-                            self.transactions = [] // Clear list if failed
-                        }
-                    }
-                } catch {
-                    print("Decoding error: \(error.localizedDescription)")
-                }
-            }.resume()
+        guard let token = TokenManager.shared.getToken() else {
+            print("No token found")
+            return
         }
+
+        guard let url = URL(string: AppConfig.TransactionHistoryURL) else {
+            print("Invalid URL")
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+
+        var body: [String: Any] = [
+            "accountId": accountId
+        ]
+
+        // Include StartDate and EndDate only if user applied a filter
+//        let calendar = Calendar.current
+//        let today = calendar.startOfDay(for: Date())
+//
+//        let selectedStart = calendar.startOfDay(for: self.startDate)
+//        let selectedEnd = calendar.startOfDay(for: self.endDate)
+//
+//        if selectedStart != today || selectedEnd != today {
+//            let formatter = DateFormatter()
+//            formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'"
+//            formatter.timeZone = TimeZone(secondsFromGMT: 0)
+//
+//            let startDateStr = formatter.string(from: selectedStart)
+//            let endDateStr = formatter.string(from: calendar.date(byAdding: DateComponents(day: 1, second: -1), to: selectedEnd) ?? selectedEnd)
+//
+//            body["StartDate"] = startDateStr
+//            body["EndDate"] = endDateStr
+//        }
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'"
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+
+        let selectedStart = Calendar.current.startOfDay(for: self.startDate)
+        let selectedEnd = Calendar.current.date(bySettingHour: 23, minute: 59, second: 59, of: self.endDate) ?? self.endDate
+
+        body["StartDate"] = formatter.string(from: selectedStart)
+        body["EndDate"] = formatter.string(from: selectedEnd)
+
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+        print("Request Body: \(String(data: request.httpBody ?? Data(), encoding: .utf8) ?? "None")")
+
+        isLoading = true
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async {
+                isLoading = false
+            }
+
+            if let error = error {
+                print("API Error: \(error.localizedDescription)")
+                return
+            }
+
+            guard let httpResponse = response as? HTTPURLResponse else {
+                print("Invalid response object")
+                return
+            }
+
+            guard (200...299).contains(httpResponse.statusCode) else {
+                print("Server responded with status code \(httpResponse.statusCode)")
+                return
+            }
+
+            guard let data = data else {
+                print("Empty data")
+                return
+            }
+
+            if let raw = String(data: data, encoding: .utf8) {
+                print("Raw Response: \(raw)")
+            }
+
+            do {
+                let decoder = JSONDecoder()
+
+                struct BasicApiResponse: Codable {
+                    let status: String
+                    let message: String?
+                    let statusCode: Int?
+                }
+
+                let basic = try decoder.decode(BasicApiResponse.self, from: data)
+
+                if basic.status.lowercased() == "success" {
+                    struct TransactionAPIResponse: Codable {
+                        let status: String
+                        let data: [Transaction]
+                    }
+
+                    let decoded = try decoder.decode(TransactionAPIResponse.self, from: data)
+
+                    DispatchQueue.main.async {
+                        let formatter = DateFormatter()
+                        formatter.locale = Locale(identifier: "en_US_POSIX")
+                        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS"
+
+//                        let filtered = decoded.data.filter { tx in
+//                            guard let txDate = formatter.date(from: tx.createdOn) else {
+//                                print("Failed to parse date for transaction \(tx.transactionId)")
+//                                return false
+//                            }
+//                            return txDate >= self.startDate && txDate <= self.endDate
+//                        }
+                        let startUTC = Calendar.current.startOfDay(for: self.startDate).addingTimeInterval(-TimeInterval(TimeZone.current.secondsFromGMT()))
+                        let endUTC = Calendar.current.date(bySettingHour: 23, minute: 59, second: 59, of: self.endDate)?.addingTimeInterval(-TimeInterval(TimeZone.current.secondsFromGMT())) ?? self.endDate
+
+                        let filtered = decoded.data.filter { tx in
+                            guard let txDate = formatter.date(from: tx.createdOn) else {
+                                print("Failed to parse date for transaction \(tx.transactionId)")
+                                return false
+                            }
+                            return txDate >= startUTC && txDate <= endUTC
+                        }
+
+
+                        self.transactions = filtered
+                        print("Showing \(filtered.count) filtered transactions")
+                        print("Decoded \(decoded.data.count) transactions")
+                    }
+
+                } else {
+                    print("No transactions found. Message: \(basic.message ?? "Unknown Error")")
+                    DispatchQueue.main.async {
+                        self.transactions = []
+                    }
+                }
+            } catch {
+                print("Decoding error: \(error.localizedDescription)")
+            }
+        }.resume()
+    }
 
 }
 

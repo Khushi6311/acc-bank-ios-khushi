@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+
 struct DepositChequeView: View {
     @State private var currentStep = 1
     @State private var amount: String = ""
@@ -25,70 +26,68 @@ struct DepositChequeView: View {
     @Environment(\.presentationMode) var presentationMode
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
+        ZStack {
+            Color.white.ignoresSafeArea()
             
-            // Top Bar
-            HStack {
-//                Button(action: {
-//                    presentationMode.wrappedValue.dismiss() 
-//                }) {
-//                    Image(systemName: "arrow.left")
-//                        .font(.title2)
-//                        .foregroundColor(.black)
-//                }
-//                Spacer()
-                //Text("Deposit cheques")
-                Text(NSLocalizedString("deposit_cheques", comment: ""))
-
-                    .font(.title2).bold()
-                Spacer()
-            }
-            
-            // Step Indicators (Only 2 Steps)
-            HStack(spacing: 12) {
-                stepCircle(number: 1, isActive: currentStep == 1, isCompleted: currentStep > 1)
-                Rectangle().frame(height: 2).foregroundColor(.gray.opacity(0.5)).padding(.horizontal, -6)
-                stepCircle(number: 2, isActive: currentStep == 2, isCompleted: false)
-            }
-            
-            // Step Views
-            ScrollView{
-                if currentStep == 1 {
-                    Step1View(accountManager: accountManager, showAccountSheet: $showAccountSheet, amount: $amount) {
-                        currentStep = 2
+            VStack(spacing: 0) {
+                // Header stays fixed
+                VStack(alignment: .leading, spacing: 20) {
+                    HStack {
+                        Text(NSLocalizedString("deposit_cheques", comment: ""))
+                            .font(.title2).bold()
+                        Spacer()
                     }
-                } else if currentStep == 2 {
-                    Step2View(
-                        chequeFrontImage: $chequeFrontImage,
-                        chequeBackImage: $chequeBackImage
-                    ) {
-                        showConfirmationSheet = true
+                    
+                    HStack(spacing: 12) {
+                        stepCircle(number: 1, isActive: currentStep == 1, isCompleted: currentStep > 1)
+                        Rectangle()
+                            .frame(height: 2)
+                            .foregroundColor(.gray.opacity(0.5))
+                            .padding(.horizontal, -6)
+                        stepCircle(number: 2, isActive: currentStep == 2, isCompleted: false)
                     }
                 }
+                .padding(.horizontal)
+                .padding(.top)
                 
-                Spacer()
+                // Main form scroll area
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: 20) {
+                        if currentStep == 1 {
+                            Step1View(accountManager: accountManager,
+                                      showAccountSheet: $showAccountSheet,
+                                      amount: $amount) {
+                                currentStep = 2
+                            }
+                        } else {
+                            Step2View(chequeFrontImage: $chequeFrontImage,
+                                      chequeBackImage: $chequeBackImage) {
+                                showConfirmationSheet = true
+                            }
+                        }
+                        
+                        Spacer(minLength: 100) // Optional padding for scroll experience
+                    }
+                    .padding()
+                }
+                .scrollDismissesKeyboard(.interactively)
             }
         }
-        
-        .onAppear {
-                accountManager.fetchAccounts() // Add this line
-            }
-        .ignoresSafeArea(.keyboard)
-        .padding()
         .sheet(isPresented: $showConfirmationSheet) {
-        //.fullScreenCover(isPresented: $showConfirmationSheet) {
-
             ChequeConfirmationSheet(
                 amount: amount,
                 selectedAccount: accountManager.selectedAccount,
-                transactionId: "TXN-123456", chequeFrontImage: $chequeFrontImage,
+                transactionId: "TXN-123456",
+                chequeFrontImage: $chequeFrontImage,
                 chequeBackImage: $chequeBackImage
             ) {
                 showConfirmationSheet = false
-                // Handle submission logic here
             }
         }
-
+        .onAppear {
+            accountManager.fetchAccounts()
+        }
+        
     }
 
     func stepCircle(number: Int, isActive: Bool = false, isCompleted: Bool = false) -> some View {
@@ -130,6 +129,7 @@ struct Step1View: View {
     @FocusState private var focusedField: FieldFocus?
 
     var body: some View {
+        
         VStack(alignment: .leading, spacing: 20) {
             
 //            Text("Deposit cheques here as quickly, easily, and securely as a paper one.")
@@ -333,6 +333,7 @@ struct Step2View: View {
             }
             .sheet(isPresented: $showCameraFront) {
                             CameraPicker(image: $chequeFrontImage)
+                //CustomCameraView()
                         }
 //            if showBackError {
 //                           Text("Cheque back photo is required.")
@@ -360,6 +361,7 @@ struct Step2View: View {
             }
         .sheet(isPresented: $showCameraBack) {
                        CameraPicker(image: $chequeBackImage)
+            //CustomCameraView()
                    }
 //        if showBackError {
 //                       Text("Cheque back photo is required.")
@@ -405,187 +407,553 @@ struct Step2View: View {
     }
 //}
 
-
 struct ChequeConfirmationSheet: View {
     var amount: String
-    var selectedAccount: BankAccount?   // Pass selected account
-        var transactionId: String
+    var selectedAccount: BankAccount?
+    var transactionId: String
     @Binding var chequeFrontImage: UIImage?
     @Binding var chequeBackImage: UIImage?
     var onConfirm: () -> Void
-    @State private var showConfirmation = false
-    @State private var showSummary = false    // Format today's date
+
+    @Environment(\.dismiss) var dismiss
+    @State private var showSummary = false
+
     var formattedDate: String {
         let formatter = DateFormatter()
         formatter.dateStyle = .long
         return formatter.string(from: Date())
     }
-
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            // Top Bar
-            HStack {
-                //Text("Confirmation")
-                Text(NSLocalizedString("confirmation", comment: ""))
-
-                    .font(.headline)
-                Spacer()
-                Button(action: {
-                    // dismiss handled by parent
-                }) {
-                    Image(systemName: "xmark")
-                        .foregroundColor(.black)
-                }
-            }
-            .padding(.bottom, 8)
-
-            // Info Fields
-            Group {
-                if let account = selectedAccount {
-                        //Text("Deposit to")
-                    Text(NSLocalizedString("deposit_to", comment: ""))
-
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                        Text("\(account.accountType) (\(account.accountNumber))")
-                    //for french account name
-
-//                    let localizedType = NSLocalizedString("account_type_\(account.accountTypeKey)", comment: "")
-//                    Text("\(localizedType) (\(account.accountNumber))")
-
-                            .font(.body)
-                        Divider()
+        VStack(spacing: 16) {
+            // Scrollable content
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    // Top Bar
+                    HStack {
+                        Text(NSLocalizedString("confirmation", comment: ""))
+                            .font(.title3).bold()
+                        Spacer()
+                        Button(action: { dismiss() }) {
+                            Image(systemName: "xmark")
+                                .foregroundColor(.black)
+                        }
                     }
-//                Text("Deposit to")
-//                    .font(.caption)
-//                    .foregroundColor(.gray)
-//                Text(depositTo)
-//                    .font(.body)
-                //Text("Transaction ID")
-                Text(NSLocalizedString("transaction_id", comment: ""))
 
-                    .font(.caption)
-                    .foregroundColor(.gray)
-                Divider()
-                Text(transactionId)
-                    .font(.body)
-                Divider()
-                //Text("Deposit date")
-                Text(NSLocalizedString("deposit_date", comment: ""))
+                    Divider()
 
-                    .font(.caption)
-                    .foregroundColor(.gray)
-                Text(formattedDate)
-                    .font(.body)
-                Divider()
-                //Text("Amount")
-                Text(NSLocalizedString("amount", comment: ""))
+                    Group {
+                        LabelValueView(label: NSLocalizedString("deposit_to", comment: ""),
+                                       value: "\(selectedAccount?.accountType ?? "") - \(selectedAccount?.accountNumber ?? "")")
 
-                    .font(.caption)
-                    .foregroundColor(.gray)
-                Text(amount)
-                    .font(.title3)
-                    .bold()
-                Divider()
+                        LabelValueView(label: NSLocalizedString("transaction_id", comment: ""),
+                                       value: transactionId)
 
+                        LabelValueView(label: NSLocalizedString("deposit_date", comment: ""),
+                                       value: formattedDate)
+
+                        LabelValueView(label: NSLocalizedString("amount", comment: ""),
+                                       value: amount)
+                    }
+
+                    if let front = chequeFrontImage {
+                        Text(NSLocalizedString("camera_front", comment: ""))
+                            .font(.caption).foregroundColor(.gray)
+                        ChequeImageView(image: front)
+                    }
+
+                    if let back = chequeBackImage {
+                        Text(NSLocalizedString("camera_back", comment: ""))
+                            .font(.caption).foregroundColor(.gray)
+                        ChequeImageView(image: back)
+                    }
+                }
+                .padding(.horizontal)
             }
 
-            // Cheque front image
-            if let front = chequeFrontImage {
-                //Text("Cheque front")
-                Text(NSLocalizedString("camera_front", comment: ""))
-
-                    .font(.caption)
-                    .foregroundColor(.gray)
-                Image(uiImage: front)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(maxWidth: .infinity)
-                    .cornerRadius(10)
-                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.gray.opacity(0.2)))
-            }
-
-            // Cheque back image
-            if let back = chequeBackImage {
-                //Text("Cheque back")
-                Text(NSLocalizedString("camera_back", comment: ""))
-
-                    .font(.caption)
-                    .foregroundColor(.gray)
-                Image(uiImage: back)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(maxWidth: .infinity)
-                    .cornerRadius(10)
-                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.gray.opacity(0.2)))
-            }
-
-            Spacer()
-
-            // Confirm Button
+            // Sticky Confirm button
             Button(action: {
-               // onConfirm()
-               // showConfirmation = true
-                showSummary=true
-
+                showSummary = true
             }) {
-                //Text("Confirm")
                 Text(NSLocalizedString("confirm", comment: ""))
-
-                    .font(.headline)
                     .frame(maxWidth: .infinity)
                     .padding()
                     .background(Color.black)
                     .foregroundColor(.white)
                     .cornerRadius(12)
             }
-            .padding(.top)
-            .sheet(isPresented: $showConfirmation) {
-                    ChequeConfirmationSheet(
-                        amount: amount,
-                        selectedAccount: selectedAccount,
-                        transactionId: "TXN-123456",
-                        chequeFrontImage: $chequeFrontImage,
-                        chequeBackImage: $chequeBackImage,
-                        onConfirm: {
-                            showConfirmation = false
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                showSummary = true
-                            }
-                        }
-                    )
-                }
-            .fullScreenCover(isPresented: $showSummary) {  //.sheet before full screen 
-                    ChequeSummarySheet(
-                        amount: amount,
-                        date: DateFormatter.localizedString(from: Date(), dateStyle: .long, timeStyle: .none), selectedAccount: selectedAccount, transactionId:"TXN-123456"
-                    )
-                }
+            .padding([.horizontal, .bottom])
         }
-        .padding()
-        //.background(Color(.systemGray6))
-        .cornerRadius(20)
-        .padding()
+        .padding(.top)
+        .fullScreenCover(isPresented: $showSummary) {
+            ChequeSummarySheet(
+                amount: amount,
+                date: formattedDate,
+                selectedAccount: selectedAccount,
+                transactionId: transactionId
+            )
+        }
+    }
+//    var body: some View {
+//        VStack(alignment: .leading, spacing: 16) {
+//            // Top Bar
+//            HStack {
+//                Text(NSLocalizedString("confirmation", comment: ""))
+//                    .font(.title3).bold()
+//                Spacer()
+//                Button(action: {
+//                    dismiss()
+//                }) {
+//                    Image(systemName: "xmark")
+//                        .foregroundColor(.black)
+//                }
+//            }
+//
+//            Divider()
+//
+//            Group {
+//                LabelValueView(label: NSLocalizedString("deposit_to", comment: ""),
+//                               value: "\(selectedAccount?.accountType ?? "") - \(selectedAccount?.accountNumber ?? "")")
+//
+//                LabelValueView(label: NSLocalizedString("transaction_id", comment: ""),
+//                               value: transactionId)
+//
+//                LabelValueView(label: NSLocalizedString("deposit_date", comment: ""),
+//                               value: formattedDate)
+//
+//                LabelValueView(label: NSLocalizedString("amount", comment: ""),
+//                               value: "\(amount)")
+//            }
+//
+////            if let front = chequeFrontImage {
+////                Text(NSLocalizedString("camera_front", comment: ""))
+////                    .font(.caption).foregroundColor(.gray)
+////                Image(uiImage: front)
+////                    .resizable()
+////                    .aspectRatio(contentMode: .fit)
+////                    .frame(maxWidth: .infinity)
+////                    .rotationEffect(.degrees(90)) // Rotates image to landscape
+////
+////                    .cornerRadius(10)
+////                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.gray.opacity(0.3)))
+////            }
+////
+////            if let back = chequeBackImage {
+////                Text(NSLocalizedString("camera_back", comment: ""))
+////                    .font(.caption).foregroundColor(.gray)
+////                Image(uiImage: back)
+////                    .resizable()
+////                    .aspectRatio(contentMode: .fit)
+////                    .frame(maxWidth: .infinity)
+////                        .rotationEffect(.degrees(90))
+////                    .cornerRadius(10)
+////                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.gray.opacity(0.3)))
+////            }
+//            if let front = chequeFrontImage {
+//                Text(NSLocalizedString("camera_front", comment: ""))
+//                    .font(.caption).foregroundColor(.gray)
+//                ChequeImageView(image: front)
+//            }
+//
+//            if let back = chequeBackImage {
+//                Text(NSLocalizedString("camera_back", comment: ""))
+//                    .font(.caption).foregroundColor(.gray)
+//                ChequeImageView(image: back)
+//            }
+//
+//
+//            Spacer()
+//
+//            Button(action: {
+//                showSummary = true
+//            }) {
+//                Text(NSLocalizedString("confirm", comment: ""))
+//                    .frame(maxWidth: .infinity)
+//                    .padding()
+//                    .background(Color.black)
+//                    .foregroundColor(.white)
+//                    .cornerRadius(12)
+//            }
+//
+//        }
+//        .padding()
+//        .fullScreenCover(isPresented: $showSummary) {
+//            ChequeSummarySheet(
+//                amount: amount,
+//                date: formattedDate,
+//                selectedAccount: selectedAccount,
+//                transactionId: transactionId
+//            )
+//        }
+//    }
+}
+//struct ChequeImageView: View {
+//    var image: UIImage
+//
+//    var body: some View {
+//        GeometryReader { geometry in
+//            let isPortrait = image.size.height > image.size.width
+//
+//            Image(uiImage: image)
+//                .resizable()
+//                .aspectRatio(contentMode: .fill)
+//                .frame(width: geometry.size.width, height: 200)
+//                .rotationEffect(isPortrait ? .degrees(90) : .degrees(0))
+//                .clipped()
+//                .cornerRadius(10)
+//                .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.gray.opacity(0.3)))
+//        }
+//        .frame(height: 200) // Fixed height for rectangle
+//    }
+//}
+struct ChequeImageView: View {
+    var image: UIImage
+
+    var body: some View {
+        GeometryReader { geometry in
+            let isPortrait = image.size.height > image.size.width
+
+            Image(uiImage: image)
+                .resizable()
+                .aspectRatio(contentMode: .fit) // Ensures full image fits in the box
+                .frame(width: geometry.size.width)
+            .rotationEffect(isPortrait ? .degrees(270) : .degrees(0))
+
+                .cornerRadius(10)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(Color.gray.opacity(0.3))
+                )
+                .background(Color.white) // Optional background for contrast
+        }
+        .frame(height: 220) // Adjust height as needed to accommodate landscape images
     }
 }
 
+// MARK: - Helper View
+struct LabelValueView: View {
+    var label: String
+    var value: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(label)
+                .font(.caption)
+                .foregroundColor(.gray)
+            Text(value)
+                .font(.body)
+                .fontWeight(.semibold)
+            Divider()
+        }
+    }
+}
+
+//struct ChequeConfirmationSheet: View {
+//    var amount: String
+//    var selectedAccount: BankAccount?   // Pass selected account
+//        var transactionId: String
+//    @Binding var chequeFrontImage: UIImage?
+//    @Binding var chequeBackImage: UIImage?
+//    var onConfirm: () -> Void
+//    @State private var showConfirmation = false
+//    @State private var showSummary = false    // Format today's date
+//    var formattedDate: String {
+//        let formatter = DateFormatter()
+//        formatter.dateStyle = .long
+//        return formatter.string(from: Date())
+//    }
+//
+//    var body: some View {
+//        VStack(alignment: .leading, spacing: 16) {
+//            // Top Bar
+//            HStack {
+//                //Text("Confirmation")
+//                Text(NSLocalizedString("confirmation", comment: ""))
+//
+//                    .font(.headline)
+//                Spacer()
+//                Button(action: {
+//                    // dismiss handled by parent
+//                }) {
+//                    Image(systemName: "xmark")
+//                        .foregroundColor(.black)
+//                }
+//            }
+//            .padding(.bottom, 8)
+//
+//            // Info Fields
+//            Group {
+//                if let account = selectedAccount {
+//                        //Text("Deposit to")
+//                    Text(NSLocalizedString("deposit_to", comment: ""))
+//
+//                            .font(.caption)
+//                            .foregroundColor(.gray)
+//                        Text("\(account.accountType) (\(account.accountNumber))")
+//                    //for french account name
+//
+////                    let localizedType = NSLocalizedString("account_type_\(account.accountTypeKey)", comment: "")
+////                    Text("\(localizedType) (\(account.accountNumber))")
+//
+//                            .font(.body)
+//                        Divider()
+//                    }
+////                Text("Deposit to")
+////                    .font(.caption)
+////                    .foregroundColor(.gray)
+////                Text(depositTo)
+////                    .font(.body)
+//                //Text("Transaction ID")
+//                Text(NSLocalizedString("transaction_id", comment: ""))
+//
+//                    .font(.caption)
+//                    .foregroundColor(.gray)
+//                Divider()
+//                Text(transactionId)
+//                    .font(.body)
+//                Divider()
+//                //Text("Deposit date")
+//                Text(NSLocalizedString("deposit_date", comment: ""))
+//
+//                    .font(.caption)
+//                    .foregroundColor(.gray)
+//                Text(formattedDate)
+//                    .font(.body)
+//                Divider()
+//                //Text("Amount")
+//                Text(NSLocalizedString("amount", comment: ""))
+//
+//                    .font(.caption)
+//                    .foregroundColor(.gray)
+//                Text(amount)
+//                    .font(.title3)
+//                    .bold()
+//                Divider()
+//
+//            }
+//
+//            // Cheque front image
+//            if let front = chequeFrontImage {
+//                //Text("Cheque front")
+//                Text(NSLocalizedString("camera_front", comment: ""))
+//
+//                    .font(.caption)
+//                    .foregroundColor(.gray)
+//                Image(uiImage: front)
+//                    .resizable()
+//                    .aspectRatio(contentMode: .fit)
+//                    .frame(maxWidth: .infinity)
+//                    .cornerRadius(10)
+//                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.gray.opacity(0.2)))
+//            }
+//
+//            // Cheque back image
+//            if let back = chequeBackImage {
+//                //Text("Cheque back")
+//                Text(NSLocalizedString("camera_back", comment: ""))
+//
+//                    .font(.caption)
+//                    .foregroundColor(.gray)
+//                Image(uiImage: back)
+//                    .resizable()
+//                    .aspectRatio(contentMode: .fit)
+//                    .frame(maxWidth: .infinity)
+//                    .cornerRadius(10)
+//                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.gray.opacity(0.2)))
+//            }
+//
+//            Spacer()
+//
+//            // Confirm Button
+//            Button(action: {
+//               // onConfirm()
+//               // showConfirmation = true
+//                showSummary=true
+//
+//            }) {
+//                //Text("Confirm")
+//                Text(NSLocalizedString("confirm", comment: ""))
+//
+//                    .font(.headline)
+//                    .frame(maxWidth: .infinity)
+//                    .padding()
+//                    .background(Color.black)
+//                    .foregroundColor(.white)
+//                    .cornerRadius(12)
+//            }
+//            .padding(.top)
+//            .sheet(isPresented: $showConfirmation) {
+//                    ChequeConfirmationSheet(
+//                        amount: amount,
+//                        selectedAccount: selectedAccount,
+//                        transactionId: "TXN-123456",
+//                        chequeFrontImage: $chequeFrontImage,
+//                        chequeBackImage: $chequeBackImage,
+//                        onConfirm: {
+//                            showConfirmation = false
+//                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+//                                showSummary = true
+//                            }
+//                        }
+//                    )
+//                }
+//            .fullScreenCover(isPresented: $showSummary) {  //.sheet before full screen 
+//                    ChequeSummarySheet(
+//                        amount: amount,
+//                        date: DateFormatter.localizedString(from: Date(), dateStyle: .long, timeStyle: .none), selectedAccount: selectedAccount, transactionId:"TXN-123456"
+//                    )
+//                }
+//        }
+//        .padding()
+//        //.background(Color(.systemGray6))
+//        .cornerRadius(20)
+//        .padding()
+//    }
+//}
+//
 
 //summary
+//struct ChequeSummarySheet: View {
+//    var amount: String
+//    var date: String
+//    @State private var navigateToMainView = false
+//    var selectedAccount: BankAccount?
+//       var transactionId: String
+//    var body: some View {
+//        VStack(spacing: 24) {
+//            // Success Message Banner (optional)
+//            HStack {
+//                Image(systemName: "checkmark.circle.fill")
+//                    .foregroundColor(.white)
+//                //Text("Cheque Deposit Successful")
+//                Text(NSLocalizedString("cheque_deposit_success", comment: ""))
+//
+//                    .foregroundColor(.white)
+//                    .font(.subheadline)
+//                    .bold()
+//            }
+//            .padding()
+//            .frame(maxWidth: .infinity)
+//            .background(Color.green)
+//            .cornerRadius(12)
+//            .padding(.top)
+//
+//            // Card-style summary box
+//            VStack(alignment: .leading, spacing: 16) {
+//                //Text("Cheque Deposit Summary")
+//                Text(NSLocalizedString("cheque_deposit_summary", comment: ""))
+//
+//                    .font(.headline)
+//                    .bold()
+//                    .frame(maxWidth: .infinity, alignment: .center)
+//
+//                Divider()
+//                if let account = selectedAccount {
+//                    HStack {
+//                        //Text("Deposit to")
+//                        Text(NSLocalizedString("deposit_to", comment: ""))
+//
+//                            .foregroundColor(.gray)
+//                            .font(.caption)
+//                     Text("\(account.accountType) (\(account.accountNumber))")
+//                        //for french account name
+////                        let localizedType = NSLocalizedString("account_type_\(account.accountTypeKey)", comment: "")
+////                        Text("\(localizedType) (\(account.accountNumber))")
+//
+//                            .font(.body)
+//                    }
+//                }
+//
+//                Divider()
+//
+//                HStack {
+//                    //Text("Transaction ID")
+//                    Text(NSLocalizedString("transaction_id", comment: ""))
+//
+//                        .foregroundColor(.gray)
+//                        .font(.caption)
+//                    Text(transactionId)
+//                        .font(.body)
+//                }
+//                Divider()
+//                HStack {
+//                    //Text("Deposit date")
+//                    Text(NSLocalizedString("deposit_date", comment: ""))
+//
+//                        .foregroundColor(.gray)
+//                        .font(.caption)
+//                    //Spacer()
+//                    Text(date)
+//                        .font(.body)
+//                    //Divider()
+//
+//                }
+//                Divider()
+//
+//
+//                HStack {
+//                    //Text("Amount")
+//                    Text(NSLocalizedString("amount", comment: ""))
+//
+//                        .foregroundColor(.gray)
+//                        .font(.caption)
+//                   // Spacer()
+//                    Text(amount)
+//                        .font(.body)
+//                        .bold()
+//                    //Divider()
+//
+//                }
+//            }
+//            .padding()
+//            //.background(Color.white)
+//            .background(RoundedRectangle(cornerRadius: 10).fill(Color.white).shadow(radius: 5))
+//            .cornerRadius(12)
+//            .shadow(radius: 5)
+//            .padding(.horizontal)
+//
+//            Spacer()
+//
+//            // Done Button
+//            Button(action: {
+//                // dismiss logic here
+//                navigateToMainView = true
+//
+//            }) {
+//                //Text("Done")
+//                Text(NSLocalizedString("done", comment: ""))
+//
+//                    .bold()
+//                    .frame(maxWidth: .infinity)
+//                    .padding()
+//                    .background(Color.black)
+//                    .foregroundColor(.white)
+//                    .cornerRadius(12)
+//            }
+//            .padding(.horizontal)
+//            .fullScreenCover(isPresented: $navigateToMainView) {
+//                MainView() // Opens MainView when button is clicked
+//            }
+//        }
+//        .padding()
+//        .background(Color.white.ignoresSafeArea())
+//    }
+//}
 struct ChequeSummarySheet: View {
     var amount: String
     var date: String
     @State private var navigateToMainView = false
+    @State private var navigateChequeDepositView = false
+
     var selectedAccount: BankAccount?
-       var transactionId: String
+    var transactionId: String
+
     var body: some View {
         VStack(spacing: 24) {
-            // Success Message Banner (optional)
+            // Success Banner
             HStack {
                 Image(systemName: "checkmark.circle.fill")
                     .foregroundColor(.white)
-                //Text("Cheque Deposit Successful")
                 Text(NSLocalizedString("cheque_deposit_success", comment: ""))
-
                     .foregroundColor(.white)
                     .font(.subheadline)
                     .bold()
@@ -596,92 +964,70 @@ struct ChequeSummarySheet: View {
             .cornerRadius(12)
             .padding(.top)
 
-            // Card-style summary box
+            // Summary Card
             VStack(alignment: .leading, spacing: 16) {
-                //Text("Cheque Deposit Summary")
                 Text(NSLocalizedString("cheque_deposit_summary", comment: ""))
-
                     .font(.headline)
                     .bold()
                     .frame(maxWidth: .infinity, alignment: .center)
 
                 Divider()
+
                 if let account = selectedAccount {
-                    HStack {
-                        //Text("Deposit to")
+                    VStack(alignment: .leading, spacing: 4) {
                         Text(NSLocalizedString("deposit_to", comment: ""))
-
-                            .foregroundColor(.gray)
                             .font(.caption)
-                     Text("\(account.accountType) (\(account.accountNumber))")
-                        //for french account name
-//                        let localizedType = NSLocalizedString("account_type_\(account.accountTypeKey)", comment: "")
-//                        Text("\(localizedType) (\(account.accountNumber))")
-
+                            .foregroundColor(.gray)
+                        Text("\(account.accountType) - \(account.accountNumber)")
                             .font(.body)
+                            .bold()
                     }
+                    Divider()
                 }
 
-                Divider()
-
-                HStack {
-                    //Text("Transaction ID")
+                VStack(alignment: .leading, spacing: 4) {
                     Text(NSLocalizedString("transaction_id", comment: ""))
-
-                        .foregroundColor(.gray)
                         .font(.caption)
+                        .foregroundColor(.gray)
                     Text(transactionId)
                         .font(.body)
                 }
                 Divider()
-                HStack {
-                    //Text("Deposit date")
-                    Text(NSLocalizedString("deposit_date", comment: ""))
 
-                        .foregroundColor(.gray)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(NSLocalizedString("deposit_date", comment: ""))
                         .font(.caption)
-                    //Spacer()
+                        .foregroundColor(.gray)
                     Text(date)
                         .font(.body)
-                    //Divider()
-
                 }
                 Divider()
 
-
-                HStack {
-                    //Text("Amount")
+                VStack(alignment: .leading, spacing: 4) {
                     Text(NSLocalizedString("amount", comment: ""))
-
-                        .foregroundColor(.gray)
                         .font(.caption)
-                   // Spacer()
+                        .foregroundColor(.gray)
                     Text(amount)
                         .font(.body)
                         .bold()
-                    //Divider()
-
                 }
             }
             .padding()
-            //.background(Color.white)
-            .background(RoundedRectangle(cornerRadius: 10).fill(Color.white).shadow(radius: 5))
-            .cornerRadius(12)
-            .shadow(radius: 5)
+            .background(Color.white)
+            .cornerRadius(20)
+            .shadow(color: .gray.opacity(0.3), radius: 5, x: 0, y: 2)
             .padding(.horizontal)
 
-            Spacer()
+            //Spacer()
+            Spacer().frame(height: 12)
+
 
             // Done Button
             Button(action: {
-                // dismiss logic here
                 navigateToMainView = true
-
             }) {
-                //Text("Done")
                 Text(NSLocalizedString("done", comment: ""))
-
-                    .bold()
+                    .fontWeight(.semibold)
                     .frame(maxWidth: .infinity)
                     .padding()
                     .background(Color.black)
@@ -689,14 +1035,35 @@ struct ChequeSummarySheet: View {
                     .cornerRadius(12)
             }
             .padding(.horizontal)
-            .fullScreenCover(isPresented: $navigateToMainView) {
-                MainView() // Opens MainView when button is clicked
+
+            // Continue Button (styled as outlined gradient)
+            Button(action: {
+                navigateChequeDepositView = true
+            }) {
+                Text(NSLocalizedString("continue_with_new_transfer", comment: ""))
+                    .fontWeight(.semibold)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(
+                        LinearGradient(colors: [Color.blue, Color.teal], startPoint: .leading, endPoint: .trailing)
+                    )
+                    .foregroundColor(.white)
+                    .cornerRadius(12)
             }
+            .padding(.horizontal)
+
         }
         .padding()
         .background(Color.white.ignoresSafeArea())
+        .fullScreenCover(isPresented: $navigateToMainView) {
+            MainView()
+        }
+        .fullScreenCover(isPresented: $navigateChequeDepositView) {
+            DepositChequeView()
+        }
     }
 }
+
 //struct AccountSelectionSheet: View {
 //    @ObservedObject var accountManager: AccountManager
 //    @Binding var isPresented: Bool
