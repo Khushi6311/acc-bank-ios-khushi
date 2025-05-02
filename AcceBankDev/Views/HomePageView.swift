@@ -45,7 +45,8 @@ struct HomePageView: View {
             "matthewoconnor": ["MatthewCard1", "MatthewCard2"],
             "rachelsinclair": ["RachelCard1", "RachelCard2"],
             "davidpelletier": ["DavidCard1", "DavidCard2"],
-            "gracemacdonald": ["GraceCard1", "GraceCard2"]
+            "gracemacdonald": ["GraceCard1", "GraceCard2"],
+            "alanhalabi":["AlanCard1","AlanCard2"]
         ]
         
         let cardToUserMap: [String: String] = [
@@ -58,7 +59,8 @@ struct HomePageView: View {
             "4532861239014725": "matthewoconnor",
             "5278652739108634": "rachelsinclair",
             "4532348971052349": "davidpelletier",
-            "5278914280321158": "gracemacdonald"
+            "5278914280321158": "gracemacdonald",
+            "5278914280324165":"alanhalabi"
         ]
         
         let input = username.replacingOccurrences(of: " ", with: "").lowercased()
