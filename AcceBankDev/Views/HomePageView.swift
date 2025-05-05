@@ -391,7 +391,15 @@ struct HomePageView: View {
                     .padding(.bottom, 20)
             }
         } else {
-            Spacer()
+            VStack {
+                        Spacer()
+                        Text(NSLocalizedString("no_card_attached", comment: "Message when no card is linked to this account"))
+                            .font(.subheadline)
+                            .foregroundColor(.black)
+                            .multilineTextAlignment(.center)
+                        Spacer()
+                    }
+           // Spacer()
                 .frame(height: 190)
                 .padding(.bottom, 20)
         }

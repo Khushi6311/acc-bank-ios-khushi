@@ -6,88 +6,103 @@
 //
 
 import SwiftUI
+import Combine
+import UIKit
+
+class KeyboardResponder: ObservableObject {
+    @Published var currentHeight: CGFloat = 0
+    private var cancellableSet: Set<AnyCancellable> = []
+
+    init() {
+        NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)
+            .compactMap { $0.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect }
+            .map { $0.height }
+            .assign(to: \.currentHeight, on: self)
+            .store(in: &cancellableSet)
+
+        NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)
+            .map { _ in CGFloat(0) }
+            .assign(to: \.currentHeight, on: self)
+            .store(in: &cancellableSet)
+    }
+}
+
 
 struct DepositChequeView: View {
     @State private var currentStep = 1
     @State private var amount: String = ""
     @State private var showAccountSheet = false
     @State private var showConfirmationSheet = false
-    //@StateObject private var accountManager = AccountManager()
-    @StateObject private var accountManager = AccountManager(clearSelectedAccount: true)
-
-
     @State private var chequeFrontImage: UIImage?
     @State private var chequeBackImage: UIImage?
     
-    @State private var tempChequeFrontImage: UIImage?
-    @State private var tempChequeBackImage: UIImage?
-
-    @State private var navigateToMoveMoney = false
-    @Environment(\.presentationMode) var presentationMode
-
+    @FocusState private var isAmountFocused: Bool
+    @StateObject private var accountManager = AccountManager(clearSelectedAccount: true)
+    
     var body: some View {
-        ZStack {
-            Color.white.ignoresSafeArea()
-            
+        NavigationStack {
             VStack(spacing: 0) {
-                // Header stays fixed
+                // Header
                 VStack(alignment: .leading, spacing: 20) {
                     HStack {
-                        Text(NSLocalizedString("deposit_cheques", comment: ""))
-                            .font(.title2).bold()
+                        Spacer()
+                        Text("Deposit cheques")
+                            .font(.title).bold()
                         Spacer()
                     }
-                    
+
                     HStack(spacing: 12) {
                         stepCircle(number: 1, isActive: currentStep == 1, isCompleted: currentStep > 1)
-                        Rectangle()
-                            .frame(height: 2)
-                            .foregroundColor(.gray.opacity(0.5))
-                            .padding(.horizontal, -6)
+                        Rectangle().frame(height: 2).foregroundColor(.gray.opacity(0.5))
                         stepCircle(number: 2, isActive: currentStep == 2, isCompleted: false)
                     }
                 }
-                .padding(.horizontal)
-                .padding(.top)
-                
-                // Main form scroll area
-                ScrollView(showsIndicators: false) {
+                .padding()
+
+                // Scrollable Form
+                ScrollView {
                     VStack(spacing: 20) {
                         if currentStep == 1 {
-                            Step1View(accountManager: accountManager,
-                                      showAccountSheet: $showAccountSheet,
-                                      amount: $amount) {
-                                currentStep = 2
+                            Step1View(
+                                accountManager: accountManager,
+                                showAccountSheet: $showAccountSheet,
+                                amount: $amount,
+                                isAmountFocused: $isAmountFocused
+                            ) {
+                                withAnimation { currentStep = 2 }
                             }
                         } else {
-                            Step2View(chequeFrontImage: $chequeFrontImage,
-                                      chequeBackImage: $chequeBackImage) {
+                            Step2View(
+                                chequeFrontImage: $chequeFrontImage,
+                                chequeBackImage: $chequeBackImage
+                            ) {
                                 showConfirmationSheet = true
                             }
                         }
-                        
-                        Spacer(minLength: 100) // Optional padding for scroll experience
                     }
                     .padding()
                 }
-                .scrollDismissesKeyboard(.interactively)
+                .onTapGesture { isAmountFocused = false }
+                .sheet(isPresented: $showAccountSheet) {
+                    AccountSelectionSheet(accountManager: accountManager, isPresented: $showAccountSheet)
+                }
+            }
+            .navigationBarHidden(true)
+            .sheet(isPresented: $showConfirmationSheet) {
+                ChequeConfirmationSheet(
+                    amount: amount,
+                    selectedAccount: accountManager.selectedAccount,
+                    transactionId: "TXN-123456",
+                    chequeFrontImage: $chequeFrontImage,
+                    chequeBackImage: $chequeBackImage
+                ) {
+                    showConfirmationSheet = false
+                }
+            }
+            .onAppear {
+                accountManager.fetchAccounts()
             }
         }
-        .sheet(isPresented: $showConfirmationSheet) {
-            ChequeConfirmationSheet(
-                amount: amount,
-                selectedAccount: accountManager.selectedAccount,
-                transactionId: "TXN-123456",
-                chequeFrontImage: $chequeFrontImage,
-                chequeBackImage: $chequeBackImage
-            ) {
-                showConfirmationSheet = false
-            }
-        }
-        .onAppear {
-            accountManager.fetchAccounts()
-        }
-        
     }
 
     func stepCircle(number: Int, isActive: Bool = false, isCompleted: Bool = false) -> some View {
@@ -115,164 +130,332 @@ struct DepositChequeView: View {
             }
         }
     }
+
+    private func hideKeyboard() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+    }
 }
 
 
+//    func stepCircle(number: Int, isActive: Bool = false, isCompleted: Bool = false) -> some View {
+//        ZStack {
+//            Circle()
+//                .fill(
+//                    isCompleted || isActive
+//                    ? Constants.backgroundGradient
+//                    : LinearGradient(
+//                        gradient: Gradient(colors: [Color.gray.opacity(0.4), Color.gray.opacity(0.4)]),
+//                        startPoint: .leading,
+//                        endPoint: .trailing
+//                    )
+//                )
+//
+//                .frame(width: 28, height: 28)
+//            if isCompleted {
+//                Image(systemName: "checkmark")
+//                    .foregroundColor(.white)
+//                    .font(.system(size: 14, weight: .bold))
+//            } else {
+//                Text("\(number)")
+//                    .foregroundColor(.white)
+//                    .font(.subheadline)
+//            }
+//        }
+//    }
+//}
+
+
 // MARK: - Step 1 View
+//struct Step1View: View {
+//    @ObservedObject var accountManager: AccountManager
+//    @Binding var showAccountSheet: Bool
+//    @Binding var amount: String
+//    var onContinue: () -> Void
+//    @State private var showAmountError = false
+//    @State private var showAccountError = false
+//    @FocusState private var focusedField: FieldFocus?
+//
+//    var body: some View {
+//        
+//        VStack(alignment: .leading, spacing: 20) {
+//            
+////            Text("Deposit cheques here as quickly, easily, and securely as a paper one.")
+//            Text(NSLocalizedString("deposit_cheque_intro", comment: ""))
+//
+//                .font(.body)
+//            VStack(alignment: .leading, spacing: 6) {
+//                            //Text("Important:")
+//                Text(NSLocalizedString("step_important", comment: ""))
+//
+//                                .font(.subheadline)
+//                                .bold()
+//
+//                            VStack(alignment: .leading, spacing: 4) {
+////                                Text("• You must have a cheque that is less than 6 months old.")
+////                                Text("• Standard hold times may apply, which may restrict your ability to access your deposited funds.")
+//                                Text(NSLocalizedString("step_important_note_1", comment: ""))
+//                                Text(NSLocalizedString("step_important_note_2", comment: ""))
+//                            }
+//                            .font(.footnote)
+//                        }
+//            // Deposit to
+//            Button(action: {
+//                showAccountSheet.toggle()
+//            }) {
+//                HStack {
+//                    VStack(alignment: .leading, spacing: 2) {
+//                        //Text("Deposit to")
+//                        Text(NSLocalizedString("deposit_to", comment: ""))
+//
+//                            .font(.caption)
+//                            .foregroundColor(.gray)
+//                        Text(accountManager.selectedAccount?.accountType ?? "Select account")
+//                            .font(.body)
+//                            .foregroundColor(.black)
+////                        if let account = accountManager.selectedAccount {
+////                            let localizedType = NSLocalizedString("account_type_\(account.accountTypeKey)", comment: "")
+////                            Text(localizedType)
+////                                .font(.body)
+////                                .foregroundColor(.black)
+////
+//////                            Text(account.accountNumber)
+//////                                .font(.caption)
+//////                                .foregroundColor(.gray)
+////                        } else {
+////                            Text(NSLocalizedString("select_account", comment: ""))
+////                                .font(.body)
+////                                .foregroundColor(.gray)
+////                        }
+//
+//                        if let accountNumber = accountManager.selectedAccount?.accountNumber {
+//                            Text(accountNumber)
+//                                .font(.caption)
+//                                .foregroundColor(.gray)
+//                        }
+//                    }
+//                    Spacer()
+//                    VStack(alignment: .trailing) {
+//                        Text(accountManager.selectedAccount?.balance ?? "")
+//                            .font(.body)
+//                            .bold()
+//                            .foregroundColor(.black)
+//                        Image(systemName: "chevron.down")
+//                            .foregroundColor(.gray)
+//                    }
+//                }
+//                .padding()
+//                .background(RoundedRectangle(cornerRadius: 8).stroke(Color.gray))
+//            }
+//            .sheet(isPresented: $showAccountSheet) {
+//                AccountSelectionSheet(accountManager: accountManager, isPresented: $showAccountSheet)
+//            }
+//            if showAccountError {
+//                            //Text("Please select an account.")
+//                Text(NSLocalizedString("please_select_account", comment: ""))
+//
+//                                .font(.caption)
+//                                .foregroundColor(.red)
+//                        }
+//            // Amount
+////            TextField("Amount", text: $amount)
+////                .keyboardType(.decimalPad)
+////                .padding()
+////                .background(RoundedRectangle(cornerRadius: 8).stroke(Color.gray))
+//        
+//                            //TextField("Amount", text: $amount)
+//            TextField(NSLocalizedString("amount", comment: ""), text: $amount)
+//
+//                                //.keyboardType(.decimalPad)
+//                .keyboardType(.numbersAndPunctuation)
+//                  .submitLabel(.done)
+//                                .padding(.vertical, 10)
+//                   
+//                        .padding(.horizontal)
+//                        .onChange(of: amount) { oldValue,newValue in
+//                            //amount = formatCurrencyInput(newValue)
+//                            amount = CurrencyFormatter.format(newValue)
+//                            if !newValue.trimmingCharacters(in: .whitespaces).isEmpty {
+//                                    showAmountError = false // Hide error as soon as user types
+//                                }
+//                        }
+//                        .focused($focusedField, equals: .amount)
+//                        .onTapGesture {
+//                            focusedField = nil
+//                        }
+//                    
+//                        .background(RoundedRectangle(cornerRadius: 8).stroke(showAmountError ? Color.red : Color.gray))
+//
+//                        if showAmountError {
+//                            //Text("Amount is required.")
+//                            Text(NSLocalizedString("amount_required", comment: ""))
+//
+//                                .font(.caption)
+//                                .foregroundColor(.red)
+//                        }
+//
+//            Button(action: {
+//                //onContinue()
+//                validateAndContinue()
+//            }) {
+//                //Text("Continue")
+//                Text(NSLocalizedString("continue", comment: ""))
+//
+//                    .font(.headline)
+//                    .frame(maxWidth: .infinity)
+//                    .padding()
+//                    //.background(Color.black)
+//                    .background(Constants.backgroundGradient)
+//
+//                    .foregroundColor(.white)
+//                    .cornerRadius(10)
+//            }
+//        }
+//        
+//    }
+//    private func validateAndContinue() {
+//           showAmountError = amount.trimmingCharacters(in: .whitespaces).isEmpty
+//           showAccountError = accountManager.selectedAccount == nil
+//
+//           if !showAmountError && !showAccountError {
+//               onContinue()
+//           }
+//       }
+//}
 struct Step1View: View {
     @ObservedObject var accountManager: AccountManager
     @Binding var showAccountSheet: Bool
     @Binding var amount: String
+    var isAmountFocused: FocusState<Bool>.Binding
     var onContinue: () -> Void
+    
     @State private var showAmountError = false
     @State private var showAccountError = false
-    @FocusState private var focusedField: FieldFocus?
 
     var body: some View {
-        
-        VStack(alignment: .leading, spacing: 20) {
-            
+        VStack(alignment: .leading, spacing: 16) {
 //            Text("Deposit cheques here as quickly, easily, and securely as a paper one.")
             Text(NSLocalizedString("deposit_cheque_intro", comment: ""))
 
                 .font(.body)
             VStack(alignment: .leading, spacing: 6) {
-                            //Text("Important:")
-                Text(NSLocalizedString("step_important", comment: ""))
-
-                                .font(.subheadline)
-                                .bold()
-
-                            VStack(alignment: .leading, spacing: 4) {
-//                                Text("• You must have a cheque that is less than 6 months old.")
-//                                Text("• Standard hold times may apply, which may restrict your ability to access your deposited funds.")
-                                Text(NSLocalizedString("step_important_note_1", comment: ""))
-                                Text(NSLocalizedString("step_important_note_2", comment: ""))
-                            }
-                            .font(.footnote)
-                        }
-            // Deposit to
-            Button(action: {
-                showAccountSheet.toggle()
-            }) {
-                HStack {
-                    VStack(alignment: .leading, spacing: 2) {
-                        //Text("Deposit to")
-                        Text(NSLocalizedString("deposit_to", comment: ""))
-
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                        Text(accountManager.selectedAccount?.accountType ?? "Select account")
-                            .font(.body)
-                            .foregroundColor(.black)
-//                        if let account = accountManager.selectedAccount {
-//                            let localizedType = NSLocalizedString("account_type_\(account.accountTypeKey)", comment: "")
-//                            Text(localizedType)
-//                                .font(.body)
-//                                .foregroundColor(.black)
-//
-////                            Text(account.accountNumber)
-////                                .font(.caption)
-////                                .foregroundColor(.gray)
-//                        } else {
-//                            Text(NSLocalizedString("select_account", comment: ""))
-//                                .font(.body)
-//                                .foregroundColor(.gray)
+                                      //Text("Important:")
+                          Text(NSLocalizedString("step_important", comment: ""))
+          
+                                          .font(.subheadline)
+                                          .bold()
+          
+                                      VStack(alignment: .leading, spacing: 4) {
+          //                                Text("• You must have a cheque that is less than 6 months old.")
+          //                                Text("• Standard hold times may apply, which may restrict your ability to access your deposited funds.")
+                                          Text(NSLocalizedString("step_important_note_1", comment: ""))
+                                          Text(NSLocalizedString("step_important_note_2", comment: ""))
+                                      }
+                                      .font(.footnote)
+                                  }
+            // Account selection
+//            Button(action: { showAccountSheet.toggle() }) {
+//                HStack {
+//                    VStack(alignment: .leading) {
+//                        Text("Deposit to").font(.caption).foregroundColor(.gray)
+//                        Text(accountManager.selectedAccount?.accountType ?? "Select account")
+//                            .foregroundColor(.black)
+//                        if let number = accountManager.selectedAccount?.accountNumber {
+//                            Text(number).font(.caption).foregroundColor(.gray)
 //                        }
-
-                        if let accountNumber = accountManager.selectedAccount?.accountNumber {
-                            Text(accountNumber)
-                                .font(.caption)
-                                .foregroundColor(.gray)
-                        }
-                    }
-                    Spacer()
-                    VStack(alignment: .trailing) {
-                        Text(accountManager.selectedAccount?.balance ?? "")
-                            .font(.body)
-                            .bold()
-                            .foregroundColor(.black)
-                        Image(systemName: "chevron.down")
-                            .foregroundColor(.gray)
-                    }
-                }
-                .padding()
-                .background(RoundedRectangle(cornerRadius: 8).stroke(Color.gray))
-            }
-            .sheet(isPresented: $showAccountSheet) {
-                AccountSelectionSheet(accountManager: accountManager, isPresented: $showAccountSheet)
-            }
-            if showAccountError {
-                            //Text("Please select an account.")
-                Text(NSLocalizedString("please_select_account", comment: ""))
-
-                                .font(.caption)
-                                .foregroundColor(.red)
-                        }
-            // Amount
-//            TextField("Amount", text: $amount)
-//                .keyboardType(.decimalPad)
+//                    }
+//                    Spacer()
+//                    Image(systemName: "chevron.down")
+//                }
 //                .padding()
 //                .background(RoundedRectangle(cornerRadius: 8).stroke(Color.gray))
-        
-                            //TextField("Amount", text: $amount)
-            TextField(NSLocalizedString("amount", comment: ""), text: $amount)
-
-                                //.keyboardType(.decimalPad)
-                .keyboardType(.numbersAndPunctuation)
-                  .submitLabel(.done)
-                                .padding(.vertical, 10)
-                   
-                        .padding(.horizontal)
-                        .onChange(of: amount) { oldValue,newValue in
-                            //amount = formatCurrencyInput(newValue)
-                            amount = CurrencyFormatter.format(newValue)
-                            if !newValue.trimmingCharacters(in: .whitespaces).isEmpty {
-                                    showAmountError = false // Hide error as soon as user types
-                                }
-                        }
-                        .focused($focusedField, equals: .amount)
-                        .onTapGesture {
-                            focusedField = nil
-                        }
-                    
-                        .background(RoundedRectangle(cornerRadius: 8).stroke(showAmountError ? Color.red : Color.gray))
-
-                        if showAmountError {
-                            //Text("Amount is required.")
-                            Text(NSLocalizedString("amount_required", comment: ""))
-
-                                .font(.caption)
-                                .foregroundColor(.red)
-                        }
-
+//            }
             Button(action: {
-                //onContinue()
-                validateAndContinue()
-            }) {
-                //Text("Continue")
-                Text(NSLocalizedString("continue", comment: ""))
+                       showAccountSheet.toggle()
+                   }) {
+                       HStack {
+                           VStack(alignment: .leading, spacing: 2) {
+                               //Text("Deposit to")
+                               Text(NSLocalizedString("deposit_to", comment: ""))
+       
+                                   .font(.caption)
+                                   .foregroundColor(.gray)
+                               Text(accountManager.selectedAccount?.accountType ?? "Select account")
+                                   .font(.body)
+                                   .foregroundColor(.black)
+       //                        if let account = accountManager.selectedAccount {
+       //                            let localizedType = NSLocalizedString("account_type_\(account.accountTypeKey)", comment: "")
+       //                            Text(localizedType)
+       //                                .font(.body)
+       //                                .foregroundColor(.black)
+       //
+       ////                            Text(account.accountNumber)
+       ////                                .font(.caption)
+       ////                                .foregroundColor(.gray)
+       //                        } else {
+       //                            Text(NSLocalizedString("select_account", comment: ""))
+       //                                .font(.body)
+       //                                .foregroundColor(.gray)
+       //                        }
+       
+                               if let accountNumber = accountManager.selectedAccount?.accountNumber {
+                                   Text(accountNumber)
+                                       .font(.caption)
+                                       .foregroundColor(.gray)
+                               }
+                           }
+                           Spacer()
+                           VStack(alignment: .trailing) {
+                               Text(accountManager.selectedAccount?.balance ?? "")
+                                   .font(.body)
+                                   .bold()
+                                   .foregroundColor(.black)
+                               Image(systemName: "chevron.down")
+                                   .foregroundColor(.gray)
+                           }
+                       }
+                       .padding()
+                       .background(RoundedRectangle(cornerRadius: 8).stroke(Color.gray))
+                   }
+            if showAccountError {
+                Text("Please select an account.")
+                    .foregroundColor(.red).font(.caption)
+            }
 
-                    .font(.headline)
+            // Amount field
+            TextField("Amount", text: $amount)
+                //.keyboardType(.decimalPad)
+                .keyboardType(.numbersAndPunctuation)
+              .submitLabel(.done)
+                .focused(isAmountFocused)
+                .padding()
+                .background(RoundedRectangle(cornerRadius: 8).stroke(showAmountError ? Color.red : Color.gray))
+
+            if showAmountError {
+                Text("Amount is required.")
+                    .foregroundColor(.red).font(.caption)
+            }
+
+            // Continue Button
+            Button(action: validateAndContinue) {
+                Text("Continue")
                     .frame(maxWidth: .infinity)
                     .padding()
-                    //.background(Color.black)
+                    //.background(Color.blue)
                     .background(Constants.backgroundGradient)
 
                     .foregroundColor(.white)
                     .cornerRadius(10)
             }
         }
-        
     }
-    private func validateAndContinue() {
-           showAmountError = amount.trimmingCharacters(in: .whitespaces).isEmpty
-           showAccountError = accountManager.selectedAccount == nil
 
-           if !showAmountError && !showAccountError {
-               onContinue()
-           }
-       }
+    private func validateAndContinue() {
+        showAmountError = amount.trimmingCharacters(in: .whitespaces).isEmpty
+        showAccountError = accountManager.selectedAccount == nil
+        if !showAmountError && !showAccountError {
+            onContinue()
+        }
+    }
 }
 
 // MARK: - Step 2 View
@@ -490,101 +673,11 @@ struct ChequeConfirmationSheet: View {
                 date: formattedDate,
                 selectedAccount: selectedAccount,
                 transactionId: transactionId
+                
             )
         }
     }
-//    var body: some View {
-//        VStack(alignment: .leading, spacing: 16) {
-//            // Top Bar
-//            HStack {
-//                Text(NSLocalizedString("confirmation", comment: ""))
-//                    .font(.title3).bold()
-//                Spacer()
-//                Button(action: {
-//                    dismiss()
-//                }) {
-//                    Image(systemName: "xmark")
-//                        .foregroundColor(.black)
-//                }
-//            }
-//
-//            Divider()
-//
-//            Group {
-//                LabelValueView(label: NSLocalizedString("deposit_to", comment: ""),
-//                               value: "\(selectedAccount?.accountType ?? "") - \(selectedAccount?.accountNumber ?? "")")
-//
-//                LabelValueView(label: NSLocalizedString("transaction_id", comment: ""),
-//                               value: transactionId)
-//
-//                LabelValueView(label: NSLocalizedString("deposit_date", comment: ""),
-//                               value: formattedDate)
-//
-//                LabelValueView(label: NSLocalizedString("amount", comment: ""),
-//                               value: "\(amount)")
-//            }
-//
-////            if let front = chequeFrontImage {
-////                Text(NSLocalizedString("camera_front", comment: ""))
-////                    .font(.caption).foregroundColor(.gray)
-////                Image(uiImage: front)
-////                    .resizable()
-////                    .aspectRatio(contentMode: .fit)
-////                    .frame(maxWidth: .infinity)
-////                    .rotationEffect(.degrees(90)) // Rotates image to landscape
-////
-////                    .cornerRadius(10)
-////                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.gray.opacity(0.3)))
-////            }
-////
-////            if let back = chequeBackImage {
-////                Text(NSLocalizedString("camera_back", comment: ""))
-////                    .font(.caption).foregroundColor(.gray)
-////                Image(uiImage: back)
-////                    .resizable()
-////                    .aspectRatio(contentMode: .fit)
-////                    .frame(maxWidth: .infinity)
-////                        .rotationEffect(.degrees(90))
-////                    .cornerRadius(10)
-////                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.gray.opacity(0.3)))
-////            }
-//            if let front = chequeFrontImage {
-//                Text(NSLocalizedString("camera_front", comment: ""))
-//                    .font(.caption).foregroundColor(.gray)
-//                ChequeImageView(image: front)
-//            }
-//
-//            if let back = chequeBackImage {
-//                Text(NSLocalizedString("camera_back", comment: ""))
-//                    .font(.caption).foregroundColor(.gray)
-//                ChequeImageView(image: back)
-//            }
-//
-//
-//            Spacer()
-//
-//            Button(action: {
-//                showSummary = true
-//            }) {
-//                Text(NSLocalizedString("confirm", comment: ""))
-//                    .frame(maxWidth: .infinity)
-//                    .padding()
-//                    .background(Color.black)
-//                    .foregroundColor(.white)
-//                    .cornerRadius(12)
-//            }
-//
-//        }
-//        .padding()
-//        .fullScreenCover(isPresented: $showSummary) {
-//            ChequeSummarySheet(
-//                amount: amount,
-//                date: formattedDate,
-//                selectedAccount: selectedAccount,
-//                transactionId: transactionId
-//            )
-//        }
-//    }
+
 }
 //struct ChequeImageView: View {
 //    var image: UIImage
@@ -647,297 +740,7 @@ struct LabelValueView: View {
     }
 }
 
-//struct ChequeConfirmationSheet: View {
-//    var amount: String
-//    var selectedAccount: BankAccount?   // Pass selected account
-//        var transactionId: String
-//    @Binding var chequeFrontImage: UIImage?
-//    @Binding var chequeBackImage: UIImage?
-//    var onConfirm: () -> Void
-//    @State private var showConfirmation = false
-//    @State private var showSummary = false    // Format today's date
-//    var formattedDate: String {
-//        let formatter = DateFormatter()
-//        formatter.dateStyle = .long
-//        return formatter.string(from: Date())
-//    }
-//
-//    var body: some View {
-//        VStack(alignment: .leading, spacing: 16) {
-//            // Top Bar
-//            HStack {
-//                //Text("Confirmation")
-//                Text(NSLocalizedString("confirmation", comment: ""))
-//
-//                    .font(.headline)
-//                Spacer()
-//                Button(action: {
-//                    // dismiss handled by parent
-//                }) {
-//                    Image(systemName: "xmark")
-//                        .foregroundColor(.black)
-//                }
-//            }
-//            .padding(.bottom, 8)
-//
-//            // Info Fields
-//            Group {
-//                if let account = selectedAccount {
-//                        //Text("Deposit to")
-//                    Text(NSLocalizedString("deposit_to", comment: ""))
-//
-//                            .font(.caption)
-//                            .foregroundColor(.gray)
-//                        Text("\(account.accountType) (\(account.accountNumber))")
-//                    //for french account name
-//
-////                    let localizedType = NSLocalizedString("account_type_\(account.accountTypeKey)", comment: "")
-////                    Text("\(localizedType) (\(account.accountNumber))")
-//
-//                            .font(.body)
-//                        Divider()
-//                    }
-////                Text("Deposit to")
-////                    .font(.caption)
-////                    .foregroundColor(.gray)
-////                Text(depositTo)
-////                    .font(.body)
-//                //Text("Transaction ID")
-//                Text(NSLocalizedString("transaction_id", comment: ""))
-//
-//                    .font(.caption)
-//                    .foregroundColor(.gray)
-//                Divider()
-//                Text(transactionId)
-//                    .font(.body)
-//                Divider()
-//                //Text("Deposit date")
-//                Text(NSLocalizedString("deposit_date", comment: ""))
-//
-//                    .font(.caption)
-//                    .foregroundColor(.gray)
-//                Text(formattedDate)
-//                    .font(.body)
-//                Divider()
-//                //Text("Amount")
-//                Text(NSLocalizedString("amount", comment: ""))
-//
-//                    .font(.caption)
-//                    .foregroundColor(.gray)
-//                Text(amount)
-//                    .font(.title3)
-//                    .bold()
-//                Divider()
-//
-//            }
-//
-//            // Cheque front image
-//            if let front = chequeFrontImage {
-//                //Text("Cheque front")
-//                Text(NSLocalizedString("camera_front", comment: ""))
-//
-//                    .font(.caption)
-//                    .foregroundColor(.gray)
-//                Image(uiImage: front)
-//                    .resizable()
-//                    .aspectRatio(contentMode: .fit)
-//                    .frame(maxWidth: .infinity)
-//                    .cornerRadius(10)
-//                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.gray.opacity(0.2)))
-//            }
-//
-//            // Cheque back image
-//            if let back = chequeBackImage {
-//                //Text("Cheque back")
-//                Text(NSLocalizedString("camera_back", comment: ""))
-//
-//                    .font(.caption)
-//                    .foregroundColor(.gray)
-//                Image(uiImage: back)
-//                    .resizable()
-//                    .aspectRatio(contentMode: .fit)
-//                    .frame(maxWidth: .infinity)
-//                    .cornerRadius(10)
-//                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.gray.opacity(0.2)))
-//            }
-//
-//            Spacer()
-//
-//            // Confirm Button
-//            Button(action: {
-//               // onConfirm()
-//               // showConfirmation = true
-//                showSummary=true
-//
-//            }) {
-//                //Text("Confirm")
-//                Text(NSLocalizedString("confirm", comment: ""))
-//
-//                    .font(.headline)
-//                    .frame(maxWidth: .infinity)
-//                    .padding()
-//                    .background(Color.black)
-//                    .foregroundColor(.white)
-//                    .cornerRadius(12)
-//            }
-//            .padding(.top)
-//            .sheet(isPresented: $showConfirmation) {
-//                    ChequeConfirmationSheet(
-//                        amount: amount,
-//                        selectedAccount: selectedAccount,
-//                        transactionId: "TXN-123456",
-//                        chequeFrontImage: $chequeFrontImage,
-//                        chequeBackImage: $chequeBackImage,
-//                        onConfirm: {
-//                            showConfirmation = false
-//                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-//                                showSummary = true
-//                            }
-//                        }
-//                    )
-//                }
-//            .fullScreenCover(isPresented: $showSummary) {  //.sheet before full screen 
-//                    ChequeSummarySheet(
-//                        amount: amount,
-//                        date: DateFormatter.localizedString(from: Date(), dateStyle: .long, timeStyle: .none), selectedAccount: selectedAccount, transactionId:"TXN-123456"
-//                    )
-//                }
-//        }
-//        .padding()
-//        //.background(Color(.systemGray6))
-//        .cornerRadius(20)
-//        .padding()
-//    }
-//}
-//
 
-//summary
-//struct ChequeSummarySheet: View {
-//    var amount: String
-//    var date: String
-//    @State private var navigateToMainView = false
-//    var selectedAccount: BankAccount?
-//       var transactionId: String
-//    var body: some View {
-//        VStack(spacing: 24) {
-//            // Success Message Banner (optional)
-//            HStack {
-//                Image(systemName: "checkmark.circle.fill")
-//                    .foregroundColor(.white)
-//                //Text("Cheque Deposit Successful")
-//                Text(NSLocalizedString("cheque_deposit_success", comment: ""))
-//
-//                    .foregroundColor(.white)
-//                    .font(.subheadline)
-//                    .bold()
-//            }
-//            .padding()
-//            .frame(maxWidth: .infinity)
-//            .background(Color.green)
-//            .cornerRadius(12)
-//            .padding(.top)
-//
-//            // Card-style summary box
-//            VStack(alignment: .leading, spacing: 16) {
-//                //Text("Cheque Deposit Summary")
-//                Text(NSLocalizedString("cheque_deposit_summary", comment: ""))
-//
-//                    .font(.headline)
-//                    .bold()
-//                    .frame(maxWidth: .infinity, alignment: .center)
-//
-//                Divider()
-//                if let account = selectedAccount {
-//                    HStack {
-//                        //Text("Deposit to")
-//                        Text(NSLocalizedString("deposit_to", comment: ""))
-//
-//                            .foregroundColor(.gray)
-//                            .font(.caption)
-//                     Text("\(account.accountType) (\(account.accountNumber))")
-//                        //for french account name
-////                        let localizedType = NSLocalizedString("account_type_\(account.accountTypeKey)", comment: "")
-////                        Text("\(localizedType) (\(account.accountNumber))")
-//
-//                            .font(.body)
-//                    }
-//                }
-//
-//                Divider()
-//
-//                HStack {
-//                    //Text("Transaction ID")
-//                    Text(NSLocalizedString("transaction_id", comment: ""))
-//
-//                        .foregroundColor(.gray)
-//                        .font(.caption)
-//                    Text(transactionId)
-//                        .font(.body)
-//                }
-//                Divider()
-//                HStack {
-//                    //Text("Deposit date")
-//                    Text(NSLocalizedString("deposit_date", comment: ""))
-//
-//                        .foregroundColor(.gray)
-//                        .font(.caption)
-//                    //Spacer()
-//                    Text(date)
-//                        .font(.body)
-//                    //Divider()
-//
-//                }
-//                Divider()
-//
-//
-//                HStack {
-//                    //Text("Amount")
-//                    Text(NSLocalizedString("amount", comment: ""))
-//
-//                        .foregroundColor(.gray)
-//                        .font(.caption)
-//                   // Spacer()
-//                    Text(amount)
-//                        .font(.body)
-//                        .bold()
-//                    //Divider()
-//
-//                }
-//            }
-//            .padding()
-//            //.background(Color.white)
-//            .background(RoundedRectangle(cornerRadius: 10).fill(Color.white).shadow(radius: 5))
-//            .cornerRadius(12)
-//            .shadow(radius: 5)
-//            .padding(.horizontal)
-//
-//            Spacer()
-//
-//            // Done Button
-//            Button(action: {
-//                // dismiss logic here
-//                navigateToMainView = true
-//
-//            }) {
-//                //Text("Done")
-//                Text(NSLocalizedString("done", comment: ""))
-//
-//                    .bold()
-//                    .frame(maxWidth: .infinity)
-//                    .padding()
-//                    .background(Color.black)
-//                    .foregroundColor(.white)
-//                    .cornerRadius(12)
-//            }
-//            .padding(.horizontal)
-//            .fullScreenCover(isPresented: $navigateToMainView) {
-//                MainView() // Opens MainView when button is clicked
-//            }
-//        }
-//        .padding()
-//        .background(Color.white.ignoresSafeArea())
-//    }
-//}
 struct ChequeSummarySheet: View {
     var amount: String
     var date: String
@@ -1061,90 +864,15 @@ struct ChequeSummarySheet: View {
         .fullScreenCover(isPresented: $navigateChequeDepositView) {
             DepositChequeView()
         }
+//        NavigationLink(destination: DepositChequeView(), isActive: $navigateChequeDepositView) {
+//            EmptyView()
+//        }
+        //.hidden()
+
     }
 }
 
-//struct AccountSelectionSheet: View {
-//    @ObservedObject var accountManager: AccountManager
-//    @Binding var isPresented: Bool
-//
-//    var body: some View {
-//        // Precompute localized header
-//        let headerText = NSLocalizedString("transfer_from", comment: "")
-//
-//        return VStack {
-//            // Header
-//            HStack {
-//                Text(headerText)
-//                    .font(.headline)
-//                    .bold()
-//                Spacer()
-//                Button(action: {
-//                    isPresented = false // Close sheet
-//                }) {
-//                    Image(systemName: "xmark")
-//                        .font(.title3)
-//                        .foregroundColor(.gray)
-//                }
-//            }
-//            .padding()
-//
-//            // Account List
-//            ScrollView {
-//                VStack(spacing: 10) {
-//                    ForEach(accountManager.accounts) { account in
-//                        Button(action: {
-//                            accountManager.selectedAccount = account
-//                            isPresented = false
-//                        }) {
-//                            HStack {
-//                                VStack(alignment: .leading, spacing: 2) {
-//                                    // Account Name
-//                                    Text(account.accountName)
-//                                        .font(.headline)
-//                                        .bold()
-//                                        .foregroundColor(.black)
-//
-//                                    // Localized Account Type
-//                                    let typeKey = "account_type_\(account.accountTypeKey)"
-//                                    let localizedType = NSLocalizedString(typeKey, comment: "")
-//                                    Text(localizedType)
-//                                        .font(.subheadline)
-//                                        .foregroundColor(.gray)
-//
-//                                    // Account Number
-//                                    Text(account.accountNumber)
-//                                        .font(.subheadline)
-//                                        .foregroundColor(.gray)
-//                                }
-//
-//                                Spacer()
-//
-//                                // Balance
-//                                Text(account.balance)
-//                                    .font(.headline)
-//                                    .bold()
-//                                    .foregroundColor(.black)
-//
-//                                // Selected Checkmark
-//                                if account == accountManager.selectedAccount {
-//                                    Image(systemName: "checkmark.circle.fill")
-//                                        .foregroundColor(.blue)
-//                                }
-//                            }
-//                            .padding()
-//                            .background(account == accountManager.selectedAccount ? Color.blue.opacity(0.2) : Color(.systemGray6))
-//                            .cornerRadius(10)
-//                        }
-//                    }
-//                }
-//                .padding()
-//            }
-//        }
-//        .padding(.horizontal)
-//        .presentationDetents([.medium, .large])
-//    }
-//}
+
 
 
 struct AccountSelectionSheet: View {

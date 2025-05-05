@@ -241,6 +241,7 @@ struct MoveMoneyView: View {
                     VStack(alignment: .leading, spacing: 15) {
                        
                         InteracOptionRow(option: .payBills)
+                        InteracOptionRow(option: .managePayees)
 
 
                     }
@@ -416,6 +417,7 @@ struct MoveMoneyView: View {
         case pending
         case profileSettings
         case payBills // New option
+        case managePayees
 
         // Add more as needed
 
@@ -429,6 +431,7 @@ struct MoveMoneyView: View {
             case .pending: return "clock.fill"
             case .profileSettings: return "person.text.rectangle.fill"
             case .payBills: return "doc.plaintext" // Icon for Pay Bills
+            case .managePayees: return "person.3.fill"
 
             }
         }
@@ -440,7 +443,7 @@ struct MoveMoneyView: View {
             case .transferMoney:
                 return NSLocalizedString("transfer_money", comment: "")
             case .manageContacts:
-                return NSLocalizedString("add_contact", comment: "")//manage_contacts
+                return NSLocalizedString("manage_contact", comment: "")//manage_contacts
             case .manageAccounts:
                 return NSLocalizedString("manage_accounts", comment: "")
             case .requestMoney:
@@ -451,6 +454,9 @@ struct MoveMoneyView: View {
                 return NSLocalizedString("profile_setting", comment: "")
             case .payBills:
                         return NSLocalizedString("pay_bills", comment: "")
+            case .managePayees:
+                return NSLocalizedString("manage_payees", comment: "")
+
             }
         }
     }
@@ -464,6 +470,8 @@ struct MoveMoneyView: View {
         @State private var isShowingContactForm = false
         @State private var isShowingAccountForm = false
         @State private var isShowingPayBills = false
+        @State private var isShowingManagePayees = false
+        @StateObject private var payeeVM = PayeeViewModel()
 
 
         var body: some View {
@@ -495,6 +503,8 @@ struct MoveMoneyView: View {
                     isShowingAccountForm = true
                 case .payBills:
                     isShowingPayBills = true
+                case .managePayees:
+                       isShowingManagePayees = true
                 default:
                     break
                 }
@@ -506,11 +516,14 @@ struct MoveMoneyView: View {
                 TransferMoneyScreen()
             }
             .fullScreenCover(isPresented: $isShowingContactForm) {
-                AddContactFormView(isPresented: $isShowingContactForm, contactManager: ContactManager())
+                ContactListScreen()
+//                AddContactFormView(isPresented: $isShowingContactForm, contactManager: ContactManager())
         
             }
             .fullScreenCover(isPresented: $isShowingAccountForm) {
-                AddAccountFormView(accountManager: AccountManager())
+                AccountListScreen()//this added on 5 may for list of account 
+                //below account call is before showing account list
+                //AddAccountFormView(accountManager: AccountManager())
 //                AddAccountFormView(isPresented: $isShowingAddAccountForm, accountManager: AccountManager())
 
             }
@@ -521,6 +534,10 @@ struct MoveMoneyView: View {
                 //PayBillScreen(accountManager: AccountManager())
 
             }
+            .fullScreenCover(isPresented: $isShowingManagePayees) {
+                PayeeListSection(payeeVM: payeeVM, showAddPayeeSheet: $isShowingManagePayees)
+            }
+
 
         }
     }

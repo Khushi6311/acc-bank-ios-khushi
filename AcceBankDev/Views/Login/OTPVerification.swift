@@ -313,7 +313,7 @@ struct OTPVerificationView: View {
                     Text(error)
                         .foregroundColor(.red)
                         .font(.footnote)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .frame(maxWidth: .infinity, alignment: .center)
                         .padding(.horizontal)
                 }
 
@@ -386,7 +386,7 @@ struct OTPVerificationView: View {
 
                 do {
                     if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] {
-                        print("✅ Parsed Response: \(json)")
+                        print("Parsed Response: \(json)")
 
                         if let status = json["status"] as? String {
                             if status.lowercased() == "success" {
@@ -405,7 +405,7 @@ struct OTPVerificationView: View {
                     }
                 } catch {
                     errorMessage = "Failed to parse response"
-                    print("❌ JSON parse error: \(error.localizedDescription)")
+                    print("JSON parse error: \(error.localizedDescription)")
                 }
             }
         }.resume()

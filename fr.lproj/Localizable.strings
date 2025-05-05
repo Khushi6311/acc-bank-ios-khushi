@@ -63,6 +63,7 @@
 "account_type_chequing" = "Compte chèque";
 "account_type_term_deposit" = "Dépôt à terme";
 "view_details" = "Voir les détails";
+"no_card_attached" = "Aucune carte jointe";
 
 //^^^^^^^^^
 //below is for MoveMoneyView file
@@ -235,6 +236,23 @@
 
 
 //^^^^^^^^^^^^^^^^^
+
+
+//9.account list
+"My_Accounts_Title" = "Mes comptes";
+"Add_Account_Button" = "Ajouter des comptes";
+"No_Accounts_Found" = "Aucun compte trouvé.";
+
+// contact list
+"My_Contacts_Title" = "Mes contacts";
+"Add_Contact_Button" = "Ajouter un contact";
+"No_Contacts_Found" = "Aucun contact trouvé.";
+//payee list
+"Payees_Title" = "Bénéficiaires";
+"Add_Payee_Button" = "Ajouter un bénéficiaire";
+"No_Payees_Found" = "Aucun bénéficiaire trouvé.";
+"manage_payees"="Gérer les bénéficiaires";
+
 //below is for emailview of register
 "enter_email_address" = "Entrez l'adresse e-mail";
 "email_address_placeholder" = "Adresse e-mail";
@@ -295,6 +313,7 @@
 "transfer_money"="Transférer de l'argent";
 "transfer_money"="Transférer de l'argent";
 "to_another_bank"="Vers une autre banque";
+"manage_contact"="Gérer les contacts";
 
 
 
@@ -414,6 +433,11 @@
 "logout_confirmation_title" = "Êtes-vous sûr de vouloir vous déconnecter ?";
 "yes" = "Oui";
 "cancel" = "Annuler";
+"select_language_alert_title" = "Veuillez sélectionner une langue";
+"english" = "Anglais";
+"french" = "Français";
+"cancel" = "Annuler";
+"language"="Langue";
 
 //
 "frequency_weekly" = "Hebdomadaire";

@@ -69,6 +69,7 @@
 "account_type_chequing" = "Spending (Chequing)";
 "account_type_term_deposit" = "Term Deposit";
 "view_details" = "View Details";
+"no_card_attached" = "No card attached";
 
 //^^^^^^^^^^^^^^^^
 
@@ -248,6 +249,20 @@
 
 //^^^^^^^^^^^^^^^^^
 
+//9.account list
+"My_Accounts_Title" = "My Accounts";
+"Add_Account_Button" = "Add Account";
+"No_Accounts_Found" = "No accounts found.";
+
+// contact list
+"My_Contacts_Title" = "My Contacts";
+"Add_Contact_Button" = "Add Contact";
+"No_Contacts_Found" = "No contacts found.";
+//payee list
+"Payees_Title" = "Payees";
+"Add_Payee_Button" = "Add Payee";
+"No_Payees_Found" = "No payees found.";
+"manage_payees"="Manage Payees";
 //below is for emailview of register
 "enter_email_address" = "Enter Email Address";
 "email_address_placeholder" = "Email Address";
@@ -316,7 +331,7 @@
 "online_shopping" = "Online Shopping";
 "subscription_services" = "Subscription Services";
 "government_taxes" = "Government Taxes";
-
+"manage_contact"="Manage Contacts";
 "scheduled_transfers" = "Scheduled Transfers";
 "see_more" = "See More";
 "see_less" = "See Less";
@@ -400,7 +415,11 @@
 "yes" = "Yes";
 "cancel" = "Cancel";
 "select_payee"="Select Payee";
-
+"select_language_alert_title" = "Please select a language";
+"english" = "English";
+"french" = "Français";
+"cancel" = "Cancel";
+"language"="Language";
 //
 "frequency_weekly" = "Weekly";
 "frequency_monthly" = "Monthly";

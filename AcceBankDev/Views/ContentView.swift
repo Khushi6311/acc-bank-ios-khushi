@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct ContentView: View {
-    
+    //@EnvironmentObject var languageManager: LanguageManager
     var body: some View {
         //Text("hello")
         //PayBillScreen()
@@ -15,6 +15,8 @@ struct ContentView: View {
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         ContentView()
+           // .environmentObject(LanguageManager()) // create a new instance here
+
             
     }
 }

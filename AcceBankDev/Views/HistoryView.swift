@@ -239,8 +239,8 @@ struct HistoryView: View {
     //                                    .frame(width: 40, height: 40)
     //                                    .background(Color(UIColor.systemGray5))
     //                                    .clipShape(Circle())
-//                                    Image(systemName: (tx.transactionFrom == (account?.accountId ?? "")) ? "arrow.up.right" : "arrow.down.left")
-                                    Image(systemName: getTransactionIcon(tx))
+                                    Image(systemName: (tx.transactionFrom == (account?.accountId ?? "")) ? "arrow.up.right" : "arrow.down.left")
+                                    //Image(systemName: getTransactionIcon(tx))
 
                                         .font(.title2)
                                         .frame(width: 40, height: 40)
@@ -317,12 +317,12 @@ struct HistoryView: View {
         
         
     }
-    func getTransactionIcon(_ tx: Transaction) -> String {
-        if tx.transactionType?.lowercased() == "fund transfer" {
-            return "arrow.left.arrow.right" // 🔁 Fund Transfer Icon
-        }
-        return (tx.transactionFrom == (account?.accountId ?? "")) ? "arrow.up.right" : "arrow.down.left"
-    }
+//    func getTransactionIcon(_ tx: Transaction) -> String {
+//        if tx.transactionType?.lowercased() == "fund transfer" {
+//            return "arrow.left.arrow.right" // Fund Transfer Icon
+//        }
+//        return (tx.transactionFrom == (account?.accountId ?? "")) ? "arrow.up.right" : "arrow.down.left"
+//    }
     func getTransactionDisplayName(for transaction: Transaction) -> String {
         let loggedInAccountId = account?.accountId ?? ""
         //30 april

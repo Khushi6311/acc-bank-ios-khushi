@@ -96,15 +96,15 @@ class ContactManager: ObservableObject {
 
     //func fetchContactsFromAPI() {
     func fetchContactsFromAPI(completion: (() -> Void)? = nil) {
-        print("🌐 Initiating contact fetch from API...")
+        print("Initiating contact fetch from API...")
 
         guard let token = TokenManager.shared.getToken() else {
-            print("❌ No token found")
+            print("No token found")
             return
         }
 
         guard let url = URL(string: apiURL) else {
-            print("❌ Invalid API URL")
+            print("Invalid API URL")
             return
         }
 
@@ -114,37 +114,39 @@ class ContactManager: ObservableObject {
         request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
 
         // Print request headers
-        print("➡️ Request URL: \(url.absoluteString)")
-        print("➡️ Headers: \(request.allHTTPHeaderFields ?? [:])")
+        print("Request URL: \(url.absoluteString)")
+        print("Headers: \(request.allHTTPHeaderFields ?? [:])")
 
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
-                print("❌ API request error: \(error.localizedDescription)")
+                print("API request error: \(error.localizedDescription)")
                 return
             }
 
             if let httpResponse = response as? HTTPURLResponse {
-                print("📥 Response Status: \(httpResponse.statusCode)")
+                print("Response Status: \(httpResponse.statusCode)")
             }
 
             guard let data = data else {
-                print("❌ No data returned from API.")
+                print("No data returned from API.")
                 return
             }
 
             if let raw = String(data: data, encoding: .utf8) {
-                print("📦 Raw JSON Response:\n\(raw)")
+                print("Raw JSON Response:\n\(raw)")
             }
 
             do {
                 let decoded = try JSONDecoder().decode(ContactApiResponse<[Contact]>.self, from: data)
                 DispatchQueue.main.async {
                     self.contacts = decoded.data
-                    completion?()
+                    print("Contacts assigned successfully.")
+
+                    //completion?()
                 }
-                print("✅ Contacts loaded successfully from API.")
+                print("Contacts loaded successfully from API.")
             } catch {
-                print("❌ Decoding error: \(error)")
+                print("Decoding error: \(error)")
             }
         }.resume()
     }
