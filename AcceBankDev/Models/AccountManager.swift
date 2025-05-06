@@ -225,6 +225,10 @@ class AccountManager: ObservableObject {
         // Call API directly instead of loading from local JSON
         fetchAccounts()
     }
+    func clearSelectedAccount() {
+        selectedAccount = nil
+    }
+
 
     func fetchAccounts() {
         guard let contactId = TokenManager.shared.getContactId(),

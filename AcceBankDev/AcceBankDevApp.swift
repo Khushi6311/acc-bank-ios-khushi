@@ -11,6 +11,8 @@ import SwiftData
 @main
 struct AcceBankDevApp: App {
     @StateObject var languageManager = LanguageManager()
+    @StateObject var appState = AppState()
+
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             Item.self,
@@ -27,7 +29,9 @@ struct AcceBankDevApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environmentObject(languageManager) 
+                .environmentObject(languageManager)
+                .environmentObject(appState)
+
         }
         .modelContainer(sharedModelContainer)
     }

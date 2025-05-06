@@ -337,12 +337,20 @@ struct HistoryView: View {
                     return "Sender"
                 }
             }
+//        if transaction.transactionFrom == loggedInAccountId {
+//            // Logged-in user is Sender
+//            if let toName = transaction.transactionToCustomerName, !toName.isEmpty {
+//                return "\(toName)"
+//            } else if let toAcc = transaction.toAccountNumber, !toAcc.isEmpty {
+//                return "\(toAcc)"
+//            } else {
+//                return "Recipient"
+//            }
         if transaction.transactionFrom == loggedInAccountId {
-            // Logged-in user is Sender
             if let toName = transaction.transactionToCustomerName, !toName.isEmpty {
-                return "\(toName)"
-            } else if let toAcc = transaction.toAccountNumber, !toAcc.isEmpty {
-                return "\(toAcc)"
+                return toName
+            } else if let fromName = transaction.transactionFromCustomerName, !fromName.isEmpty {
+                return fromName
             } else {
                 return "Recipient"
             }

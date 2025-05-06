@@ -38,7 +38,9 @@ struct DepositChequeView: View {
     
     @FocusState private var isAmountFocused: Bool
     @StateObject private var accountManager = AccountManager(clearSelectedAccount: true)
-    
+    @EnvironmentObject var appState: AppState
+    @State private var shouldReset = false
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
@@ -46,7 +48,9 @@ struct DepositChequeView: View {
                 VStack(alignment: .leading, spacing: 20) {
                     HStack {
                         Spacer()
-                        Text("Deposit cheques")
+                        //Text("Deposit cheques")
+                        Text(NSLocalizedString("deposit_cheque_intro", comment: ""))
+
                             .font(.title).bold()
                         Spacer()
                     }
@@ -88,21 +92,44 @@ struct DepositChequeView: View {
                 }
             }
             .navigationBarHidden(true)
+//            .sheet(isPresented: $showConfirmationSheet) {
+//                ChequeConfirmationSheet(
+//                    amount: amount,
+//                    selectedAccount: accountManager.selectedAccount,
+//                    transactionId: "TXN-123456",
+//                    chequeFrontImage: $chequeFrontImage,
+//                    chequeBackImage: $chequeBackImage
+//                ) {
+//                    showConfirmationSheet = false
+//                }
+//                .environmentObject(appState)
+//            }
             .sheet(isPresented: $showConfirmationSheet) {
                 ChequeConfirmationSheet(
                     amount: amount,
                     selectedAccount: accountManager.selectedAccount,
                     transactionId: "TXN-123456",
                     chequeFrontImage: $chequeFrontImage,
-                    chequeBackImage: $chequeBackImage
-                ) {
-                    showConfirmationSheet = false
-                }
+                    chequeBackImage: $chequeBackImage,
+                    showSheet: $showConfirmationSheet,
+                    resetForm: {
+                        resetForm()
+                    }
+                )
+                .environmentObject(appState)
             }
+
             .onAppear {
                 accountManager.fetchAccounts()
             }
         }
+    }
+    private func resetForm() {
+        currentStep = 1
+        amount = ""
+        chequeFrontImage = nil
+        chequeBackImage = nil
+        accountManager.clearSelectedAccount()
     }
 
     func stepCircle(number: Int, isActive: Bool = false, isCompleted: Bool = false) -> some View {
@@ -417,12 +444,16 @@ struct Step1View: View {
                        .background(RoundedRectangle(cornerRadius: 8).stroke(Color.gray))
                    }
             if showAccountError {
-                Text("Please select an account.")
+                //Text("Please select an account.")
+                Text(NSLocalizedString("please_select_account", comment: ""))
+
                     .foregroundColor(.red).font(.caption)
             }
 
             // Amount field
-            TextField("Amount", text: $amount)
+            //TextField("Amount", text: $amount)
+            TextField(NSLocalizedString("amount", comment: "Placeholder for amount input field"), text: $amount)
+
                 //.keyboardType(.decimalPad)
                 .keyboardType(.numbersAndPunctuation)
               .submitLabel(.done)
@@ -431,13 +462,17 @@ struct Step1View: View {
                 .background(RoundedRectangle(cornerRadius: 8).stroke(showAmountError ? Color.red : Color.gray))
 
             if showAmountError {
-                Text("Amount is required.")
+                //Text("Amount is required.")
+                    Text(NSLocalizedString("amount_required", comment: ""))
+
                     .foregroundColor(.red).font(.caption)
             }
 
             // Continue Button
             Button(action: validateAndContinue) {
-                Text("Continue")
+                //Text("Continue")
+                Text(NSLocalizedString("continue", comment: "Label for the Continue button"))
+
                     .frame(maxWidth: .infinity)
                     .padding()
                     //.background(Color.blue)
@@ -589,6 +624,96 @@ struct Step2View: View {
     
     }
 //}
+//old code
+//struct ChequeConfirmationSheet: View {
+//    var amount: String
+//    var selectedAccount: BankAccount?
+//    var transactionId: String
+//    @Binding var chequeFrontImage: UIImage?
+//    @Binding var chequeBackImage: UIImage?
+//    var onConfirm: () -> Void
+//
+//    @Environment(\.dismiss) var dismiss
+//    @State private var showSummary = false
+//
+//    var formattedDate: String {
+//        let formatter = DateFormatter()
+//        formatter.dateStyle = .long
+//        return formatter.string(from: Date())
+//    }
+//    var body: some View {
+//        VStack(spacing: 16) {
+//            // Scrollable content
+//            ScrollView {
+//                VStack(alignment: .leading, spacing: 16) {
+//                    // Top Bar
+//                    HStack {
+//                        Text(NSLocalizedString("confirmation", comment: ""))
+//                            .font(.title3).bold()
+//                        Spacer()
+//                        Button(action: { dismiss() }) {
+//                            Image(systemName: "xmark")
+//                                .foregroundColor(.black)
+//                        }
+//                    }
+//
+//                    Divider()
+//
+//                    Group {
+//                        LabelValueView(label: NSLocalizedString("deposit_to", comment: ""),
+//                                       value: "\(selectedAccount?.accountType ?? "") - \(selectedAccount?.accountNumber ?? "")")
+//
+//                        LabelValueView(label: NSLocalizedString("transaction_id", comment: ""),
+//                                       value: transactionId)
+//
+//                        LabelValueView(label: NSLocalizedString("deposit_date", comment: ""),
+//                                       value: formattedDate)
+//
+//                        LabelValueView(label: NSLocalizedString("amount", comment: ""),
+//                                       value: amount)
+//                    }
+//
+//                    if let front = chequeFrontImage {
+//                        Text(NSLocalizedString("camera_front", comment: ""))
+//                            .font(.caption).foregroundColor(.gray)
+//                        ChequeImageView(image: front)
+//                    }
+//
+//                    if let back = chequeBackImage {
+//                        Text(NSLocalizedString("camera_back", comment: ""))
+//                            .font(.caption).foregroundColor(.gray)
+//                        ChequeImageView(image: back)
+//                    }
+//                }
+//                .padding(.horizontal)
+//            }
+//
+//            // Sticky Confirm button
+//            Button(action: {
+//                showSummary = true
+//            }) {
+//                Text(NSLocalizedString("confirm", comment: ""))
+//                    .frame(maxWidth: .infinity)
+//                    .padding()
+//                    .background(Color.black)
+//                    .foregroundColor(.white)
+//                    .cornerRadius(12)
+//            }
+//            .padding([.horizontal, .bottom])
+//        }
+//        .padding(.top)
+//        .fullScreenCover(isPresented: $showSummary) {
+//            ChequeSummarySheet(
+//                amount: amount,
+//                date: formattedDate,
+//                selectedAccount: selectedAccount,
+//                transactionId: transactionId
+//                
+//            )
+//        }
+//    }
+//
+//}
 
 struct ChequeConfirmationSheet: View {
     var amount: String
@@ -596,19 +721,22 @@ struct ChequeConfirmationSheet: View {
     var transactionId: String
     @Binding var chequeFrontImage: UIImage?
     @Binding var chequeBackImage: UIImage?
-    var onConfirm: () -> Void
+
+    @Binding var showSheet: Bool
+    var resetForm: () -> Void
 
     @Environment(\.dismiss) var dismiss
     @State private var showSummary = false
+    @State private var navigateChequeDepositView = false
 
     var formattedDate: String {
         let formatter = DateFormatter()
         formatter.dateStyle = .long
         return formatter.string(from: Date())
     }
+
     var body: some View {
         VStack(spacing: 16) {
-            // Scrollable content
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     // Top Bar
@@ -616,7 +744,7 @@ struct ChequeConfirmationSheet: View {
                         Text(NSLocalizedString("confirmation", comment: ""))
                             .font(.title3).bold()
                         Spacer()
-                        Button(action: { dismiss() }) {
+                        Button(action: { showSheet = false }) {
                             Image(systemName: "xmark")
                                 .foregroundColor(.black)
                         }
@@ -653,7 +781,7 @@ struct ChequeConfirmationSheet: View {
                 .padding(.horizontal)
             }
 
-            // Sticky Confirm button
+            // Confirm button
             Button(action: {
                 showSummary = true
             }) {
@@ -665,6 +793,25 @@ struct ChequeConfirmationSheet: View {
                     .cornerRadius(12)
             }
             .padding([.horizontal, .bottom])
+
+            // Continue with new transfer button
+//            Button(action: {
+//                showSheet = false
+//                DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+//                    resetForm()
+//                }
+//            }) {
+//                Text(NSLocalizedString("continue_with_new_transfer", comment: ""))
+//                    .fontWeight(.semibold)
+//                    .frame(maxWidth: .infinity)
+//                    .padding()
+//                    .background(
+//                        LinearGradient(colors: [Color.blue, Color.teal], startPoint: .leading, endPoint: .trailing)
+//                    )
+//                    .foregroundColor(.white)
+//                    .cornerRadius(12)
+//            }
+//            .padding([.horizontal, .bottom])
         }
         .padding(.top)
         .fullScreenCover(isPresented: $showSummary) {
@@ -672,13 +819,14 @@ struct ChequeConfirmationSheet: View {
                 amount: amount,
                 date: formattedDate,
                 selectedAccount: selectedAccount,
-                transactionId: transactionId
-                
+                transactionId: transactionId,
+                showSheet: $showSheet,
+                       resetForm: resetForm
             )
         }
     }
-
 }
+
 //struct ChequeImageView: View {
 //    var image: UIImage
 //
@@ -749,7 +897,11 @@ struct ChequeSummarySheet: View {
 
     var selectedAccount: BankAccount?
     var transactionId: String
-
+    @EnvironmentObject var appState: AppState
+    @Environment(\.dismiss) var dismiss
+    //var onNewTransfer: () -> Void
+    @Binding var showSheet: Bool
+       var resetForm: () -> Void
     var body: some View {
         VStack(spacing: 24) {
             // Success Banner
@@ -841,7 +993,11 @@ struct ChequeSummarySheet: View {
 
             // Continue Button (styled as outlined gradient)
             Button(action: {
-                navigateChequeDepositView = true
+                //navigateChequeDepositView = true
+                showSheet = false
+//                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+//                        resetForm()
+//                    }
             }) {
                 Text(NSLocalizedString("continue_with_new_transfer", comment: ""))
                     .fontWeight(.semibold)
@@ -861,15 +1017,20 @@ struct ChequeSummarySheet: View {
         .fullScreenCover(isPresented: $navigateToMainView) {
             MainView()
         }
-        .fullScreenCover(isPresented: $navigateChequeDepositView) {
-            DepositChequeView()
+        .onDisappear {
+            resetForm()
         }
+
+//        .fullScreenCover(isPresented: $navigateChequeDepositView) {
+//            DepositChequeView()
+//        }
 //        NavigationLink(destination: DepositChequeView(), isActive: $navigateChequeDepositView) {
 //            EmptyView()
 //        }
         //.hidden()
 
     }
+    
 }
 
 
