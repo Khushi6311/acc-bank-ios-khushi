@@ -49,7 +49,7 @@ struct DepositChequeView: View {
                     HStack {
                         Spacer()
                         //Text("Deposit cheques")
-                        Text(NSLocalizedString("deposit_cheque_intro", comment: ""))
+                        Text(NSLocalizedString("deposit_cheques", comment: ""))
 
                             .font(.title).bold()
                         Spacer()
@@ -164,197 +164,14 @@ struct DepositChequeView: View {
 }
 
 
-//    func stepCircle(number: Int, isActive: Bool = false, isCompleted: Bool = false) -> some View {
-//        ZStack {
-//            Circle()
-//                .fill(
-//                    isCompleted || isActive
-//                    ? Constants.backgroundGradient
-//                    : LinearGradient(
-//                        gradient: Gradient(colors: [Color.gray.opacity(0.4), Color.gray.opacity(0.4)]),
-//                        startPoint: .leading,
-//                        endPoint: .trailing
-//                    )
-//                )
-//
-//                .frame(width: 28, height: 28)
-//            if isCompleted {
-//                Image(systemName: "checkmark")
-//                    .foregroundColor(.white)
-//                    .font(.system(size: 14, weight: .bold))
-//            } else {
-//                Text("\(number)")
-//                    .foregroundColor(.white)
-//                    .font(.subheadline)
-//            }
-//        }
-//    }
-//}
-
-
-// MARK: - Step 1 View
-//struct Step1View: View {
-//    @ObservedObject var accountManager: AccountManager
-//    @Binding var showAccountSheet: Bool
-//    @Binding var amount: String
-//    var onContinue: () -> Void
-//    @State private var showAmountError = false
-//    @State private var showAccountError = false
-//    @FocusState private var focusedField: FieldFocus?
-//
-//    var body: some View {
-//        
-//        VStack(alignment: .leading, spacing: 20) {
-//            
-////            Text("Deposit cheques here as quickly, easily, and securely as a paper one.")
-//            Text(NSLocalizedString("deposit_cheque_intro", comment: ""))
-//
-//                .font(.body)
-//            VStack(alignment: .leading, spacing: 6) {
-//                            //Text("Important:")
-//                Text(NSLocalizedString("step_important", comment: ""))
-//
-//                                .font(.subheadline)
-//                                .bold()
-//
-//                            VStack(alignment: .leading, spacing: 4) {
-////                                Text("• You must have a cheque that is less than 6 months old.")
-////                                Text("• Standard hold times may apply, which may restrict your ability to access your deposited funds.")
-//                                Text(NSLocalizedString("step_important_note_1", comment: ""))
-//                                Text(NSLocalizedString("step_important_note_2", comment: ""))
-//                            }
-//                            .font(.footnote)
-//                        }
-//            // Deposit to
-//            Button(action: {
-//                showAccountSheet.toggle()
-//            }) {
-//                HStack {
-//                    VStack(alignment: .leading, spacing: 2) {
-//                        //Text("Deposit to")
-//                        Text(NSLocalizedString("deposit_to", comment: ""))
-//
-//                            .font(.caption)
-//                            .foregroundColor(.gray)
-//                        Text(accountManager.selectedAccount?.accountType ?? "Select account")
-//                            .font(.body)
-//                            .foregroundColor(.black)
-////                        if let account = accountManager.selectedAccount {
-////                            let localizedType = NSLocalizedString("account_type_\(account.accountTypeKey)", comment: "")
-////                            Text(localizedType)
-////                                .font(.body)
-////                                .foregroundColor(.black)
-////
-//////                            Text(account.accountNumber)
-//////                                .font(.caption)
-//////                                .foregroundColor(.gray)
-////                        } else {
-////                            Text(NSLocalizedString("select_account", comment: ""))
-////                                .font(.body)
-////                                .foregroundColor(.gray)
-////                        }
-//
-//                        if let accountNumber = accountManager.selectedAccount?.accountNumber {
-//                            Text(accountNumber)
-//                                .font(.caption)
-//                                .foregroundColor(.gray)
-//                        }
-//                    }
-//                    Spacer()
-//                    VStack(alignment: .trailing) {
-//                        Text(accountManager.selectedAccount?.balance ?? "")
-//                            .font(.body)
-//                            .bold()
-//                            .foregroundColor(.black)
-//                        Image(systemName: "chevron.down")
-//                            .foregroundColor(.gray)
-//                    }
-//                }
-//                .padding()
-//                .background(RoundedRectangle(cornerRadius: 8).stroke(Color.gray))
-//            }
-//            .sheet(isPresented: $showAccountSheet) {
-//                AccountSelectionSheet(accountManager: accountManager, isPresented: $showAccountSheet)
-//            }
-//            if showAccountError {
-//                            //Text("Please select an account.")
-//                Text(NSLocalizedString("please_select_account", comment: ""))
-//
-//                                .font(.caption)
-//                                .foregroundColor(.red)
-//                        }
-//            // Amount
-////            TextField("Amount", text: $amount)
-////                .keyboardType(.decimalPad)
-////                .padding()
-////                .background(RoundedRectangle(cornerRadius: 8).stroke(Color.gray))
-//        
-//                            //TextField("Amount", text: $amount)
-//            TextField(NSLocalizedString("amount", comment: ""), text: $amount)
-//
-//                                //.keyboardType(.decimalPad)
-//                .keyboardType(.numbersAndPunctuation)
-//                  .submitLabel(.done)
-//                                .padding(.vertical, 10)
-//                   
-//                        .padding(.horizontal)
-//                        .onChange(of: amount) { oldValue,newValue in
-//                            //amount = formatCurrencyInput(newValue)
-//                            amount = CurrencyFormatter.format(newValue)
-//                            if !newValue.trimmingCharacters(in: .whitespaces).isEmpty {
-//                                    showAmountError = false // Hide error as soon as user types
-//                                }
-//                        }
-//                        .focused($focusedField, equals: .amount)
-//                        .onTapGesture {
-//                            focusedField = nil
-//                        }
-//                    
-//                        .background(RoundedRectangle(cornerRadius: 8).stroke(showAmountError ? Color.red : Color.gray))
-//
-//                        if showAmountError {
-//                            //Text("Amount is required.")
-//                            Text(NSLocalizedString("amount_required", comment: ""))
-//
-//                                .font(.caption)
-//                                .foregroundColor(.red)
-//                        }
-//
-//            Button(action: {
-//                //onContinue()
-//                validateAndContinue()
-//            }) {
-//                //Text("Continue")
-//                Text(NSLocalizedString("continue", comment: ""))
-//
-//                    .font(.headline)
-//                    .frame(maxWidth: .infinity)
-//                    .padding()
-//                    //.background(Color.black)
-//                    .background(Constants.backgroundGradient)
-//
-//                    .foregroundColor(.white)
-//                    .cornerRadius(10)
-//            }
-//        }
-//        
-//    }
-//    private func validateAndContinue() {
-//           showAmountError = amount.trimmingCharacters(in: .whitespaces).isEmpty
-//           showAccountError = accountManager.selectedAccount == nil
-//
-//           if !showAmountError && !showAccountError {
-//               onContinue()
-//           }
-//       }
-//}
 struct Step1View: View {
     @ObservedObject var accountManager: AccountManager
     @Binding var showAccountSheet: Bool
     @Binding var amount: String
     var isAmountFocused: FocusState<Bool>.Binding
     var onContinue: () -> Void
-    
+    @FocusState private var focusedField: FieldFocus?
+
     @State private var showAmountError = false
     @State private var showAccountError = false
 
@@ -406,7 +223,9 @@ struct Step1View: View {
        
                                    .font(.caption)
                                    .foregroundColor(.gray)
-                               Text(accountManager.selectedAccount?.accountType ?? "Select account")
+//                               Text(accountManager.selectedAccount?.accountType ?? "Select account")
+                               Text(accountManager.selectedAccount?.accountType ?? NSLocalizedString("select_account", comment: "Prompt to select an account"))
+
                                    .font(.body)
                                    .foregroundColor(.black)
        //                        if let account = accountManager.selectedAccount {
@@ -452,14 +271,36 @@ struct Step1View: View {
 
             // Amount field
             //TextField("Amount", text: $amount)
-            TextField(NSLocalizedString("amount", comment: "Placeholder for amount input field"), text: $amount)
+//            TextField(NSLocalizedString("amount", comment: "Placeholder for amount input field"), text: $amount)
+//
+//                //.keyboardType(.decimalPad)
+//                .keyboardType(.numbersAndPunctuation)
+//              .submitLabel(.done)
+//                .focused(isAmountFocused)
+//                .padding()
+//                .background(RoundedRectangle(cornerRadius: 8).stroke(Color.gray))
+                        TextField(NSLocalizedString("amount", comment: ""), text: $amount)
+            
+                                            //.keyboardType(.decimalPad)
+                            .keyboardType(.numbersAndPunctuation)
+                              .submitLabel(.done)
+                                            .padding(.vertical, 10)
+            
+                                    .padding(.horizontal)
+                                    .onChange(of: amount) { oldValue,newValue in
+                                        //amount = formatCurrencyInput(newValue)
+                                        amount = CurrencyFormatter.format(newValue)
+                                        if !newValue.trimmingCharacters(in: .whitespaces).isEmpty {
+                                                showAmountError = false // Hide error as soon as user types
+                                            }
+                                    }
+                                    .focused($focusedField, equals: .amount)
+                                    .onTapGesture {
+                                        focusedField = nil
+                                    }
+            
+                                    .background(RoundedRectangle(cornerRadius: 8).stroke(Color.gray))
 
-                //.keyboardType(.decimalPad)
-                .keyboardType(.numbersAndPunctuation)
-              .submitLabel(.done)
-                .focused(isAmountFocused)
-                .padding()
-                .background(RoundedRectangle(cornerRadius: 8).stroke(showAmountError ? Color.red : Color.gray))
 
             if showAmountError {
                 //Text("Amount is required.")
@@ -1118,6 +959,8 @@ struct DepositChequeView_Previews: PreviewProvider {
         Group {
             
             DepositChequeView()
+                .environmentObject(AppState())         // Inject required environment object
+                            .environmentObject(LanguageManager()) 
                 .previewLayout(.sizeThatFits)
                 .padding()
         }

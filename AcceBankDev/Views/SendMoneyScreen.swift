@@ -86,7 +86,11 @@ struct SendMoneyView: View {
                         .font(.subheadline)
                         .foregroundColor(.gray)
                     //this is for accounts details
-                    Button(action: { showAccountSheet = true }) {
+                    Button(action: {
+                        showAccountSheet = true
+                        //for remove error msg
+                        accountError = nil
+                    }) {
                         HStack {
                             VStack(alignment: .leading, spacing: 2) {
                                 //                                Text(accountManager.selectedAccount?.accountName ?? "Select Account")
@@ -127,7 +131,12 @@ struct SendMoneyView: View {
                         .font(.subheadline)
                         .foregroundColor(.gray)
                     
-                    Button(action: { showContactSheet = true }) {
+                    Button(action: {
+                        showContactSheet = true
+                        //for remove error msg
+
+                        contactError = nil
+}) {
                         HStack {
                             //                            Text(selectedContact?.name ?? "Select Contact")
                             Text(selectedContact?.name ?? NSLocalizedString("select_recipient", comment: ""))
@@ -274,7 +283,7 @@ struct SendMoneyView: View {
                     //                        .textFieldStyle(RoundedBorderTextFieldStyle())
                     //                        .padding(.top, 5)
                     //                    TextField("Enter transfer amount", text: $transferAmount)//
-                    TextField(NSLocalizedString("error_required_amount", comment: ""), text: $transferAmount)
+                    TextField(NSLocalizedString("amount", comment: ""), text: $transferAmount)
                     
                     
                         //.keyboardType(.decimalPad) // Ensure numeric input
@@ -284,6 +293,9 @@ struct SendMoneyView: View {
                         .padding(.top,5)
                         .onChange(of: transferAmount,initial:false) {_, newValue in
                             transferAmount = formatCurrencyInput(newValue)
+                            //for error msg disable
+                            amountError = nil
+
                         }
                     
                     if let error = amountError {
@@ -305,6 +317,9 @@ struct SendMoneyView: View {
                     HStack(alignment: .top) {
                         Button(action: {
                             isAcknowledged.toggle() // Toggle checkbox state
+                            //for disable error msg
+                            acknowledgmentError = nil
+
                         }) {
                             Image(systemName: isAcknowledged ? "checkmark.square.fill" : "square")
                                 .foregroundColor(.colorBlue)

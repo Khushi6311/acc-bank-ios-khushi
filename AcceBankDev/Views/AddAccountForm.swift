@@ -48,6 +48,14 @@ struct AddAccountFormView: View {
                             .padding()
                             .background(Color(.systemGray6))
                             .cornerRadius(8)
+                        
+                        //for remove error message
+                            .onChange(of: accountName) {
+                                if !accountName.trimmingCharacters(in: .whitespaces).isEmpty {
+                                    accountNameError = false
+                                }
+                            }
+
 //                            .overlay(RoundedRectangle(cornerRadius: 8).stroke(accountNameError ? Color.red : Color.clear, lineWidth: 1))
                         if accountNameError {
                             //Text("Required field.")
@@ -61,6 +69,10 @@ struct AddAccountFormView: View {
                         Button(action: {
                             withAnimation {
                                 showAccountTypeDropdown.toggle()
+                                //for removing error msg 
+                                if showAccountTypeDropdown { // When user opens the dropdown
+                                            accountTypeError = false
+                                        }
                             }
                         }) {
                             HStack {
@@ -144,6 +156,14 @@ struct AddAccountFormView: View {
                             .keyboardType(.decimalPad)
                             .background(Color(.systemGray6))
                             .cornerRadius(8)
+                        //for remove error message
+                            .onChange(of: balance) {
+                                if !balance.trimmingCharacters(in: .whitespaces).isEmpty {
+                                    balanceError = false
+                                }
+                            }
+
+
 //                            .overlay(RoundedRectangle(cornerRadius: 8).stroke(balanceError ? Color.red : Color.clear, lineWidth: 1))
                         if balanceError {
                             //Text("Required field.")

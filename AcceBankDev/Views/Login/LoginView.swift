@@ -793,5 +793,6 @@ struct LoginResponse: Decodable {
 struct LoginView_Previews: PreviewProvider {
     static var previews: some View {
         LoginView()
+            .environmentObject(AppState())
     }
 }

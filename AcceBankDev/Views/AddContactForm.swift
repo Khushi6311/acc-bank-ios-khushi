@@ -74,6 +74,10 @@ struct AddContactFormView: View {
                     TextField(NSLocalizedString("name", comment: ""), text: $name)
 
                         .padding().background(Color(.systemGray6)).cornerRadius(8)
+                    //added for disable error msg
+                        .onChange(of: name) { _ in
+                                nameErrorMessage = nil
+                            }
 
                     if let error = nameErrorMessage {
 
@@ -93,7 +97,10 @@ struct AddContactFormView: View {
                         .keyboardType(.emailAddress)
 
                         .padding().background(Color(.systemGray6)).cornerRadius(8)
-
+                    //added for disable error msg
+                        .onChange(of: email) { _ in
+                                emailErrorMessage = nil
+                            }
                     if let error = emailErrorMessage {
 
                         Text(error).font(.footnote).foregroundColor(.red)
@@ -168,8 +175,11 @@ struct AddContactFormView: View {
                               .submitLabel(.done)
 
                             .padding().background(Color(.systemGray6)).cornerRadius(8)
-
-                            .onChange(of: mobilePhone) { newVal in
+                        //added for disable error msg
+                            .onChange(of: mobilePhone) { _ in
+                                mobilePhoneErrorMessage = nil
+                               }
+                            .onChange(of: mobilePhone) {_, newVal in
 
                                 let digits = newVal.filter { $0.isNumber }
 
@@ -197,9 +207,15 @@ struct AddContactFormView: View {
                     }
  
                     Toggle(NSLocalizedString("send_transfers_by_email", comment: ""), isOn: $sendByEmail)
-
+                    //added for disable error msg
+                        .onChange(of: sendByEmail) { _ in
+                                transferMethodError = false
+                            }
                     Toggle(NSLocalizedString("send_transfers_by_mobile", comment: ""), isOn: $sendByMobile)
- 
+                    //added for disable error msg
+                        .onChange(of: sendByMobile) { _ in
+                               transferMethodError = false
+                           }
                     if transferMethodError {
 
                         Text(NSLocalizedString("error_select_transfer_method", comment: "")).font(.footnote).foregroundColor(.red)

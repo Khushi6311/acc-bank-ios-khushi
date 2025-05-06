@@ -366,7 +366,9 @@ struct OneTimePaymentForm: View {
 //                    .foregroundColor(.red)
 //            }
             
-            Button(action: { isTransferFromSheetPresented = true }) {
+            Button(action: {
+                isTransferFromSheetPresented = true
+                showAccountError=false}) {
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
                         if let account = selectedFromAccount {
@@ -800,7 +802,8 @@ struct MultiPayeeDetailView: View {
             Text(detail.payee.name)
                 .font(.headline)
 
-            TextField("Amount", text: $detail.amount)
+            //TextField("Amount", text: $detail.amount)
+            TextField(NSLocalizedString("enter_transfer_amount", comment: ""), text: $detail.amount)
                 //.keyboardType(.decimalPad)
                 .keyboardType(.numbersAndPunctuation)
                   .submitLabel(.done)
@@ -813,7 +816,7 @@ struct MultiPayeeDetailView: View {
                     }
                 }
             FieldErrorView(
-                message: NSLocalizedString("error_required_field", comment: "Amount is required"),
+                message: NSLocalizedString("error_required_payee_amount_field", comment: "Amount is required"),
                 show: $detail.showAmountError
             )
             .focused($focusedField, equals: .amount)
@@ -858,7 +861,7 @@ struct MultiPayeeDetailView: View {
                           }
 
                           FieldErrorView(
-                              message: NSLocalizedString("error_required_field", comment: "Date is required"),
+                              message: NSLocalizedString("error_required_end_date_field", comment: "Date is required"),
                               show: $detail.showDateError
                           )
                       }
@@ -1087,7 +1090,8 @@ struct RecurringPaymentForm: View {
 //                    Image(systemName: "chevron.down")
 //                        .foregroundColor(.black)
 //                }
-            Button(action: { isTransferFromSheetPresented = true }) {
+            Button(action: { isTransferFromSheetPresented = true
+                showAccountError=false}) {
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
                         if let account = selectedFromAccount {
@@ -1132,7 +1136,8 @@ struct RecurringPaymentForm: View {
                 BillAccountSelectionSheet(accountManager: accountManager, isPresented: $isTransferFromSheetPresented, selectedFromAccount: $selectedFromAccount)
             }
             FieldErrorView(message: NSLocalizedString("error_required_account_field", comment: "Payee is required"), show: $showAccountError)
-            Button(action: { showPayeeSheet = true }) {
+            Button(action: { showPayeeSheet = true
+                showContactError=false}) {
                 HStack {
 //                    Text(selectedPayees.isEmpty ? "Select payee(s)" : selectedPayees.map { $0.name }.joined(separator: ", "))
                     Text(
@@ -1453,7 +1458,7 @@ struct MultiRecurringPayeeDetailView: View {
                     }
                 }
 
-            FieldErrorView(message: NSLocalizedString("error_required_field", comment: "Amount is required"), show: $detail.showAmountError)
+            FieldErrorView(message: NSLocalizedString("error_required_payee_amount_field", comment: "Amount is required"), show: $detail.showAmountError)
 
             Text(NSLocalizedString("select_frequency", comment: ""))
                 .font(.subheadline)
@@ -1492,7 +1497,7 @@ struct MultiRecurringPayeeDetailView: View {
                     .datePickerStyle(GraphicalDatePickerStyle())
             }
 
-            FieldErrorView(message: NSLocalizedString("error_required_field", comment: ""), show: $detail.showStartDateError)
+            FieldErrorView(message: NSLocalizedString("error_required_end_date_field", comment: ""), show: $detail.showStartDateError)
 
             // MARK: End Date
             DateField(title: NSLocalizedString("end_date", comment: ""), dateText: Binding(
@@ -1520,7 +1525,7 @@ struct MultiRecurringPayeeDetailView: View {
                     .datePickerStyle(GraphicalDatePickerStyle())
             }
 
-            FieldErrorView(message: NSLocalizedString("error_required_field", comment: ""), show: $detail.showEndDateError)
+            FieldErrorView(message: NSLocalizedString("error_required_end_date_field", comment: ""), show: $detail.showEndDateError)
 
             // Memo
             TextField("Enter memo (optional)", text: Binding(

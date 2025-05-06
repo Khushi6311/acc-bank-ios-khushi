@@ -60,7 +60,10 @@ struct AddPayeeFormView: View {
                        .padding()
                        .background(Color(.systemGray6))
                        .cornerRadius(10)
-                
+                //for remove error msg
+                       .onChange(of: payeeName) { _ in
+                               showPayeeNameError = false
+                           }
                 if showPayeeNameError {
                     Text(NSLocalizedString("error_payee_name_required", comment: "Payee name required"))
                             .foregroundColor(.red)
@@ -78,6 +81,9 @@ struct AddPayeeFormView: View {
                     withAnimation {
                         showPayeeList.toggle()
                     }
+                    //for remove error msg
+
+                    showPayeeTypeError = false
                 }) {
                     HStack {
                         //Text(selectedPayee.isEmpty ? "Select Payee" : selectedPayee)
@@ -145,7 +151,10 @@ struct AddPayeeFormView: View {
                     .background(Color(.systemGray6))
                     .cornerRadius(8)
                     //.padding(.horizontal)
-                
+                //for remove error msg
+                    .onChange(of: accountNumber) { _ in
+                            showAccountError = false
+                        }
                 if showAccountError {
                     Text(NSLocalizedString("error_account_number_required", comment: "Account number required"))
                         .foregroundColor(.red)
