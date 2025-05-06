@@ -1924,137 +1924,7 @@ struct BillConfirmationSheet: View {
         return formatter.string(from: date)
     }
     
-    //fpr API
-//    func sendPayBillRequest(
-//        fromAccount: BankAccount,
-//        //payees: [PayeePaymentDetails],
-//        payees: [Payee],
-//        //setTransactionIds: @escaping ([String]) -> Void,
-//        setUpdatedDetails: @escaping ([PayeePaymentDetails]) -> Void,
-//
-//        onComplete: @escaping () -> Void
-//    ) {
-//        guard let token = TokenManager.shared.getToken() else {
-//            print("No token found")
-//            return
-//        }
-//
-//        print("Raw Payee Amounts:")
-//        payees.forEach { payee in
-//            print("Payee: \(payee.name), Amount: default or unknown")
-//        }
-//
-//
-//        let formatter = DateFormatter()
-//        formatter.dateFormat = "yyyy-MM-dd"
-//
-//        let toAccounts = payees.map {
-//            return ToAccount(
-//                AccountNumberTo: $0.accountNumber,
-//                Amount: 0.0, // Set default amount or get from another source
-//                Currency: "CAD",
-//                Frequency: "OneTime",
-//                StartDate: formatter.string(from: Date()),
-//                EndDate: formatter.string(from: Date()),
-//                Memo: "",
-//                TransactionType: "Bill Payment"
-//            )
-//        }
-//
-//
-//        let requestBody = PayBillRequest(AccountNumberFrom: fromAccount.accountId, ToAccountNumbers: toAccounts)
-//
-//        guard let url = URL(string: AppConfig.PayBillURL) else {
-//            print("Invalid URL")
-//            return
-//        }
-//
-//        var request = URLRequest(url: url)
-//        request.httpMethod = "POST"
-//        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-//        request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-//
-//        do {
-//            let jsonData = try JSONEncoder().encode(requestBody)
-//            request.httpBody = jsonData
-//
-//            if let jsonString = String(data: jsonData, encoding: .utf8) {
-//                print("Request JSON:\n\(jsonString)")
-//            }
-//
-//            URLSession.shared.dataTask(with: request) { data, response, error in
-//                if let error = error {
-//                    print("API Error: \(error.localizedDescription)")
-//                    return
-//                }
-//
-//                if let response = response as? HTTPURLResponse {
-//                    print("Response Code: \(response.statusCode)")
-//                }
-//
-//                if let data = data, let raw = String(data: data, encoding: .utf8) {
-//                    print("Response Body:\n\(raw)")
-//                }
-//
-//                if let data = data {
-//                    do {
-//                        // Structs for decoding
-//                        struct ApiResponse: Codable {
-//                            let status: String
-//                            let data: TransactionData
-//                        }
-//                        struct TransactionData: Codable {
-//                            let toAccountNumbers: [ToAccountResponse]
-//                        }
-//                        struct ToAccountResponse: Codable {
-//                            let transactionNumber: String
-//                        }
-//
-//                        let decoded = try JSONDecoder().decode(ApiResponse.self, from: data)
-//
-//                        let trxIds = decoded.data.toAccountNumbers.map { $0.transactionNumber }
-//
-//                        // Combine payees and their corresponding transaction IDs
-//                        let zippedResults = zip(payees, trxIds)
-//
-//                        DispatchQueue.main.async {
-//                            for (payee, trxId) in zippedResults {
-//                                print("✅ Payee: \(payee.name), Transaction ID: \(trxId)")
-//                            }
-//
-//                            //setTransactionIds(trxIds)
-////                            let updatedPayeeDetails: [PayeePaymentDetails] = zip(payees, trxIds).map { (payee, trxId) in
-////                                PayeePaymentDetails(
-////                                    payee: payee,
-////                                    amount: "2",        // or actual amount
-////                                    date: Date(),       // or actual date
-////                                    transactionId: trxId
-////                                )
-////                            }
-//                            let updatedPayeeDetails: [PayeePaymentDetails] = zip(payeeDetails, trxIds).map { (detail, trxId) in
-//                                var updated = detail
-//                                updated.transactionId = trxId
-//                                return updated
-//                            }
-//
-//
-//                            self.payeeDetails = updatedPayeeDetails
-//
-//                            onComplete()
-//                        }
-//
-//                    } catch {
-//                        print("Decoding error: \(error)")
-//                        DispatchQueue.main.async {
-//                            onComplete()
-//                        }
-//                    }
-//                }
-//            }.resume()
-//        } catch {
-//            print("Encoding error: \(error)")
-//        }
-//    }
+   
 
     func sendPayBillRequest(
         fromAccount: BankAccount,
@@ -2081,7 +1951,10 @@ struct BillConfirmationSheet: View {
                 .replacingOccurrences(of: ",", with: "")
 
             return ToAccount(
-                AccountNumberTo: detail.payee.accountNumber,
+               // AccountNumberTo: detail.payee.accountNumber,
+                //AccountNumberTo: detail.payee.accountId,     // Use the ID (like "0a4c78b0-746c-4c8d-b1a0-e8d974a71425")
+                AccountNumberTo: detail.payee.payeeId,
+
                 Amount: Double(rawAmount) ?? 0.0,
                 Currency: "CAD",
                 Frequency: detail.frequency.capitalized,
@@ -2324,7 +2197,8 @@ struct RecurringBillConfirmationSheet: View {
             print("Cleaned Amount: \(rawAmount)")
 
             return ToAccount(
-                AccountNumberTo: detail.payee.accountNumber,
+                //AccountNumberTo: detail.payee.accountNumber,
+                AccountNumberTo: detail.payee.payeeId,
                 Amount: Double(rawAmount) ?? 0.0,
                 Currency: "CAD",
                 Frequency: detail.frequency.capitalized,

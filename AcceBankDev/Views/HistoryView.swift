@@ -232,6 +232,12 @@ struct HistoryView: View {
                 else {
                     ScrollView {
                         VStack(spacing: 12) {
+                            //title
+                            Text("Last 20 Days Transactions")
+                                            .font(.headline)
+                                            .frame(maxWidth: .infinity, alignment: .leading)
+                                            .padding(.horizontal)
+                                            .padding(.bottom, 5)
                             ForEach(transactions) { tx in
                                 HStack(alignment: .top, spacing: 12) {
     //                                Image(systemName: tx.icon)

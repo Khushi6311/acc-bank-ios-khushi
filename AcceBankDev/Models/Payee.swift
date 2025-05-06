@@ -11,8 +11,8 @@ struct Payee: Identifiable, Codable ,Equatable{
         let payeeName: String
         let payeeNumber: String
         let payeeTypeName: String
-
-        var id: String { payeeId }
+    let accountId: String?
+    var id: String { payeeId }
         var name: String { payeeName }               // to keep existing UI references
         var accountNumber: String { payeeNumber }    // to keep existing UI references
         var bank: String { payeeTypeName }           // to keep existing UI references

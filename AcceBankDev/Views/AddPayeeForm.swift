@@ -305,7 +305,9 @@ struct AddPayeeFormView: View {
             payeeId: UUID().uuidString,
             payeeName: finalPayeeName,
             payeeNumber: accountNumber,
-            payeeTypeName: selectedPayee
+            payeeTypeName: selectedPayee,
+            accountId: accountNumber
+
         )
         //onSave(newPayee)
         //dismiss()
