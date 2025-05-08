@@ -216,6 +216,8 @@ struct LoginView: View {
     @State private var isFaceIDLogin = false
 
     @State private var loginToken: String = ""
+    @EnvironmentObject var appState: AppState
+
     //private let correctPassword = "123456" // Static password for demo
     
     var body: some View {
@@ -404,13 +406,24 @@ struct LoginView: View {
                                     //Text("Sign In")
                                     Text(NSLocalizedString("sign_in", comment: ""))
                                     
-                                        .fontWeight(.bold)
-                                        .frame(width: min(350, screenWidth * 0.7), height: 50)
-                                        .background(Color.white)
-                                        .foregroundColor(.black)
-                                        .clipShape(Capsule())
-                                        .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 5)
+//                                        .fontWeight(.bold)
+//                                        .frame(width: min(350, screenWidth * 0.7), height: 50)
+//                                        .background(Color.white)
+//                                        .foregroundColor(.black)
+//                                        .clipShape(Capsule())
+//                                        .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 5)
+                                        .font(.system(size: 18, weight: .bold))
+                                              .lineLimit(1)
+                                              .minimumScaleFactor(0.7)
+                                              .frame(maxWidth: 350, minHeight: 50)
+                                              .background(Color.white)
+                                              .foregroundColor(.black)
+                                              .clipShape(Capsule())
+                                              .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 5)
                                 }
+                                //added on 8 may
+                                .padding(.horizontal, 50)
+
                             }
                         }
                             .padding(.top, 20)
@@ -419,9 +432,9 @@ struct LoginView: View {
                                         }
 //                            NavigationLink("", destination: MainView(), isActive: $navigateToWelcome)
 //                                                .hidden()
-                            .fullScreenCover(isPresented: $navigateToWelcome) {
-                                                MainView()
-                                            }
+//                            .fullScreenCover(isPresented: $navigateToWelcome) {
+//                                                MainView()
+//                                            }
                                                 .onAppear {
                                             //  Auto-fill the username if returning from registration
                                             username = UserDefaults.standard.string(forKey: "SavedUsername") ?? ""
@@ -574,6 +587,8 @@ struct LoginView: View {
                                 TokenManager.shared.saveToken(token)
                                 TokenManager.shared.scheduleAutoRefresh()
                                 loginToken = token // ← Store locally
+                                
+                                //appState.isLoggedIn = true
                             }
 
 
@@ -678,7 +693,9 @@ struct LoginView: View {
                                 TokenManager.shared.saveToken(token)
                                 TokenManager.shared.scheduleAutoRefresh()
                                 loginToken = token
-                                print("✅ Stored loginToken for OTP:", loginToken) // ← ADD THIS
+                                
+                                //appState.isLoggedIn = true
+                                print("Stored loginToken for OTP:", loginToken) // ← ADD THIS
                             }
 
                             if let refreshToken = refreshToken {

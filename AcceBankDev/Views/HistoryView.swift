@@ -499,6 +499,10 @@ struct HistoryView: View {
                     }
 
                     let decoded = try decoder.decode(TransactionAPIResponse.self, from: data)
+//                    DispatchQueue.main.async {
+//                        self.transactions = decoded.data
+//                        print("Showing \(decoded.data.count) transactions")
+//                    }
 
                     DispatchQueue.main.async {
                         let formatter = DateFormatter()

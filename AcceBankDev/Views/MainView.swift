@@ -54,6 +54,7 @@ struct MainView: View {
     @State private var username: String = UserDefaults.standard.string(forKey: "SavedUsername") ?? "Guest"
 
     var body: some View {
+        
         ZStack {
             selectedView
             VStack {
@@ -91,6 +92,7 @@ struct MainView: View {
 struct MainView_Previews: PreviewProvider {
     static var previews: some View {
         MainView()
+            .environmentObject(AppState())
         
     }
 }

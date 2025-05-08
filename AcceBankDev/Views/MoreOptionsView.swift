@@ -9,6 +9,7 @@ struct MoreOptionsView: View {
 
     @EnvironmentObject var languageManager: LanguageManager
     @State private var showLanguageAlert = false
+    @EnvironmentObject var appState: AppState
 
     var body: some View {
         NavigationView {
@@ -97,7 +98,9 @@ struct MoreOptionsView: View {
 
             .alert(NSLocalizedString("logout_confirmation_title", comment: ""), isPresented: $showLogoutConfirmation) {
                 Button(NSLocalizedString("yes", comment: ""), role: .destructive) {
-                    logout()
+                   //logout()
+                    logout(appState: appState)
+
                     isLoggedOut = true
                     //dismiss()
 //                    logout() // clear all data
@@ -130,7 +133,7 @@ struct MoreOptionsView: View {
     }
 }
 
-func logout() {
+func logout(appState: AppState) {
     // 1. Clear Keychain
     TokenManager.shared.clearToken()
 
@@ -139,12 +142,14 @@ func logout() {
     UserDefaults.standard.removeObject(forKey: "LoggedInPassword")
     //UserDefaults.standard.set(false, forKey: "FaceIDEnabled")
     UserDefaults.standard.set(false, forKey: "HasLoggedInBefore")
-
+    //appState.selectedTab = 0
+    appState.isLoggedIn = false//7 may
+    
     print("All session data cleared")
 }
 
 #Preview {
     MoreOptionsView()
-        .environmentObject(LanguageManager()) // 👈 Add this line
+        .environmentObject(LanguageManager()) // Add this line
 
 }

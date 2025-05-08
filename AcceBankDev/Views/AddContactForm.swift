@@ -559,7 +559,7 @@ struct ContactConfirmationView: View {
 
             "Name": name,
 
-            "Email": email,
+            "Email": email.lowercased(), //email
 
             "ContactNumber": mobilePhone,
 
