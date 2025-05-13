@@ -33,11 +33,29 @@ import SwiftUI
             NavigationStack {
                 if appState.isLoggedIn {
                     MainView()
+                        .environmentObject(appState)
                 } else {
                     LoginView()
+                        .environmentObject(appState)
                 }
             }
         }
+//        var body: some View {
+//               NavigationStack {
+//                   if appState.isLoggedIn {
+//                       // Example: Show RootViewLauncher ONLY if starting on Cheque Deposit screen
+//                       if appState.startOnChequeDeposit {
+//                           RootViewLauncher()
+//                       } else {
+//                           MainView()
+//                               .environmentObject(appState)
+//                       }
+//                   } else {
+//                       LoginView()
+//                           .environmentObject(appState)
+//                   }
+//               }
+//           }
     }
 
     struct ContentView_Previews: PreviewProvider {

@@ -12,6 +12,9 @@ import SwiftData
 struct AcceBankDevApp: App {
     @StateObject var languageManager = LanguageManager()
     @StateObject var appState = AppState()
+    init() {
+            TokenManager.shared.loadUserInfoFromStorage()
+        }
 
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
@@ -30,7 +33,9 @@ struct AcceBankDevApp: App {
         WindowGroup {
             ContentView()
                 .environmentObject(languageManager)
-                .environmentObject(appState)
+                //.environmentObject(appState)
+                .environmentObject(AppState.shared)
+
 
         }
         .modelContainer(sharedModelContainer)

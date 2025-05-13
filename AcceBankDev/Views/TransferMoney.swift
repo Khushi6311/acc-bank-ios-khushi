@@ -55,12 +55,18 @@ struct TransferMoneyScreen: View {
 
     @State private var bankAccounts: [BankAccount] = []
     @StateObject private var contactManager = ContactManager() // Declare here one time
+    @EnvironmentObject var appState: AppState
+
     var body: some View {
         //ScrollView {
             VStack (spacing: 0){
                 // **Navigation Bar**
                 HStack {
-                    Button(action: { presentationMode.wrappedValue.dismiss() }) {
+                    Button(action: {
+                        appState.selectedTab = 1
+                        //presentationMode.wrappedValue.dismiss()
+                        UIApplication.shared.navigateToRoot()
+}) {
                         Image(systemName: "arrow.left")
                             .font(.title2)
                             .foregroundColor(.black)
@@ -173,7 +179,7 @@ struct TransferMoneyScreen: View {
                 Spacer().frame(height: 20)//space bet button and form
 
                 // **Dynamic Form Based on Selected Payment Type**
-                ScrollView{//scrrolview and vstack add to remove button scroll 
+                ScrollView{//scrrolview and vstack add to remove button scroll
                     VStack{
                     if selectedPaymentType == "My accounts"
                         {
@@ -250,9 +256,12 @@ struct TransferMoneyScreen: View {
                 }
                 }
             }
+        
             .padding(.horizontal, 10)
             .onAppear {
                 fetchAccounts()
+               // showConfirmationSheet = false
+                
             }
         //}
             
@@ -262,6 +271,8 @@ struct TransferMoneyScreen: View {
     
     
     func fetchAccounts() {
+        
+        
         guard let contactId = TokenManager.shared.getContactId() else {
             print("No Contact ID")
             return
@@ -376,7 +387,7 @@ func sendTransferAPI(
             "AccountNumberTo": toId,
             "Amount": cleanAmount,
             "Currency": "CAD",
-            "TransactionType": "Fund Transfer" 
+            "TransactionType": "Fund Transfer"
         ]
 
         if isRecurring {
@@ -683,7 +694,7 @@ struct MyAccountsTransferForm: View {
                                     showDateError = false
                                     showRecurringDateError = false
                                     showInsufficientFundsError = false
-//                                    
+//
 //                                    let today = Date()
 //                                            startDate = today
 //                                            startDateText = formatDate(today)
@@ -972,6 +983,7 @@ struct MyAccountsTransferForm: View {
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.top, 10)
                     .sheet(isPresented: $showConfirmationSheet) {
+                        
                         ConfirmationSheet(
                             fromAccount: $selectedFromAccount,
                             toAccount: $selectedToAccount,
@@ -1114,7 +1126,10 @@ struct TransferFormValidator {
         //let showTransferToError = selectedToAccount == nil
         let showTransferToError = selectedToAccount == nil && selectedContact == nil
 
-        let showAmountError = amount.trimmingCharacters(in: .whitespaces).isEmpty
+        //let showAmountError = amount.trimmingCharacters(in: .whitespaces).isEmpty//12 may
+        let amountValue = Double(amount.replacingOccurrences(of: "$", with: "").replacingOccurrences(of: ",", with: "").trimmingCharacters(in: .whitespaces)) ?? 0.0
+        let showAmountError = amountValue <= 0
+//added above for 0 amount 
         //let showMemoError = memo.trimmingCharacters(in: .whitespaces).isEmpty
         let showInsufficientFundsError = enteredAmount > availableBalance
         
@@ -1240,6 +1255,17 @@ extension UIApplication {
     func endEditing() {
         sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
     }
+    func navigateToRoot() {
+          guard let windowScene = connectedScenes.first as? UIWindowScene,
+                let window = windowScene.windows.first else { return }
+
+//          window.rootViewController = UIHostingController(rootView: MainView().environmentObject(AppState()))
+        window.rootViewController = UIHostingController(rootView: MainView().environmentObject(AppState.shared))
+
+          window.makeKeyAndVisible()
+      }
+    
+    
 }
 
 struct AnotherMemberTransferForm: View {
@@ -1651,6 +1677,7 @@ struct AnotherMemberTransferForm: View {
                     transactionId: $transactionId,
                     selectedContact: $selectedContact,
                     onConfirm: {
+                        
                                 sendTransferAPI(
                                     fromAccount: selectedFromAccount,
                                     toAccount: nil,
@@ -1986,6 +2013,7 @@ struct ConfirmationSheet: View {
                 print("Transaction confirmed")
                 //sendTransferAPI()
                 onConfirm()
+                
                 //presentationMode.wrappedValue.dismiss()
                 navigateToSummary = true // Show summary screen
 
@@ -2037,6 +2065,7 @@ struct TransferRequest: Codable {
 }
 
 struct SummarySheet: View { //SummarySheet
+    
 //    var fromAccount: BankAccount?
 //    var toAccount: BankAccount?
 //    var amount: String
@@ -2066,7 +2095,9 @@ struct SummarySheet: View { //SummarySheet
        var selectedFrequency: String?
        var startDateText: String?
        var endDateText: String?
+    
     @Environment(\.presentationMode) var presentationMode
+    @EnvironmentObject var appState: AppState
 
     var body: some View {
         ScrollView {
@@ -2228,6 +2259,8 @@ struct SummarySheet: View { //SummarySheet
                 
                 //added new button
                 Button(action: {
+                    //TokenManager.shared.setFlagToOpenTransfer()//added on 9 may
+
                     navigateToTransferMoney = true
                 }) {
                     Text(NSLocalizedString("continue_with_new_transfer", comment: "Continue with new transfer button"))
@@ -2245,6 +2278,8 @@ struct SummarySheet: View { //SummarySheet
                 }
                 .fullScreenCover(isPresented: $navigateToTransferMoney) {
                     TransferMoneyScreen() // Your Transfer Money screen view
+                    
+                        .environmentObject(appState)
                 }
                 .padding(.horizontal)
                 .padding(.bottom, 20) // consiste

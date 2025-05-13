@@ -111,7 +111,8 @@ struct PayBillScreen: View {
     @State private var payeePaymentDetails: [PayeePaymentDetails] = []
     @State private var payeeRecurringDetails: [PayeeRecurringDetails] = []
 
-    
+    @EnvironmentObject var appState: AppState
+
     @Environment(\.dismiss)  var dismiss
 
     var body: some View {
@@ -120,8 +121,11 @@ struct PayBillScreen: View {
                 // Top Bar with Back Button
                 HStack {
                     Button(action: {
+                        appState.selectedTab = 1
                         //presentationMode.wrappedValue.dismiss()
-                        dismiss()
+                        UIApplication.shared.navigateToRoot()
+                        //presentationMode.wrappedValue.dismiss()
+                        //dismiss()
 
                     }) {
                         Image(systemName: "arrow.left")
@@ -1892,6 +1896,7 @@ struct BillConfirmationSheet: View {
 
 
                     }
+                
                 navigateToSummary = true
             }) {
                 Text(NSLocalizedString("pay_now", comment: ""))
@@ -2393,6 +2398,7 @@ struct BillSendSheet: View {
 
                 // Done button
                 Button(action: {
+                    
                     navigateToMainView = true
                 }) {
                     Text(NSLocalizedString("done", comment: ""))

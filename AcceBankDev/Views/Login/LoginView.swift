@@ -30,7 +30,11 @@ class TokenManager {
 
 
     private init() {}
-    
+    func loadUserInfoFromStorage() {
+        self.firstName = UserDefaults.standard.string(forKey: "LoggedInFirstName") ?? ""
+        self.lastName = UserDefaults.standard.string(forKey: "LoggedInLastName") ?? ""
+    }
+
     //contact
     func saveContactId(_ contactId: String) {
         keychain[contactIdKey] = contactId
@@ -344,6 +348,7 @@ struct LoginView: View {
                                         .font(.system(size: 18))
                                     
                                     Spacer()
+                           
                                     
 //                                    Button(action: {
 //                                        navigateToRegister = true
@@ -355,6 +360,35 @@ struct LoginView: View {
 //                                            .foregroundColor(.white)
 //                                            .underline()
 //                                    }
+                                    
+                                   // HStack {
+                                        Menu {
+                                            Button("English") {
+                                                languageManager.selectedLanguage = "en"
+                                                Bundle.setLanguage("en")
+                                                changeLanguage(to: "en")
+                                            }
+
+                                            Button("Français") {
+                                                languageManager.selectedLanguage = "fr"
+                                                Bundle.setLanguage("fr")
+                                                changeLanguage(to: "fr")
+                                            }
+                                        } label: {
+                                            HStack(spacing: 5) {
+                                                Text(languageManager.selectedLanguage.uppercased())
+                                                    .foregroundColor(.white)
+                                                Image(systemName: "chevron.down")
+                                                    .foregroundColor(.white)
+                                            }
+                                            .padding(.horizontal, 16)
+                                            .padding(.vertical, 8)
+                                            .background(Color.black.opacity(0.3))
+                                            .cornerRadius(10)
+                                        }
+
+                                        //Spacer()
+                                    //}
                                 }
                                 .frame(width: 350, alignment: .leading)
                                 .padding(.horizontal, 40)
@@ -373,32 +407,35 @@ struct LoginView: View {
                                 .frame(width: 340, alignment: .leading)
                                 //.padding(.horizontal, 10)
                                 //#########
-                                HStack {
-                                    //Spacer()
-                                    Menu {
-                                        Button(action: {
-                                            languageManager.selectedLanguage = "en"
-                                        }) {
-                                            Text("English")
-                                        }
-                                        Button(action: {
-                                            languageManager.selectedLanguage = "fr"
-                                        }) {
-                                            Text("Français")
-                                        }
-                                    } label: {
-                                        //Text("Select Language") //  Same style as Register
-                                        Text(NSLocalizedString("select_language", comment: ""))
-                                        
-                                            .font(.system(size: 18, weight: .bold))
-                                            .foregroundColor(.white)
-                                            .underline()
-                                    }
-                                    Spacer()
-                                }
-                                .frame(width: 320) // Ensures proper width alignment
-                                
-                                .padding(.top, 5) //
+//                                HStack {
+//                                    //Spacer()
+//                                    Menu {
+//                                        Button(action: {
+//                                            languageManager.selectedLanguage = "en"
+//                                        }) {
+//                                            Text("English")
+//                                        }
+//                                        Button(action: {
+//                                            languageManager.selectedLanguage = "fr"
+//                                        }) {
+//                                            Text("Français")
+//                                        }
+//                                    } label: {
+//                                        //Text("Select Language") //  Same style as Register
+//                                        Text(NSLocalizedString("select_language", comment: ""))
+//                                        
+//                                            .font(.system(size: 18, weight: .bold))
+//                                            .foregroundColor(.white)
+//                                            .underline()
+//                                    }
+//                                    Spacer()
+//                                }
+//                                .frame(width: 320) // Ensures proper width alignment
+//                                
+//                                .padding(.top, 5) //
+                                //new code for button
+                               
+
                                 // Sign In Button
                                 Button(action: {
                                     verifyLogin()
@@ -493,9 +530,9 @@ struct LoginView: View {
 
                 //}
                 .frame(width: screenWidth, height: screenHeight)
-//                .navigationDestination(isPresented: $navigateToWelcome) {
-//                    MainView()
-//                }
+                .navigationDestination(isPresented: $navigateToWelcome) {
+                    MainView()
+                }
                 .navigationDestination(isPresented: $navigateToOTP) {
 //                    OTPVerificationView(token: UserDefaults.standard.string(forKey: "AuthToken") ?? "")
 //                    OTPVerificationView(token: TokenManager.shared.getToken() ?? "")
@@ -599,7 +636,15 @@ struct LoginView: View {
                             if let contactId = contactId {
                                 TokenManager.shared.saveContactId(contactId)
                             }
+                            if let firstName = json["firstName"] as? String {
+                                TokenManager.shared.firstName = firstName
+                                UserDefaults.standard.set(firstName, forKey: "LoggedInFirstName")
+                            }
 
+                            if let lastName = json["lastName"] as? String {
+                                TokenManager.shared.lastName = lastName
+                                UserDefaults.standard.set(lastName, forKey: "LoggedInLastName")
+                            }
                             let faceIDAlreadyEnabled = UserDefaults.standard.bool(forKey: "FaceIDEnabled")
                             if !faceIDAlreadyEnabled {
                                 showFaceIDPrompt = true
@@ -607,6 +652,8 @@ struct LoginView: View {
                             }
 
                             if isFaceIDLogin {
+                                print("✅ Navigating to MainView after Face ID login")
+
                                 navigateToWelcome = true
                             } else {
                                 navigateToOTP = true
@@ -753,7 +800,17 @@ struct LoginView: View {
     private func authenticateWithFaceID() {
         let context = LAContext()
         var error: NSError?
-
+        // ✅ DEBUG block to print Face ID capability status
+           if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) {
+               print("✅ Biometrics are available")
+               if context.biometryType == .faceID {
+                   print("✅ Face ID is available")
+               } else {
+                   print("❌ Biometry type is: \(context.biometryType.rawValue)")
+               }
+           } else {
+               print("❌ Biometrics not available: \(error?.localizedDescription ?? "Unknown error")")
+           }
         if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) {
             context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: "Enable Face ID for future logins") { success, authenticationError in
                 DispatchQueue.main.async {
@@ -795,9 +852,16 @@ private func changeLanguage(to language: String) {
         UserDefaults.standard.synchronize()
         
         // Restart app to apply changes
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            exit(0)
-        }
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+//            exit(0)
+//        }
+    if ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] != "1" {
+           DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+               exit(0)
+           }
+       } else {
+           print(" Preview: Skipping exit(0) to prevent crash.")
+       }
     }
 
 struct LoginResponse: Decodable {
@@ -811,5 +875,7 @@ struct LoginView_Previews: PreviewProvider {
     static var previews: some View {
         LoginView()
             .environmentObject(AppState())
+            .environment(\.locale, .init(identifier: "fr")) // For testing French
+
     }
 }

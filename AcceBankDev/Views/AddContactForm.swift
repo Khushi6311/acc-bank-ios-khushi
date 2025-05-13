@@ -75,7 +75,9 @@ struct AddContactFormView: View {
 
                         .padding().background(Color(.systemGray6)).cornerRadius(8)
                     //added for disable error msg
-                        .onChange(of: name) { _ in
+                        //.onChange(of: name) { _ in
+                        .onChange(of: name) { oldValue, newValue in
+
                                 nameErrorMessage = nil
                             }
 
@@ -98,7 +100,9 @@ struct AddContactFormView: View {
 
                         .padding().background(Color(.systemGray6)).cornerRadius(8)
                     //added for disable error msg
-                        .onChange(of: email) { _ in
+                        //.onChange(of: email) { _ in
+                        .onChange(of: email) { oldValue, newValue in
+
                                 emailErrorMessage = nil
                             }
                     if let error = emailErrorMessage {
@@ -176,7 +180,9 @@ struct AddContactFormView: View {
 
                             .padding().background(Color(.systemGray6)).cornerRadius(8)
                         //added for disable error msg
-                            .onChange(of: mobilePhone) { _ in
+                            //.onChange(of: mobilePhone) { _ in
+                            .onChange(of: mobilePhone) { oldValue, newValue in
+
                                 mobilePhoneErrorMessage = nil
                                }
                             .onChange(of: mobilePhone) {_, newVal in
@@ -208,12 +214,16 @@ struct AddContactFormView: View {
  
                     Toggle(NSLocalizedString("send_transfers_by_email", comment: ""), isOn: $sendByEmail)
                     //added for disable error msg
-                        .onChange(of: sendByEmail) { _ in
+                        //.onChange(of: sendByEmail) { _ in
+                        .onChange(of: sendByEmail) { oldValue, newValue in
+
                                 transferMethodError = false
                             }
                     Toggle(NSLocalizedString("send_transfers_by_mobile", comment: ""), isOn: $sendByMobile)
                     //added for disable error msg
-                        .onChange(of: sendByMobile) { _ in
+                       // .onChange(of: sendByMobile) { _ in
+                        .onChange(of: sendByMobile) { oldValue, newValue in
+
                                transferMethodError = false
                            }
                     if transferMethodError {

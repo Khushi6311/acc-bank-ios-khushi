@@ -52,6 +52,7 @@ import SwiftUI
 struct MainView: View {
     @EnvironmentObject var appState: AppState
     @State private var username: String = UserDefaults.standard.string(forKey: "SavedUsername") ?? "Guest"
+    @State private var showDepositChequeView = false
 
     var body: some View {
         
@@ -66,7 +67,9 @@ struct MainView: View {
         }
         .edgesIgnoringSafeArea(.bottom)
         .navigationBarBackButtonHidden(true)
+        
     }
+    @ViewBuilder
 
     private var selectedView: some View {
         Group {
@@ -78,13 +81,25 @@ struct MainView: View {
             case 2:
                 MainOptionsView()
             case 3:
-                DepositChequeView()
+                Color.clear // Placeholder view
+                        .onAppear {
+                            showDepositChequeView = true
+                        }
+
+                //DepositChequeView()
+               // DepositChequeView(keyboard: appState.keyboard)
+
             case 4:
                 MoreOptionsView()
             default:
                 HomePageView(username: username, cardNumber: "1234")
             }
         }
+        .fullScreenCover(isPresented: $showDepositChequeView) {
+            DepositChequeView()
+                .environmentObject(appState)
+        }
+
     }
 }
 

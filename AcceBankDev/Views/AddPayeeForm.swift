@@ -61,7 +61,9 @@ struct AddPayeeFormView: View {
                        .background(Color(.systemGray6))
                        .cornerRadius(10)
                 //for remove error msg
-                       .onChange(of: payeeName) { _ in
+                       //.onChange(of: payeeName) { _ in
+                       .onChange(of: payeeName) { oldValue, newValue in
+
                                showPayeeNameError = false
                            }
                 if showPayeeNameError {
@@ -152,7 +154,9 @@ struct AddPayeeFormView: View {
                     .cornerRadius(8)
                     //.padding(.horizontal)
                 //for remove error msg
-                    .onChange(of: accountNumber) { _ in
+                    //.onChange(of: accountNumber) { _ in
+                    .onChange(of: accountNumber) { oldValue, newValue in
+
                             showAccountError = false
                         }
                 if showAccountError {

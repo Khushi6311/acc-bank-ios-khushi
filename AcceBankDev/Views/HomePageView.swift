@@ -195,6 +195,7 @@ struct HomePageView: View {
                 }
                 .onAppear {
                     fetchAccounts()
+                    
                 }
             }
         }

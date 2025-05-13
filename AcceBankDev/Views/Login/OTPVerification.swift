@@ -161,7 +161,12 @@ struct OTPVerificationView: View {
                                 appState.selectedTab = 0 // switch to HomePage tab
                                 UserDefaults.standard.set(true, forKey: "HasLoggedInBefore");
                                 //isVerified = true
-                                dismiss()
+                                //dismiss()
+                                if ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] != "1" {
+                                       dismiss()
+                                   } else {
+                                       print("Preview: Skipping dismiss() to prevent preview exit.")
+                                   }
                             } else {
                                 let message = json["message"] as? String ?? NSLocalizedString("otp_verification_failed", comment: "")
                                 errorMessage = message.localizedCaseInsensitiveContains("token")
@@ -201,6 +206,7 @@ struct OTPVerificationView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationStack {
             OTPVerificationView(token: "mock-token-123")
+               .environmentObject(AppState())
         }
     }
 }
