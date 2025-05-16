@@ -250,7 +250,7 @@ struct Step1View: View {
 
                 .font(.body)
                 .multilineTextAlignment(.leading) // Or .center if you want it centered
-                    .fixedSize(horizontal: false, vertical: true) // 🔥 This allows wrapping
+                    .fixedSize(horizontal: false, vertical: true) //  This allows wrapping
                     .frame(maxWidth: .infinity, alignment: .leading)
             VStack(alignment: .leading, spacing: 6) {
                                       //Text("Important:")
@@ -266,6 +266,9 @@ struct Step1View: View {
                                           Text(NSLocalizedString("step_important_note_2", comment: ""))
                                       }
                                       .font(.footnote)
+                                      .multilineTextAlignment(.leading)
+                                      .fixedSize(horizontal: false, vertical: true)
+                                      //.padding(.horizontal)
                                   }
             // Account selection
 //            Button(action: { showAccountSheet.toggle() }) {
@@ -333,12 +336,12 @@ struct Step1View: View {
                        .padding()
                        .background(RoundedRectangle(cornerRadius: 8).stroke(Color.gray))
                    }
-            if showAccountError {
-                //Text("Please select an account.")
-                Text(NSLocalizedString("please_select_account", comment: ""))
-
-                    .foregroundColor(.red).font(.caption)
-            }
+//            if showAccountError {
+//                //Text("Please select an account.")
+//                Text(NSLocalizedString("please_select_account", comment: ""))
+//
+//                    .foregroundColor(.red).font(.caption)
+//            }
 
             // Amount field
             //TextField("Amount", text: $amount)
@@ -412,7 +415,7 @@ struct Step1View: View {
 
     private func validateAndContinue() {
         showAmountError = amount.trimmingCharacters(in: .whitespaces).isEmpty
-        showAccountError = accountManager.selectedAccount == nil
+        //showAccountError = accountManager.selectedAccount == nil
         if !showAmountError && !showAccountError {
             onContinue()
         }
@@ -442,6 +445,9 @@ struct Step2View: View {
             Text(NSLocalizedString("cheque_photo_instruction", comment: ""))
 
                 .font(.body)
+                .multilineTextAlignment(.leading)
+                .fixedSize(horizontal: false, vertical: true)
+                //.padding(.horizontal)
             VStack(alignment: .leading, spacing: 6) {
 //                           Text("• Ensure your camera lens is clean")
 //                           Text("• Make sure the entire cheque is within the defined perimeter. It cannot touch the guide box")
@@ -457,7 +463,9 @@ struct Step2View: View {
                 Text(NSLocalizedString("camera_tip_flash_toggle", comment: ""))
                        }
                        .font(.footnote)
-
+                       .multilineTextAlignment(.leading)
+                       .fixedSize(horizontal: false, vertical: true)
+                      // .padding(.horizontal)
 
             Button(action: {
                 // Camera logic
@@ -522,6 +530,8 @@ struct Step2View: View {
         
             Button(action: {
                 onContinue()
+                
+                //below is for required cmaera photo
 //                showFrontError = chequeFrontImage == nil
 //                                showBackError = chequeBackImage == nil
 //                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
@@ -599,8 +609,8 @@ struct ChequeConfirmationSheet: View {
                         LabelValueView(label: NSLocalizedString("deposit_to", comment: ""),
                                        value: "\(selectedAccount?.accountType ?? "") - \(selectedAccount?.accountNumber ?? "")")
 
-                        LabelValueView(label: NSLocalizedString("transaction_id", comment: ""),
-                                       value: transactionId)
+//                        LabelValueView(label: NSLocalizedString("transaction_id", comment: ""),
+//                                       value: transactionId)
 
                         LabelValueView(label: NSLocalizedString("deposit_date", comment: ""),
                                        value: formattedDate)
@@ -691,27 +701,51 @@ struct ChequeConfirmationSheet: View {
 //}
 struct ChequeImageView: View {
     var image: UIImage
+    let chequeImageHeight: CGFloat = 220
 
     var body: some View {
-        GeometryReader { geometry in
-            let isPortrait = image.size.height > image.size.width
+        let uprightLandscapeImage = image.fixedToUprightLandscape()
 
-            Image(uiImage: image)
-                .resizable()
-                .aspectRatio(contentMode: .fit) // Ensures full image fits in the box
-                .frame(width: geometry.size.width)
-            .rotationEffect(isPortrait ? .degrees(270) : .degrees(0))
-
-                .cornerRadius(10)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .stroke(Color.gray.opacity(0.3))
-                )
-                .background(Color.white) // Optional background for contrast
-        }
-        .frame(height: 220) // Adjust height as needed to accommodate landscape images
+        Image(uiImage: uprightLandscapeImage)
+            .resizable()
+            .aspectRatio(contentMode: .fit)
+            .frame(maxWidth: .infinity, maxHeight: chequeImageHeight)
+            .clipped()
+            .cornerRadius(10)
+            .overlay(
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(Color.gray.opacity(0.3))
+            )
+            .background(Color.white)
     }
 }
+
+
+
+
+//struct ChequeImageView: View {
+//    var image: UIImage
+//
+//    var body: some View {
+//        GeometryReader { geometry in
+//            let isPortrait = image.size.height > image.size.width
+//
+//            Image(uiImage: image)
+//                .resizable()
+//                .aspectRatio(contentMode: .fit) // Ensures full image fits in the box
+//                .frame(width: geometry.size.width)
+//            .rotationEffect(isPortrait ? .degrees(270) : .degrees(0))
+//
+//                .cornerRadius(10)
+//                .overlay(
+//                    RoundedRectangle(cornerRadius: 10)
+//                        .stroke(Color.gray.opacity(0.3))
+//                )
+//                .background(Color.white) // Optional background for contrast
+//        }
+//        .frame(height: 220) // Adjust height as needed to accommodate landscape images
+//    }
+//}
 
 // MARK: - Helper View
 struct LabelValueView: View {

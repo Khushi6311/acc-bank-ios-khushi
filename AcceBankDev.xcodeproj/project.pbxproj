@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		00A0C6E32DD70774003F9BD3 /* CropViewController in Frameworks */ = {isa = PBXBuildFile; productRef = 00A0C6E22DD70774003F9BD3 /* CropViewController */; };
 		00BB82D02DAF89A00065D94B /* KeychainAccess in Frameworks */ = {isa = PBXBuildFile; productRef = 00BB82CF2DAF89A00065D94B /* KeychainAccess */; };
 		00CD9BA02D70973E00B932D6 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 00CD9B9E2D70973E00B932D6 /* Localizable.strings */; };
 		CDE0F6D22D8946F30059ECA9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CDE0F6D12D8946F30059ECA9 /* Assets.xcassets */; };
@@ -77,6 +78,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				00BB82D02DAF89A00065D94B /* KeychainAccess in Frameworks */,
+				00A0C6E32DD70774003F9BD3 /* CropViewController in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -148,6 +150,7 @@
 			name = AcceBankDev;
 			packageProductDependencies = (
 				00BB82CF2DAF89A00065D94B /* KeychainAccess */,
+				00A0C6E22DD70774003F9BD3 /* CropViewController */,
 			);
 			productName = AcceBankDev;
 			productReference = 003F0DBD2D6373F100EF3FA5 /* AcceBankDev.app */;
@@ -234,6 +237,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				00BB82CD2DAF883D0065D94B /* XCRemoteSwiftPackageReference "KeychainAccess" */,
+				00A0C6E12DD706E6003F9BD3 /* XCRemoteSwiftPackageReference "TOCropViewController" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 003F0DBE2D6373F100EF3FA5 /* Products */;
@@ -667,6 +671,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		00A0C6E12DD706E6003F9BD3 /* XCRemoteSwiftPackageReference "TOCropViewController" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/TimOliver/TOCropViewController";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.7.4;
+			};
+		};
 		00BB82CD2DAF883D0065D94B /* XCRemoteSwiftPackageReference "KeychainAccess" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/kishikawakatsumi/KeychainAccess";
@@ -678,6 +690,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		00A0C6E22DD70774003F9BD3 /* CropViewController */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 00A0C6E12DD706E6003F9BD3 /* XCRemoteSwiftPackageReference "TOCropViewController" */;
+			productName = CropViewController;
+		};
 		00BB82CF2DAF89A00065D94B /* KeychainAccess */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 00BB82CD2DAF883D0065D94B /* XCRemoteSwiftPackageReference "KeychainAccess" */;

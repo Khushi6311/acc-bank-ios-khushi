@@ -30,15 +30,16 @@ import SwiftUI
         @EnvironmentObject var appState: AppState
         @EnvironmentObject var languageManager: LanguageManager
         var body: some View {
-            NavigationStack {
-                if appState.isLoggedIn {
-                    MainView()
-                        .environmentObject(appState)
-                } else {
-                    LoginView()
-                        .environmentObject(appState)
-                }
-            }
+//            NavigationStack {
+//                if appState.isLoggedIn {
+//                    MainView()
+//                        .environmentObject(appState)
+//                } else {
+//                    LoginView()
+//                        .environmentObject(appState)
+//                }
+//            }
+            DepositChequeView()
         }
 //        var body: some View {
 //               NavigationStack {

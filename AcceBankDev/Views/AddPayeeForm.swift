@@ -305,6 +305,7 @@ struct AddPayeeFormView: View {
         savePayeeToAPI()
 
         let finalPayeeName = !payeeName.isEmpty ? payeeName : selectedPayee
+        //let newPayee = Payee(
         let newPayee = Payee(
             payeeId: UUID().uuidString,
             payeeName: finalPayeeName,
